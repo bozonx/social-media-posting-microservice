@@ -67,53 +67,23 @@ channels:
     auth:
       botToken: ${TELEGRAM_BOT_TOKEN}
       chatId: ${TELEGRAM_CHAT_ID}
+
+    # Режим парсинга для Telegram
+    parseMode: HTML
     
-    # Опции провайдера
-    options:
-      # Режим парсинга для Telegram
-      parseMode: HTML
-      
-      # Отключить уведомления по умолчанию
-      disableNotification: false
-      
-      # Конвертировать body автоматически
-      convertBody: true
-      
-      # Формат body по умолчанию
-      bodyFormat: html
+    # Отключить уведомления по умолчанию
+    disableNotification: false
     
-    # Лимиты платформы
-    limits:
-      # Максимальная длина текста сообщения
-      maxTextLength: 4096
-      
-      # Максимальная длина подписи к медиа
-      maxCaptionLength: 1024
+    # Конвертировать body автоматически
+    convertBody: true
+    
+    # Формат body по умолчанию
+    bodyFormat: html
+
+    # Максимальная длина текста сообщения
+    maxTextLength: 4096
+    
+    # Максимальная длина подписи к медиа
+    maxCaptionLength: 1024
   
   # Остальные социальные сети будут добавлены в следующих версиях
-  # Примеры структуры для других провайдеров:
-  
-  # company_vk:
-  #   provider: vk
-  #   enabled: false
-  #   auth:
-  #     accessToken: ${VK_ACCESS_TOKEN}
-  #     groupId: ${VK_GROUP_ID}
-  #   options:
-  #     fromGroup: true
-  #     convertBody: true
-  #     bodyFormat: text
-  
-  # personal_twitter:
-  #   provider: x
-  #   enabled: false
-  #   auth:
-  #     apiKey: ${X_API_KEY}
-  #     apiSecret: ${X_API_SECRET}
-  #     accessToken: ${X_ACCESS_TOKEN}
-  #     accessTokenSecret: ${X_ACCESS_TOKEN_SECRET}
-  #   options:
-  #     convertBody: true
-  #     bodyFormat: text
-  #   limits:
-  #     maxTextLength: 280

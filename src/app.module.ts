@@ -7,6 +7,8 @@ import { AllExceptionsFilter } from '@common/filters/all-exceptions.filter';
 import appConfig from '@config/app.config';
 import type { AppConfig } from '@config/app.config';
 import pkg from '../package.json';
+import { PostModule } from '@modules/post/post.module';
+import { AppConfigModule } from '@modules/app-config/app-config.module';
 
 @Module({
   imports: [
@@ -32,15 +34,15 @@ import pkg from '../package.json';
             },
             transport: isDev
               ? {
-                  target: 'pino-pretty',
-                  options: {
-                    colorize: true,
-                    singleLine: false,
-                    translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
-                    ignore: 'pid,hostname',
-                    messageFormat: '[{context}] {msg}',
-                  },
-                }
+                target: 'pino-pretty',
+                options: {
+                  colorize: true,
+                  singleLine: false,
+                  translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
+                  ignore: 'pid,hostname',
+                  messageFormat: '[{context}] {msg}',
+                },
+              }
               : undefined,
             serializers: {
               req: req => ({
@@ -89,6 +91,8 @@ import pkg from '../package.json';
       },
     }),
     HealthModule,
+    AppConfigModule,
+    PostModule,
   ],
   controllers: [],
   providers: [
@@ -98,4 +102,4 @@ import pkg from '../package.json';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

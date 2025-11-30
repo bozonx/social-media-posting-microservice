@@ -53,7 +53,7 @@ interface PostRequest {
    * Уникальное имя социальной сети
    * @example "telegram", "x", "instagram", "youtube", "vk", "facebook", "tiktok", "mastodon"
    */
-  sm: string;
+  platform: string;
   
   /**
    * Основной контент поста/статьи
@@ -146,7 +146,7 @@ interface PostRequest {
    * - Twitter/X: reply_to_tweet_id, poll options
    * - Instagram: location, tagged_users
    */
-  additional?: Record<string, any>;
+  platformData?: Record<string, any>;
   
   /**
    * Теги/хэштеги для публикации
@@ -161,13 +161,13 @@ interface PostRequest {
   scheduledAt?: string;
   
   /**
-   * Язык контента (ISO 639-1)
-   * @example "ru", "en", "es"
+   * Язык контента в том виде в котором запрашивает соц. сеть
+   * @example "ru-RU", "en", "es"
    */
   language?: string;
   
   /**
-   * Режим публикации
+   * Режим публикации. Если поддреживает соц. сеть
    * @default "publish"
    */
   mode?: 'publish' | 'draft' | 'preview';
@@ -182,11 +182,6 @@ interface PostRequest {
    * Webhook URL для отправки статуса публикации
    */
   webhookUrl?: string;
-  
-  /**
-   * Метаданные для внутреннего использования (не передаются в соц. сеть)
-   */
-  metadata?: Record<string, any>;
 }
 
 enum PostType {
@@ -243,9 +238,9 @@ interface PostResponse {
     publishedAt: string;
     
     /**
-     * Дополнительная информация от платформы
+     * Ответ от платформы как есть
      */
-    platformData?: Record<string, any>;
+    raw?: Record<string, any>;
     
     /**
      * ID запроса для отслеживания
@@ -277,13 +272,9 @@ interface ErrorResponse {
     details?: Record<string, any>;
     
     /**
-     * Оригинальная ошибка от платформы (если применимо)
+     * Ответ от платформы как есть
      */
-    platformError?: {
-      code: string | number;
-      message: string;
-      details?: any;
-    };
+    raw?: Record<string, any>;
     
     /**
      * ID запроса для отслеживания
@@ -293,38 +284,11 @@ interface ErrorResponse {
 }
 ```
 
-### 2.2. Дополнительные эндпоинты
-
-#### Проверка статуса публикации
-
-```
-GET /{API_BASE_PATH}/v1/post/:platform/:postId
-```
-
-#### Получение информации о провайдере
-
-```
-GET /{API_BASE_PATH}/v1/providers
-GET /{API_BASE_PATH}/v1/providers/:platform
-```
-
-Возвращает информацию о поддерживаемых платформах, типах контента и доступных параметрах.
-
-#### Валидация запроса без публикации
-
-```
-POST /{API_BASE_PATH}/v1/validate
-```
-
-Проверяет корректность запроса и параметров без фактической публикации.
-
-#### Предпросмотр контента
+#### Валидирует и возвращает предпросмотр того что будет отправлено на платформу
 
 ```
 POST /{API_BASE_PATH}/v1/preview
 ```
-
-Возвращает результат конвертации и предобработки контента без публикации.
 
 ---
 
@@ -465,18 +429,18 @@ graph TD
 
 **Пример структуры (`config.yaml`):**
 
+файл конфигурации должен быть расположен в корне проекта - config.yaml - он будет источником истины для понимания структуры конфигурации
+
+
 ```yaml
 # Общие параметры
 common:
-  # Таймаут соединения с провайдером (мс)
-  connectionTimeout: 30000
+  # Таймаут соединения с провайдером (сек)
+  connectionTimeoutSecs: 45
   
-  # Таймаут запроса (мс)
-  requestTimeout: 60000
-  
-  # Максимальный размер медиа-файла (байты)
-  maxMediaSize: 52428800  # 50 MB
-  
+  # Таймаут запроса (сек)
+  requestTimeoutSecs: 60
+
   # Автоматическая конвертация body (по умолчанию)
   convertBody: true
   
@@ -484,38 +448,18 @@ common:
   retryAttempts: 3
   
   # Задержка между попытками (мс)
-  retryDelay: 1000
-  
-  # Хранить историю публикаций
-  keepHistory: true
-  
-  # Директория для временных файлов
-  tempDir: /tmp/social-posting
+  retryDelayMs: 1000
 
 # Настройки конвертации
 conversion:
-  # Библиотека для HTML → Markdown
-  htmlToMarkdown: turndown
-  
-  # Библиотека для Markdown → HTML
-  markdownToHtml: marked
-  
-  # Опции для конвертации
-  options:
-    preserveLinks: true
-    stripHtml: false
+  preserveLinks: true
+  stripHtml: false
 
 # Настройки медиа-обработки
 media:
-  # Скачивать ли медиа по URL
-  downloadEnabled: true
-  
-  # Максимальное количество одновременных загрузок
-  maxConcurrentDownloads: 5
-  
   # Сжатие изображений
   imageCompression:
-    enabled: true
+    enabled: false
     quality: 85
     maxWidth: 2048
     maxHeight: 2048
@@ -523,6 +467,12 @@ media:
   # Конвертация видео (если требуется)
   videoConversion:
     enabled: false
+
+# Настройки провайдеров по умолчанию
+providers:
+  telegram:
+    sdkVersion: latest
+    maxRetries: 3
 
 # Каналы (именованные конфигурации)
 channels:
@@ -542,77 +492,8 @@ channels:
       maxTextLength: 4096
       maxCaptionLength: 1024
   
-  # Личный Twitter/X аккаунт
-  personal_twitter:
-    provider: x
-    enabled: true
-    auth:
-      apiKey: ${X_API_KEY}
-      apiSecret: ${X_API_SECRET}
-      accessToken: ${X_ACCESS_TOKEN}
-      accessTokenSecret: ${X_ACCESS_TOKEN_SECRET}
-    options:
-      convertBody: true
-      bodyFormat: text
-    limits:
-      maxTextLength: 280
-  
-  # YouTube канал
-  company_youtube:
-    provider: youtube
-    enabled: true
-    auth:
-      type: oauth2
-      clientId: ${YOUTUBE_CLIENT_ID}
-      clientSecret: ${YOUTUBE_CLIENT_SECRET}
-      refreshToken: ${YOUTUBE_REFRESH_TOKEN}
-    options:
-      defaultPrivacy: public
-      category: 22  # People & Blogs
-      convertBody: false
-    limits:
-      maxTitleLength: 100
-      maxDescriptionLength: 5000
-  
-  # VK группа
-  company_vk:
-    provider: vk
-    enabled: true
-    auth:
-      accessToken: ${VK_ACCESS_TOKEN}
-      groupId: ${VK_GROUP_ID}
-    options:
-      fromGroup: true
-      convertBody: true
-      bodyFormat: text
+  # остальные соц сети в следующих версиях
 
-# Настройки провайдеров по умолчанию
-providers:
-  telegram:
-    sdkVersion: latest
-    maxRetries: 3
-  
-  x:
-    sdkVersion: latest
-    maxRetries: 2
-  
-  instagram:
-    sdkVersion: latest
-    maxRetries: 2
-  
-  youtube:
-    sdkVersion: latest
-    maxRetries: 3
-  
-  vk:
-    sdkVersion: latest
-    maxRetries: 3
-
-# Webhook настройки
-webhooks:
-  enabled: true
-  timeout: 5000
-  retryAttempts: 3
 ```
 
 ### 4.2. Переменные окружения
@@ -628,33 +509,6 @@ TZ=UTC
 
 # Конфигурация
 CONFIG_PATH=/app/config/config.yaml
-
-# Telegram
-TELEGRAM_BOT_TOKEN=your_bot_token
-TELEGRAM_CHAT_ID=@your_channel
-
-# Twitter/X
-X_API_KEY=your_api_key
-X_API_SECRET=your_api_secret
-X_ACCESS_TOKEN=your_access_token
-X_ACCESS_TOKEN_SECRET=your_access_token_secret
-
-# YouTube
-YOUTUBE_CLIENT_ID=your_client_id
-YOUTUBE_CLIENT_SECRET=your_client_secret
-YOUTUBE_REFRESH_TOKEN=your_refresh_token
-
-# VK
-VK_ACCESS_TOKEN=your_access_token
-VK_GROUP_ID=your_group_id
-
-# Instagram
-INSTAGRAM_USER_ID=your_user_id
-INSTAGRAM_ACCESS_TOKEN=your_access_token
-
-# Facebook
-FACEBOOK_PAGE_ID=your_page_id
-FACEBOOK_ACCESS_TOKEN=your_access_token
 ```
 
 ---

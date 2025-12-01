@@ -39,24 +39,52 @@
 В `PostRequestDto` (`src/modules/post/dto/post-request.dto.ts`):
 
 ```typescript
-@IsOptional()
-@IsUrl()
-audio?: string;
+// Медиа-поля могут быть строкой (URL) или объектом MediaInput
+type MediaInput = string | {
+  url?: string;        // URL медиа-файла
+  fileId?: string;     // Telegram file_id (для уже загруженных файлов)
+  hasSpoiler?: boolean; // Скрыть медиа спойлером (для шокирующего контента)
+};
 
 @IsOptional()
-@IsUrl()
-attachment?: string;  // Альтернативное название для document
+audio?: MediaInput;
+
+@IsOptional()
+document?: MediaInput;
+
+@IsOptional()
+cover?: MediaInput;
+
+@IsOptional()
+video?: MediaInput;
+
+@IsOptional()
+media?: MediaInput[];
 ```
 
 **Примечание:**  
-- `audio` - URL аудио-файла
-- `attachment` (или `document`) - URL любого файла/документа
-- Поля опциональные и валидируются как URL
+- `audio` - аудио-файл (MP3, M4A для музыки/подкастов)
+- `document` - любой файл/документ (PDF, DOC, ZIP и т.д.)
+- `cover` - обложка/изображение
+- `video` - видео-файл
+- `media` - массив медиа для альбома/группы
 
-**Поддержка:**
-- ✅ Telegram - поддерживает оба типа
-- ✅ VK - поддерживает оба типа  
-- ✅ Discord - поддерживает attachments
+**Форматы передачи медиа:**
+1. **Строка (URL):** `"https://example.com/file.pdf"`
+2. **Объект с URL:** `{ "url": "https://example.com/file.pdf" }`
+3. **Объект с fileId:** `{ "fileId": "AgACAgIAAxkBAAIC..." }` (Telegram file_id)
+4. **Объект со спойлером:** `{ "url": "https://example.com/shock.jpg", "hasSpoiler": true }`
+
+**Поле `hasSpoiler`:**
+- Доступно для: `cover`, `video`, `media[]` (для фото и видео в Telegram)
+- Скрывает медиа под спойлером (требует клик для просмотра)
+- Используется для шокирующего или чувствительного контента
+- Поддерживается с Telegram Bot API 5.6+
+
+**Поддержка платформами:**
+- ✅ Telegram - поддерживает `audio`, `document`, `hasSpoiler`, `fileId`
+- ✅ VK - поддерживает `audio`, `document`
+- ✅ Discord - поддерживает `document` (attachments)
 - ❌ Instagram - не поддерживает
 - ❌ Twitter/X - ограниченная поддержка
 
@@ -70,7 +98,7 @@ attachment?: string;  // Альтернативное название для do
 
 ```
 1. media[]       → Медиа-группа (sendMediaGroup)
-2. attachment    → Приложенный файл (sendDocument)  
+2. document      → Приложенный файл (sendDocument)  
 3. audio         → Аудио-сообщение (sendAudio)
 4. video         → Видео-сообщение (sendVideo)
 5. cover         → Сообщение-картинка (sendPhoto)
@@ -86,7 +114,7 @@ attachment?: string;  // Альтернативное название для do
 **Действие:**
 - Использовать метод `sendMediaGroup` из Telegram Bot API
 - `body` используется как `caption` для первого элемента группы
-- Игнорируются: `cover`, `video`, `audio`, `attachment`
+- Игнорируются: `cover`, `video`, `audio`, `document`
 - Ограничение: максимум 10 элементов в группе
 
 **Пример запроса:**
@@ -105,9 +133,9 @@ attachment?: string;  // Альтернативное название для do
 
 ---
 
-#### 2. Проверка наличия `attachment` (приложенный файл)
+#### 2. Проверка наличия `document` (приложенный файл)
 
-**Условие:** `attachment && !media`
+**Условие:** `document && !media`
 
 **Действие:**
 - Использовать метод `sendDocument` из Telegram Bot API
@@ -122,7 +150,7 @@ attachment?: string;  // Альтернативное название для do
   "platform": "telegram",
   "type": "auto",
   "body": "Вот документ",
-  "attachment": "https://example.com/report.pdf"
+  "document": "https://example.com/report.pdf"
 }
 ```
 
@@ -130,7 +158,7 @@ attachment?: string;  // Альтернативное название для do
 
 #### 3. Проверка наличия `audio` (аудио-сообщение)
 
-**Условие:** `audio && !media && !attachment`
+**Условие:** `audio && !media && !document`
 
 **Действие:**
 - Использовать метод `sendAudio` из Telegram Bot API
@@ -154,7 +182,7 @@ attachment?: string;  // Альтернативное название для do
 
 #### 4. Проверка наличия `video` (видео-сообщение)
 
-**Условие:** `video && !media && !attachment && !audio`
+**Условие:** `video && !media && !document && !audio`
 
 **Действие:**
 - Использовать метод `sendVideo` из Telegram Bot API
@@ -177,7 +205,7 @@ attachment?: string;  // Альтернативное название для do
 
 #### 5. Проверка наличия `cover` (сообщение-картинка)
 
-**Условие:** `cover && !media && !attachment && !audio && !video`
+**Условие:** `cover && !media && !document && !audio && !video`
 
 **Действие:**
 - Использовать метод `sendPhoto` из Telegram Bot API
@@ -199,7 +227,7 @@ attachment?: string;  // Альтернативное название для do
 
 #### 6. Текстовое сообщение (по умолчанию)
 
-**Условие:** нет `cover`, `video`, `audio`, `attachment`, `media`
+**Условие:** нет `cover`, `video`, `audio`, `document`, `media`
 
 **Действие:**
 - Использовать метод `sendMessage` из Telegram Bot API
@@ -221,11 +249,11 @@ attachment?: string;  // Альтернативное название для do
 
 | Медиа-поля                                      | Метод Telegram API | Игнорируемые поля                  |
 |-------------------------------------------------|--------------------|------------------------------------|
-| `media[]`                                       | sendMediaGroup     | cover, video, audio, attachment    |
-| `attachment` (без media)                        | sendDocument       | cover, video, audio                |
-| `audio` (без media, attachment)                 | sendAudio          | cover, video                       |
-| `video` (без media, attachment, audio)          | sendVideo          | cover                              |
-| `cover` (без media, attachment, audio, video)   | sendPhoto          | -                                  |
+| `media[]`                                       | sendMediaGroup     | cover, video, audio, document      |
+| `document` (без media)                          | sendDocument       | cover, video, audio                |
+| `audio` (без media, document)                   | sendAudio          | cover, video                       |
+| `video` (без media, document, audio)            | sendVideo          | cover                              |
+| `cover` (без media, document, audio, video)     | sendPhoto          | -                                  |
 | нет медиа                                       | sendMessage        | -                                  |
 
 ---
@@ -240,8 +268,21 @@ attachment?: string;  // Альтернативное название для do
 - Поддерживаются те же форматы разметки, что и для обычных сообщений (HTML, Markdown)
 
 **Обработка:**
-- Если `body.length > 1024`, необходимо обрезать или вернуть ошибку валидации
+- Если `body.length > 1024` для медиа-сообщений → **вернуть ошибку валидации**
+- Если `body.length > 4096` для текстовых сообщений → **вернуть ошибку валидации**
 - Применяется конвертация формата (если `convertBody = true`)
+
+**Пример ошибки:**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Caption exceeds maximum length of 1024 characters (current: 1500)",
+    "field": "body"
+  }
+}
+```
 
 ---
 
@@ -256,9 +297,10 @@ attachment?: string;  // Альтернативное название для do
 | `postLanguage` | Telegram не требует указания языка контента               |
 | `tags`         | Telegram не имеет встроенной системы тегов (хештеги можно добавить в body) |
 | `mode`         | Telegram не поддерживает черновики через Bot API          |
+| `scheduledAt`  | Telegram Bot API не поддерживает нативный scheduled posting |
 
 **Рекомендация:**  
-При валидации для Telegram можно выводить предупреждение (warning), если эти поля заданы, но они будут проигнорированы.
+При валидации для Telegram можно выводить предупреждение (warning) в логи, если эти поля заданы, но они будут проигнорированы.
 
 ---
 
@@ -277,7 +319,7 @@ attachment?: string;  // Альтернативное название для do
 
 **Требования:**
 - `body` обязательно
-- Медиа-поля (`cover`, `video`, `audio`, `attachment`, `media`) должны отсутствовать
+- Медиа-поля (`cover`, `video`, `audio`, `document`, `media`) должны отсутствовать
 
 **Валидация:**
 - Если есть медиа-поля → вернуть ошибку: `"For type 'post', media fields must not be provided"`
@@ -295,7 +337,7 @@ attachment?: string;  // Альтернативное название для do
 
 **Валидация:**
 - Если `cover` отсутствует → вернуть ошибку: `"Field 'cover' is required for type 'image'"`
-- Если есть `media`, `video`, `audio`, `attachment` → **предупреждение** (они будут проигнорированы)
+- Если есть `media`, `video`, `audio`, `document` → **предупреждение** (они будут проигнорированы)
 
 **Метод API:** `sendPhoto`
 
@@ -311,7 +353,7 @@ attachment?: string;  // Альтернативное название для do
 - Если `media` отсутствует или пустой → вернуть ошибку: `"Field 'media' is required for type 'album'"`
 - Если `media.length < 2` → вернуть ошибку: `"Album must contain at least 2 media items"`
 - Если `media.length > 10` → вернуть ошибку: `"Album cannot contain more than 10 media items"`
-- Если есть `cover`, `video`, `audio`, `attachment` → **предупреждение** (они будут проигнорированы)
+- Если есть `cover`, `video`, `audio`, `document` → **предупреждение** (они будут проигнорированы)
 
 **Метод API:** `sendMediaGroup`
 
@@ -325,7 +367,7 @@ attachment?: string;  // Альтернативное название для do
 
 **Валидация:**
 - Если `video` отсутствует → вернуть ошибку: `"Field 'video' is required for type 'video'"`
-- Если есть `media`, `cover`, `audio`, `attachment` → **предупреждение** (они будут проигнорированы)
+- Если есть `media`, `cover`, `audio`, `document` → **предупреждение** (они будут проигнорированы)
 
 **Метод API:** `sendVideo`
 
@@ -339,7 +381,7 @@ attachment?: string;  // Альтернативное название для do
 
 **Валидация:**
 - Если `audio` отсутствует → вернуть ошибку: `"Field 'audio' is required for type 'audio'"`
-- Если есть `media`, `cover`, `video`, `attachment` → **предупреждение** (они будут проигнорированы)
+- Если есть `media`, `cover`, `video`, `document` → **предупреждение** (они будут проигнорированы)
 
 **Метод API:** `sendAudio`
 
@@ -348,11 +390,11 @@ attachment?: string;  // Альтернативное название для do
 #### `document` - приложенный файл
 
 **Требования:**
-- `attachment` обязательно
+- `document` обязательно
 - Остальные медиа-поля игнорируются
 
 **Валидация:**
-- Если `attachment` отсутствует → вернуть ошибку: `"Field 'attachment' is required for type 'document'"`
+- Если `document` отсутствует → вернуть ошибку: `"Field 'document' is required for type 'document'"`
 - Если есть `media`, `cover`, `video`, `audio` → **предупреждение** (они будут проигнорированы)
 
 **Метод API:** `sendDocument`
@@ -375,123 +417,219 @@ attachment?: string;  // Альтернативное название для do
 
 ---
 
-## 7. Вопросы и предложения
+## 7. Валидация неоднозначных медиа-полей
 
-### 7.1. Вопросы, требующие уточнения
+### 7.1. Проблема
 
-#### 1. Naming: `attachment` vs `document`
+Если пользователь передает несколько взаимоисключающих медиа-полей одновременно (например, `audio` и `video`), система не может однозначно определить, какой тип сообщения отправить.
 
-**Вопрос:**  
-Как лучше назвать поле для приложенных файлов?
+### 7.2. Решение
 
-**Варианты:**
-- `attachment` - более универсальное название, используется в Discord, Email
-- `document` - более специфичное для Telegram, соответствует методу `sendDocument`
+При `type = 'auto'` необходимо проверять, что переданы медиа-поля только для **одного** типа сообщения.
 
-**Рекомендация:**  
-Использовать `attachment` в общем API, но маппить его на `document` для Telegram провайдера.
+**Правило:** Если обнаружено более одного медиа-поля из разных категорий, вернуть ошибку валидации.
 
-**Альтернатива:**  
-Поддерживать оба поля как синонимы, где `attachment` имеет приоритет над `document`.
+**Категории медиа-полей:**
+1. **Медиа-группа:** `media[]`
+2. **Документ:** `document`
+3. **Аудио:** `audio`
+4. **Видео:** `video`
+5. **Изображение:** `cover`
 
----
+**Примеры ошибок:**
 
-#### 2. Обработка длинного `body` для caption
+```json
+// ❌ ОШИБКА: audio и video одновременно
+{
+  "platform": "telegram",
+  "body": "Контент",
+  "audio": "https://example.com/song.mp3",
+  "video": "https://example.com/clip.mp4"
+}
+// Ошибка: "Ambiguous media fields: cannot use 'audio' and 'video' together. Please specify only one media type or set explicit 'type'."
+```
 
-**Вопрос:**  
-Что делать, если `body` превышает 1024 символа для медиа-сообщений?
+```json
+// ❌ ОШИБКА: cover и video одновременно
+{
+  "platform": "telegram",
+  "body": "Контент",
+  "cover": "https://example.com/image.jpg",
+  "video": "https://example.com/clip.mp4"
+}
+// Ошибка: "Ambiguous media fields: cannot use 'cover' and 'video' together. Please specify only one media type or set explicit 'type'."
+```
 
-**Варианты:**
-1. **Вернуть ошибку валидации** (строгий подход)
-2. **Обрезать text до 1024** и добавить "..." (автоматическая обработка)
-3. **Отправить два сообщения:** первое - медиа с частью caption, второе - остаток текста
+```json
+// ❌ ОШИБКА: document и audio одновременно
+{
+  "platform": "telegram",
+  "body": "Контент",
+  "document": "https://example.com/file.pdf",
+  "audio": "https://example.com/song.mp3"
+}
+// Ошибка: "Ambiguous media fields: cannot use 'document' and 'audio' together. Please specify only one media type or set explicit 'type'."
+```
 
-**Рекомендация:**  
-Вариант 1 (ошибка валидации) - более предсказуемое поведение, пусть клиент сам решает что делать с длинным текстом.
+**Исключения:**
 
----
+`media[]` имеет наивысший приоритет и игнорирует остальные поля (без ошибки):
 
-#### 3. Валидация форматов файлов
+```json
+// ✅ OK: media[] игнорирует остальные поля
+{
+  "platform": "telegram",
+  "body": "Альбом",
+  "media": ["url1", "url2"],
+  "cover": "url3",  // Будет проигнорирован
+  "video": "url4"   // Будет проигнорирован
+}
+```
 
-**Вопрос:**  
-Должен ли микросервис валидировать форматы файлов (по расширению URL)?
+### 7.3. Алгоритм валидации
 
-**Варианты:**
-1. **Не валидировать** - передать ответственность Telegram API
-2. **Валидировать по расширению** - проверять `.jpg`, `.mp4`, `.mp3` и т.д.
-3. **Валидировать через HEAD запрос** - проверять Content-Type и размер файла
+```typescript
+function validateMediaFields(request: PostRequest): void {
+  if (request.type !== 'auto') {
+    return; // Валидация только для auto
+  }
 
-**Рекомендация:**  
-Вариант 1 (не валидировать) в MVP, т.к.:
-- Telegram API сам вернет понятную ошибку
-- Экономим время на загрузке/проверке файлов
-- Уменьшаем нагрузку на микросервис
-
-В будущих версиях можно добавить опциональную валидацию.
-
----
-
-#### 4. Обработка смешанных медиа в media[]
-
-**Вопрос:**  
-Telegram позволяет смешивать фото и видео в одной медиа-группе. Нужна ли валидация типов элементов в `media[]`?
-
-**Варианты:**
-1. **Не валидировать** - передать Telegram API
-2. **Валидировать, что все элементы - фото ИЛИ видео** (без смешивания)
-3. **Разрешить смешивание** и указать это в документации
-
-**Рекомендация:**  
-Вариант 3 - разрешить смешивание, т.к. Telegram это поддерживает. Добавить примечание в документацию.
-
----
-
-#### 5. Поддержка `scheduledAt` для Telegram
-
-**Вопрос:**  
-Telegram Bot API не поддерживает нативный scheduled posting. Что делать с параметром `scheduledAt`?
-
-**Варианты:**
-1. **Игнорировать** поле для Telegram (как и другие неподдерживаемые поля)
-2. **Вернуть ошибку**, если поле указано
-3. **Реализовать внутренний scheduler** в микросервисе (противоречит архитектуре stateless)
-
-**Рекомендация:**  
-Вариант 1 - игнорировать с предупреждением в логах. Scheduling должен реализовываться на уровне выше (в оркестраторе или планировщике задач).
-
----
-
-### 7.2. Предложения по улучшению
-
-#### 1. Добавить поддержку `voice` (голосовые сообщения)
-
-**Описание:**  
-Telegram поддерживает голосовые сообщения через метод `sendVoice` (формат OGG).
-
-**Предложение:**
-- Добавить поле `voice?: string` в DTO
-- Добавить тип `VOICE = 'voice'` в enum
-- При `type = 'auto'` проверять наличие `voice` после `media` и `attachment`, но до `audio`
-
-**Приоритет:** Низкий (можно использовать `audio` для этого)
+  const mediaFields = [];
+  
+  if (request.media && request.media.length > 0) {
+    // media[] имеет наивысший приоритет, остальные игнорируются
+    return;
+  }
+  
+  if (request.document) mediaFields.push('document');
+  if (request.audio) mediaFields.push('audio');
+  if (request.video) mediaFields.push('video');
+  if (request.cover) mediaFields.push('cover');
+  
+  if (mediaFields.length > 1) {
+    throw new ValidationError(
+      `Ambiguous media fields: cannot use ${mediaFields.map(f => `'${f}'`).join(' and ')} together. ` +
+      `Please specify only one media type or set explicit 'type'.`
+    );
+  }
+}
+```
 
 ---
 
-#### 2. Поддержка `animation` (GIF файлы)
+## 8. Принятые решения
 
-**Описание:**  
-Telegram различает обычные GIF (sendAnimation) и статичные изображения.
+### 8.1. Naming: `document` (не `attachment`)
 
-**Предложение:**
-- Добавить поле `animation?: string` в DTO
-- Добавить тип `ANIMATION = 'animation'` в enum  
-- При `type = 'auto'` определять по расширению файла (.gif)
+**Решение:** Использовать имя `document` для поля с приложенными файлами.
 
-**Приоритет:** Средний
+**Обоснование:**
+- Соответствует методу Telegram API `sendDocument`
+- Более понятное и специфичное название
+- Избегает путаницы с другими типами вложений
 
 ---
 
-#### 3. Детализация ошибок валидации
+### 8.2. Валидация форматов файлов
+
+**Решение:** Не валидировать форматы файлов на стороне микросервиса.
+
+**Обоснование:**
+- Telegram API сам вернет понятную ошибку при неподдерживаемом формате
+- Экономия времени и ресурсов
+- Уменьшение нагрузки на микросервис
+- Избежание дублирования логики валидации
+
+---
+
+### 8.3. Смешанные медиа в `media[]`
+
+**Решение:** Разрешить смешивание фото и видео в одной медиа-группе.
+
+**Обоснование:**
+- Telegram поддерживает смешанные медиа-группы (фото + видео)
+- Нет необходимости ограничивать функциональность платформы
+- Добавлено примечание в документацию
+
+---
+
+### 8.4. Поле `scheduledAt`
+
+**Решение:** Игнорировать поле `scheduledAt` для Telegram.
+
+**Обоснование:**
+- Telegram Bot API не поддерживает нативный scheduled posting
+- Scheduling должен реализовываться на уровне выше (оркестратор, планировщик задач)
+- Соответствует архитектуре stateless микросервиса
+- Добавить предупреждение в логи, если поле указано
+
+---
+
+### 8.5. Обработка длинного `body` для caption
+
+**Решение:** Возвращать ошибку валидации, если `body.length > 1024` для медиа-сообщений.
+
+**Обоснование:**
+- Более предсказуемое поведение
+- Клиент сам решает, как обрабатывать длинный текст
+- Избегание потери данных при автоматическом обрезании
+- Явное указание на проблему
+
+**Ошибка:**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Caption exceeds maximum length of 1024 characters (current: 1500)",
+    "field": "body"
+  }
+}
+```
+
+---
+
+## 9. Предложения по улучшению
+
+### 9.1. Поддержка `voice` (голосовые сообщения)
+
+**Статус:** Отклонено
+
+**Обоснование:**
+- `voice` в Telegram - это тот же `sendAudio`, но с форматом OGG/OPUS
+- Различие только в отображении (плеер vs голосовое сообщение)
+- Можно использовать поле `audio` для обоих случаев
+- Telegram сам определяет тип по формату файла
+
+**Альтернатива:**
+Если в будущем потребуется явное различие, можно добавить параметр в `options`:
+```typescript
+{
+  "audio": "file.ogg",
+  "options": {
+    "audioType": "voice" // или "music"
+  }
+}
+```
+
+---
+
+### 9.2. Поддержка `animation` (GIF файлы)
+
+**Статус:** Отклонено для MVP
+
+**Обоснование:**
+- `sendAnimation` в Telegram - это отдельный метод для GIF и беззвучных видео
+- Можно использовать `video` для GIF файлов
+- Telegram сам определяет тип по формату
+- Добавление отдельного поля усложнит API без значительной пользы
+
+**Альтернатива:**
+В будущих версиях можно добавить автоматическое определение по расширению `.gif` и использовать `sendAnimation`.
+
+---
+
+### 9.3. Детализация ошибок валидации
 
 **Предложение:**  
 Для упрощения отладки, возвращать структурированные ошибки:
@@ -513,9 +651,11 @@ Telegram различает обычные GIF (sendAnimation) и статичн
 }
 ```
 
+**Приоритет:** Средний
+
 ---
 
-#### 4. Режим предпросмотра (preview mode)
+### 9.4. Режим предпросмотра (preview mode)
 
 **Предложение:**  
 Реализовать endpoint `POST /preview`, который:
@@ -529,9 +669,11 @@ Telegram различает обычные GIF (sendAnimation) и статичн
 **Польза:**  
 Клиент может проверить корректность данных перед фактической отправкой.
 
+**Приоритет:** Высокий
+
 ---
 
-#### 5. Поддержка Telegram-специфичных фич
+### 9.5. Поддержка Telegram-специфичных фич
 
 **Описание:**  
 Некоторые возможности Telegram можно вынести в `options`:
@@ -549,23 +691,28 @@ interface TelegramOptions {
   // Предложения к добавлению:
   allowSendingWithoutReply?: boolean;
   messageThreadId?: number;  // Для тем (Topics)
-  hasSpoiler?: boolean;      // Спойлер для медиа (Telegram 6.0+)
+  hasSpoiler?: boolean;      // Спойлер для медиа (уже реализовано через MediaInput)
 }
 ```
 
+**Приоритет:** Низкий (для будущих версий)
+
 ---
 
-## 8. Этапы реализации
+## 10. Этапы реализации
 
 ### Этап 1: Базовая поддержка новых полей
 - [ ] Добавить `AUTO` в enum `PostType`
-- [ ] Добавить поля `audio`, `attachment` в DTO
+- [ ] Добавить поля `audio`, `document` в DTO
+- [ ] Добавить тип `MediaInput` для поддержки объектов с `url`, `fileId`, `hasSpoiler`
 - [ ] Обновить валидацию
 - [ ] Обновить документацию (PRD, API docs)
 
 ### Этап 2: Реализация логики `auto` для Telegram
 - [ ] Реализовать метод определения типа сообщения
+- [ ] Реализовать валидацию неоднозначных медиа-полей
 - [ ] Реализовать отправку через правильный метод API
+- [ ] Добавить поддержку `hasSpoiler` для медиа
 - [ ] Добавить unit-тесты для логики определения типа
 
 ### Этап 3: Валидация для явных типов
@@ -575,24 +722,28 @@ interface TelegramOptions {
 - [ ] Добавить unit-тесты для валидации
 
 ### Этап 4: Обработка edge cases
-- [ ] Обработка длинного caption (> 1024 символов)
+- [ ] Обработка длинного caption (> 1024 символов) - возврат ошибки
 - [ ] Обработка неподдерживаемых типов
 - [ ] Обработка игнорируемых полей (с предупреждениями)
+- [ ] Обработка `scheduledAt` (игнорировать с предупреждением)
 
 ### Этап 5: E2E тестирование
 - [ ] Создать тестовый Telegram канал
 - [ ] Протестировать все типы сообщений
 - [ ] Протестировать режим `auto`
+- [ ] Протестировать валидацию неоднозначных полей
+- [ ] Протестировать `hasSpoiler`
 - [ ] Протестировать валидацию
 
 ### Этап 6: Документация и примеры
 - [ ] Обновить API documentation с примерами
+- [ ] Добавить примеры использования `MediaInput`
 - [ ] Добавить примеры в README
 - [ ] Создать Postman/Thunder Client коллекцию
 
 ---
 
-## 9. Примеры использования
+## 11. Примеры использования
 
 ### Пример 1: Автоматическое определение (текст)
 
@@ -693,7 +844,7 @@ curl -X POST http://localhost:8080/api/v1/post \
     "platform": "telegram",
     "channel": "my_channel",
     "body": "Отчет за ноябрь",
-    "attachment": "https://example.com/report-november.pdf"
+    "document": "https://example.com/report-november.pdf"
   }'
 ```
 
@@ -701,21 +852,124 @@ curl -X POST http://localhost:8080/api/v1/post \
 
 ---
 
-## 10. Выводы
+### Пример 7: Фото со спойлером (шокирующий контент)
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "my_channel",
+    "body": "⚠️ Внимание! Шокирующий контент",
+    "cover": {
+      "url": "https://example.com/shocking-image.jpg",
+      "hasSpoiler": true
+    }
+  }'
+```
+
+**Результат:** `sendPhoto` с параметром `has_spoiler: true`
+
+---
+
+### Пример 8: Использование Telegram file_id
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "my_channel",
+    "body": "Повторная отправка ранее загруженного видео",
+    "video": {
+      "fileId": "BAACAgIAAxkBAAIC4mF9..."
+    }
+  }'
+```
+
+**Результат:** `sendVideo` с использованием существующего file_id (без повторной загрузки)
+
+---
+
+### Пример 9: Медиа-группа со спойлерами
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "my_channel",
+    "body": "Альбом с чувствительным контентом",
+    "media": [
+      {
+        "url": "https://example.com/photo1.jpg",
+        "hasSpoiler": true
+      },
+      "https://example.com/photo2.jpg",
+      {
+        "url": "https://example.com/photo3.jpg",
+        "hasSpoiler": true
+      }
+    ]
+  }'
+```
+
+**Результат:** `sendMediaGroup` где первое и третье фото скрыты спойлером
+
+---
+
+### Пример 10: Ошибка - неоднозначные медиа-поля
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "my_channel",
+    "body": "Контент",
+    "audio": "https://example.com/song.mp3",
+    "video": "https://example.com/clip.mp4"
+  }'
+```
+
+**Результат:** Ошибка валидации
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Ambiguous media fields: cannot use 'audio' and 'video' together. Please specify only one media type or set explicit 'type'."
+  }
+}
+```
+
+---
+
+## 12. Выводы
 
 Данный план описывает полную реализацию постинга в Telegram с поддержкой:
 - ✅ Автоматического определения типа сообщения (`type: auto`)
-- ✅ Новых медиа-полей (`audio`, `attachment`)
+- ✅ Новых медиа-полей (`audio`, `document`)
+- ✅ Поддержки объектов `MediaInput` с полями `url`, `fileId`, `hasSpoiler`
 - ✅ Приоритезированной логики определения метода API
 - ✅ Валидации для явно заданных типов
+- ✅ Валидации неоднозначных медиа-полей
 - ✅ Обработки неиспользуемых/игнорируемых полей
+- ✅ Поддержки спойлеров для медиа (`hasSpoiler`)
 
-**Требуется уточнение:**
-1. Naming: `attachment` vs `document`
-2. Обработка длинного caption (> 1024 символов)
-3. Необходимость валидации форматов файлов
+**Принятые решения:**
+1. ✅ Использовать имя `document` (не `attachment`)
+2. ✅ Не валидировать форматы файлов
+3. ✅ Разрешить смешанные медиа в `media[]` (фото + видео)
+4. ✅ Игнорировать `scheduledAt` с предупреждением
+5. ✅ Возвращать ошибку при длинном caption (> 1024 символов)
+6. ✅ Валидировать неоднозначные медиа-поля (audio + video и т.д.)
+7. ✅ Не добавлять отдельные поля `voice` и `animation` в MVP
 
-**Рекомендуемые улучшения:**
-1. Поддержка `voice` и `animation`
-2. Endpoint для preview/валидации
-3. Детализация ошибок валидации
+**Ключевые особенности:**
+- Поддержка Telegram `file_id` для переиспользования загруженных файлов
+- Поддержка спойлеров для шокирующего контента
+- Гибкая валидация с понятными сообщениями об ошибках
+- Приоритетная система определения типа сообщения
+- Совместимость с будущими расширениями API
+

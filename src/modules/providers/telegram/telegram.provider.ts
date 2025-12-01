@@ -35,7 +35,7 @@ export class TelegramProvider implements IProvider {
   constructor(
     private readonly converterService: ConverterService,
     private readonly mediaService: MediaService,
-  ) {}
+  ) { }
 
   async publish(request: PostRequestDto, channelConfig: TelegramChannelConfig) {
     const { botToken, chatId } = channelConfig.auth;
@@ -68,10 +68,10 @@ export class TelegramProvider implements IProvider {
     }
 
     // Платформо-специфичные параметры
-    const platformData = request.platformData || {};
-    const parseMode = platformData.parseMode || channelConfig.parseMode || 'HTML';
+    const options = request.options || {};
+    const parseMode = options.parseMode || channelConfig.parseMode || 'HTML';
     const disableNotification =
-      platformData.disableNotification ?? channelConfig.disableNotification ?? false;
+      options.disableNotification ?? channelConfig.disableNotification ?? false;
 
     // Публикация в зависимости от типа
     const type = request.type || PostType.POST;
@@ -83,14 +83,14 @@ export class TelegramProvider implements IProvider {
         result = await bot.api.sendMessage(chatId, processedBody, {
           parse_mode: parseMode,
           disable_notification: disableNotification,
-          reply_markup: platformData.inlineKeyboard
-            ? { inline_keyboard: platformData.inlineKeyboard }
+          reply_markup: options.inlineKeyboard
+            ? { inline_keyboard: options.inlineKeyboard }
             : undefined,
-          link_preview_options: platformData.disableWebPagePreview
+          link_preview_options: options.disableWebPagePreview
             ? { is_disabled: true }
             : undefined,
-          reply_to_message_id: platformData.replyToMessageId,
-          protect_content: platformData.protectContent,
+          reply_to_message_id: options.replyToMessageId,
+          protect_content: options.protectContent,
         });
         break;
 
@@ -102,8 +102,8 @@ export class TelegramProvider implements IProvider {
           caption: processedBody,
           parse_mode: parseMode,
           disable_notification: disableNotification,
-          reply_markup: platformData.inlineKeyboard
-            ? { inline_keyboard: platformData.inlineKeyboard }
+          reply_markup: options.inlineKeyboard
+            ? { inline_keyboard: options.inlineKeyboard }
             : undefined,
         });
         break;

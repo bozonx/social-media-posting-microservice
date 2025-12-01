@@ -34,10 +34,10 @@ Publish content to a social media platform.
 | `media` | string[] | No | Array of media URLs for albums/carousels |
 | `channel` | string | No* | Channel name from config.yaml |
 | `auth` | object | No* | Authentication credentials (if not using channel) |
-| `platformData` | object | No | Platform-specific parameters |
+| `options` | object | No | Platform-specific parameters (formerly `platformData`) |
 | `tags` | string[] | No | Tags/hashtags |
 | `scheduledAt` | string | No | Scheduled publish time (ISO 8601) |
-| `language` | string | No | Content language code |
+| `postLanguage` | string | No | Content language code (e.g., `ru`, `ru-RU`). Passed directly to provider (used by YouTube, WordPress, etc). |
 | `mode` | string | No | Publishing mode: `publish`, `draft`, `preview` (default: `publish`) |
 | `idempotencyKey` | string | No | Unique key to prevent duplicate posts |
 
@@ -106,7 +106,7 @@ Publish content to a social media platform.
 - `album` - Media group (up to 10 items)
 - `document` - File/document
 
-#### Platform Data (`platformData`)
+#### Platform Options (`options`)
 
 ```typescript
 {
@@ -130,7 +130,7 @@ curl -X POST http://localhost:8080/api/v1/post \
     "type": "post",
     "body": "<b>Hello!</b> This is a test post with <a href=\"https://example.com\">link</a>",
     "bodyFormat": "html",
-    "platformData": {
+    "options": {
       "parseMode": "HTML",
       "disableNotification": false
     }
@@ -179,7 +179,7 @@ curl -X POST http://localhost:8080/api/v1/post \
     "channel": "company_telegram",
     "type": "post",
     "body": "Check out our website!",
-    "platformData": {
+    "options": {
       "inlineKeyboard": [
         [
           {
@@ -247,7 +247,7 @@ curl -X POST http://localhost:8080/api/v1/post \
     "body": "# Hello\n\nThis is **bold** and this is *italic*",
     "bodyFormat": "md",
     "convertBody": true,
-    "platformData": {
+    "options": {
       "parseMode": "HTML"
     }
   }'

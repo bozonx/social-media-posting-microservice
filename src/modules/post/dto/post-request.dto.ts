@@ -51,7 +51,7 @@ export class PostRequestDto {
 
   @IsOptional()
   @IsObject()
-  platformData?: Record<string, any>;
+  options?: Record<string, any>;
 
   @IsOptional()
   @IsArray()
@@ -64,7 +64,7 @@ export class PostRequestDto {
 
   @IsOptional()
   @IsString()
-  language?: string;
+  postLanguage?: string;
 
   @IsOptional()
   @IsEnum(['publish', 'draft', 'preview'])

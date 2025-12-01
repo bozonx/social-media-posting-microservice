@@ -154,7 +154,7 @@ interface PostRequest {
    * - Twitter/X: reply_to_tweet_id, poll options
    * - Instagram: location, tagged_users
    */
-  platformData?: Record<string, any>;
+  options?: Record<string, any>;
   
   /**
    * Теги/хэштеги для публикации
@@ -170,9 +170,10 @@ interface PostRequest {
   
   /**
    * Язык контента в том виде в котором запрашивает соц. сеть
+   * Передается напрямую провайдеру (используется YouTube, WordPress и др.)
    * @example "ru-RU", "en", "es"
    */
-  language?: string;
+  postLanguage?: string;
   
   /**
    * Режим публикации. Если поддреживает соц. сеть
@@ -545,7 +546,7 @@ CONFIG_PATH=/app/config/config.yaml
 - `album` — медиа-альбом/группа (до 10 элементов)
 - `document` — документ
 
-**Специфичные параметры (`platformData`):**
+**Специфичные параметры (`options`):**
 
 ```typescript
 interface TelegramAdditional {
@@ -579,7 +580,7 @@ interface TelegramAdditional {
   "body": "<b>Привет!</b> Это тестовый пост с <a href='https://example.com'>ссылкой</a>",
   "bodyFormat": "html",
   "convertBody": false,
-  "platformData": {
+  "options": {
     "parseMode": "HTML",
     "disableNotification": false,
     "inlineKeyboard": [

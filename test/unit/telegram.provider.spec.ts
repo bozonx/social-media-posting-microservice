@@ -166,7 +166,7 @@ describe('TelegramProvider', () => {
         platform: 'telegram',
         body: 'Test message',
         type: PostType.POST,
-        platformData: {
+        options: {
           parseMode: 'Markdown',
           disableNotification: true,
           disableWebPagePreview: true,

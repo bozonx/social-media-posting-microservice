@@ -112,4 +112,94 @@ describe('TelegramTypeDetector', () => {
 
     expect(result).toBe(PostType.ALBUM);
   });
+
+  it('should respect priority: document over audio/video/cover', () => {
+    const request: PostRequestDto = {
+      ...baseRequest,
+      type: PostType.AUTO,
+      document: 'https://example.com/file.pdf',
+      audio: 'https://example.com/audio.mp3',
+      video: 'https://example.com/video.mp4',
+      cover: 'https://example.com/cover.jpg',
+    };
+
+    const result = detector.detectType(request);
+
+    expect(result).toBe(PostType.DOCUMENT);
+  });
+
+  it('should respect priority: audio over video/cover', () => {
+    const request: PostRequestDto = {
+      ...baseRequest,
+      type: PostType.AUTO,
+      audio: 'https://example.com/audio.mp3',
+      video: 'https://example.com/video.mp4',
+      cover: 'https://example.com/cover.jpg',
+    };
+
+    const result = detector.detectType(request);
+
+    expect(result).toBe(PostType.AUDIO);
+  });
+
+  it('should respect priority: video over cover', () => {
+    const request: PostRequestDto = {
+      ...baseRequest,
+      type: PostType.AUTO,
+      video: 'https://example.com/video.mp4',
+      cover: 'https://example.com/cover.jpg',
+    };
+
+    const result = detector.detectType(request);
+
+    expect(result).toBe(PostType.VIDEO);
+  });
+
+  it('should detect POST when type is undefined and no media fields', () => {
+    const request: PostRequestDto = {
+      ...baseRequest,
+      type: undefined,
+    };
+
+    const result = detector.detectType(request);
+
+    expect(result).toBe(PostType.POST);
+  });
+
+  it('should handle MediaInput objects for detection', () => {
+    const request: PostRequestDto = {
+      ...baseRequest,
+      type: PostType.AUTO,
+      cover: { url: 'https://example.com/image.jpg', hasSpoiler: true },
+    };
+
+    const result = detector.detectType(request);
+
+    expect(result).toBe(PostType.IMAGE);
+  });
+
+  it('should handle MediaInput with fileId for detection', () => {
+    const request: PostRequestDto = {
+      ...baseRequest,
+      type: PostType.AUTO,
+      video: { fileId: 'AgACAgIAAxkBAAIC...' },
+    };
+
+    const result = detector.detectType(request);
+
+    expect(result).toBe(PostType.VIDEO);
+  });
+
+  it('should ignore empty media array', () => {
+    const request: PostRequestDto = {
+      ...baseRequest,
+      type: PostType.AUTO,
+      media: [],
+      cover: 'https://example.com/image.jpg',
+    };
+
+    const result = detector.detectType(request);
+
+    expect(result).toBe(PostType.IMAGE);
+  });
 });

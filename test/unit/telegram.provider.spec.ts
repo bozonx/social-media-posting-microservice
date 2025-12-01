@@ -12,6 +12,7 @@ const mockApi = {
   sendMessage: jest.fn(),
   sendPhoto: jest.fn(),
   sendVideo: jest.fn(),
+  sendAudio: jest.fn(),
   sendMediaGroup: jest.fn(),
   sendDocument: jest.fn(),
 };
@@ -435,6 +436,169 @@ describe('TelegramProvider', () => {
 
       await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
         "Field 'document' is required for type 'document'",
+      );
+    });
+  });
+
+  describe('publish - AUDIO type', () => {
+    it('should publish audio with caption', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: 'Audio caption',
+        audio: 'https://example.com/audio.mp3',
+        type: PostType.AUDIO,
+      };
+
+      mockApi.sendAudio.mockResolvedValue({ message_id: 12345 });
+
+      const result = await provider.publish(request, mockChannelConfig);
+
+      expect(result.postId).toBe('12345');
+      expect(mediaService.validateMediaUrl).toHaveBeenCalledWith('https://example.com/audio.mp3');
+      expect(mockApi.sendAudio).toHaveBeenCalledWith(
+        'test-chat-id',
+        'https://example.com/audio.mp3',
+        expect.objectContaining({
+          caption: 'Audio caption',
+          parse_mode: 'HTML',
+          disable_notification: false,
+        }),
+      );
+    });
+
+    it('should throw error if audio is missing for AUDIO type', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: 'Audio caption',
+        type: PostType.AUDIO,
+      };
+
+      await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
+        "Field 'audio' is required for type 'audio'",
+      );
+    });
+  });
+
+  describe('publish - MediaInput object support', () => {
+    it('should use fileId when provided instead of URL', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: 'Image caption',
+        cover: { fileId: 'AgACAgIAAxkBAAIC...' },
+        type: PostType.IMAGE,
+      };
+
+      mockApi.sendPhoto.mockResolvedValue({ message_id: 12345 });
+
+      await provider.publish(request, mockChannelConfig);
+
+      expect(mockApi.sendPhoto).toHaveBeenCalledWith(
+        'test-chat-id',
+        'AgACAgIAAxkBAAIC...',
+        expect.any(Object),
+      );
+      // Should not validate URL when using fileId
+      expect(mediaService.validateMediaUrl).not.toHaveBeenCalled();
+    });
+
+    it('should send photo with hasSpoiler flag', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: 'Spoiler image',
+        cover: { url: 'https://example.com/image.jpg', hasSpoiler: true },
+        type: PostType.IMAGE,
+      };
+
+      mockApi.sendPhoto.mockResolvedValue({ message_id: 12345 });
+
+      await provider.publish(request, mockChannelConfig);
+
+      expect(mockApi.sendPhoto).toHaveBeenCalledWith(
+        'test-chat-id',
+        'https://example.com/image.jpg',
+        expect.objectContaining({
+          has_spoiler: true,
+        }),
+      );
+    });
+
+    it('should send video with hasSpoiler flag', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: 'Spoiler video',
+        video: { url: 'https://example.com/video.mp4', hasSpoiler: true },
+        type: PostType.VIDEO,
+      };
+
+      mockApi.sendVideo.mockResolvedValue({ message_id: 12345 });
+
+      await provider.publish(request, mockChannelConfig);
+
+      expect(mockApi.sendVideo).toHaveBeenCalledWith(
+        'test-chat-id',
+        'https://example.com/video.mp4',
+        expect.objectContaining({
+          has_spoiler: true,
+        }),
+      );
+    });
+
+    it('should prefer fileId over URL when both are provided', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: 'Document caption',
+        document: { url: 'https://example.com/doc.pdf', fileId: 'BQACAgIAAxkBAAIC...' },
+        type: PostType.DOCUMENT,
+      };
+
+      mockApi.sendDocument.mockResolvedValue({ message_id: 12345 });
+
+      await provider.publish(request, mockChannelConfig);
+
+      expect(mockApi.sendDocument).toHaveBeenCalledWith(
+        'test-chat-id',
+        'BQACAgIAAxkBAAIC...',
+        expect.any(Object),
+      );
+    });
+  });
+
+  describe('publish - validation errors', () => {
+    it('should throw error for POST type with media fields', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: 'Test message',
+        cover: 'https://example.com/image.jpg',
+        type: PostType.POST,
+      };
+
+      await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
+        "For type 'post', media fields must not be provided",
+      );
+    });
+
+    it('should throw error for album with less than 2 items', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: 'Album caption',
+        media: ['https://example.com/image.jpg'],
+        type: PostType.ALBUM,
+      };
+
+      await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
+        'Album must contain at least 2 media items',
+      );
+    });
+
+    it('should throw error for unsupported post type', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: 'Test message',
+        type: PostType.ARTICLE,
+      };
+
+      await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
+        "Post type 'article' is not supported for Telegram",
       );
     });
   });

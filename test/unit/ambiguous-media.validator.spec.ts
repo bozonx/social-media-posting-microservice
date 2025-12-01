@@ -66,4 +66,74 @@ describe('AmbiguousMediaValidator', () => {
       /Ambiguous media fields: cannot use 'audio' and 'cover' together/,
     );
   });
+
+  it('should throw when document and video are present for AUTO', () => {
+    const request: PostRequestDto = {
+      ...baseRequest,
+      type: PostType.AUTO,
+      document: 'https://example.com/file.pdf',
+      video: 'https://example.com/video.mp4',
+    };
+
+    expect(() => AmbiguousMediaValidator.validate(request)).toThrow(
+      /Ambiguous media fields: cannot use 'document' and 'video' together/,
+    );
+  });
+
+  it('should throw when document and cover are present for AUTO', () => {
+    const request: PostRequestDto = {
+      ...baseRequest,
+      type: PostType.AUTO,
+      document: 'https://example.com/file.pdf',
+      cover: 'https://example.com/image.jpg',
+    };
+
+    expect(() => AmbiguousMediaValidator.validate(request)).toThrow(
+      /Ambiguous media fields: cannot use 'document' and 'cover' together/,
+    );
+  });
+
+  it('should throw when three media fields are present for AUTO', () => {
+    const request: PostRequestDto = {
+      ...baseRequest,
+      type: PostType.AUTO,
+      document: 'https://example.com/file.pdf',
+      audio: 'https://example.com/audio.mp3',
+      cover: 'https://example.com/image.jpg',
+    };
+
+    expect(() => AmbiguousMediaValidator.validate(request)).toThrow(/Ambiguous media fields/);
+  });
+
+  it('should not throw when no media fields are present', () => {
+    const request: PostRequestDto = {
+      ...baseRequest,
+      type: PostType.AUTO,
+    };
+
+    expect(() => AmbiguousMediaValidator.validate(request)).not.toThrow();
+  });
+
+  it('should handle MediaInput objects correctly', () => {
+    const request: PostRequestDto = {
+      ...baseRequest,
+      type: PostType.AUTO,
+      audio: { url: 'https://example.com/audio.mp3' },
+      video: { fileId: 'AgACAgIAAxkBAAIC...' },
+    };
+
+    expect(() => AmbiguousMediaValidator.validate(request)).toThrow(
+      /Ambiguous media fields: cannot use 'audio' and 'video' together/,
+    );
+  });
+
+  it('should not throw for single MediaInput object', () => {
+    const request: PostRequestDto = {
+      ...baseRequest,
+      type: PostType.AUTO,
+      cover: { url: 'https://example.com/image.jpg', hasSpoiler: true },
+    };
+
+    expect(() => AmbiguousMediaValidator.validate(request)).not.toThrow();
+  });
 });

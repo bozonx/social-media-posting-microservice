@@ -41,7 +41,7 @@ export class TelegramProvider implements IProvider {
     private readonly converterService: ConverterService,
     private readonly mediaService: MediaService,
     private readonly typeDetector: TelegramTypeDetector,
-  ) { }
+  ) {}
 
   async publish(request: PostRequestDto, channelConfig: TelegramChannelConfig) {
     const { botToken, chatId } = channelConfig.auth;
@@ -93,27 +93,73 @@ export class TelegramProvider implements IProvider {
 
     switch (actualType) {
       case PostType.POST:
-        result = await this.sendMessage(bot, chatId, processedBody, parseMode, disableNotification, options);
+        result = await this.sendMessage(
+          bot,
+          chatId,
+          processedBody,
+          parseMode,
+          disableNotification,
+          options,
+        );
         break;
 
       case PostType.IMAGE:
-        result = await this.sendPhoto(bot, chatId, request.cover!, processedBody, parseMode, disableNotification, options);
+        result = await this.sendPhoto(
+          bot,
+          chatId,
+          request.cover!,
+          processedBody,
+          parseMode,
+          disableNotification,
+          options,
+        );
         break;
 
       case PostType.VIDEO:
-        result = await this.sendVideo(bot, chatId, request.video!, processedBody, parseMode, disableNotification, options);
+        result = await this.sendVideo(
+          bot,
+          chatId,
+          request.video!,
+          processedBody,
+          parseMode,
+          disableNotification,
+          options,
+        );
         break;
 
       case PostType.AUDIO:
-        result = await this.sendAudio(bot, chatId, request.audio!, processedBody, parseMode, disableNotification, options);
+        result = await this.sendAudio(
+          bot,
+          chatId,
+          request.audio!,
+          processedBody,
+          parseMode,
+          disableNotification,
+          options,
+        );
         break;
 
       case PostType.DOCUMENT:
-        result = await this.sendDocument(bot, chatId, request.document!, processedBody, parseMode, disableNotification, options);
+        result = await this.sendDocument(
+          bot,
+          chatId,
+          request.document!,
+          processedBody,
+          parseMode,
+          disableNotification,
+          options,
+        );
         break;
 
       case PostType.ALBUM:
-        result = await this.sendMediaGroup(bot, chatId, request.media!, processedBody, parseMode, disableNotification);
+        result = await this.sendMediaGroup(
+          bot,
+          chatId,
+          request.media!,
+          processedBody,
+          parseMode,
+          disableNotification,
+        );
         break;
 
       default:
@@ -143,9 +189,7 @@ export class TelegramProvider implements IProvider {
       reply_markup: options.inlineKeyboard
         ? { inline_keyboard: options.inlineKeyboard }
         : undefined,
-      link_preview_options: options.disableWebPagePreview
-        ? { is_disabled: true }
-        : undefined,
+      link_preview_options: options.disableWebPagePreview ? { is_disabled: true } : undefined,
       reply_to_message_id: options.replyToMessageId,
       protect_content: options.protectContent,
     });
@@ -250,7 +294,9 @@ export class TelegramProvider implements IProvider {
       const mediaInput = fileId || url;
 
       if (!mediaInput) {
-        throw new BadRequestException(`Media item at index ${index} must have either url or fileId`);
+        throw new BadRequestException(
+          `Media item at index ${index} must have either url or fileId`,
+        );
       }
 
       // Determine if it's video or photo based on URL extension
@@ -274,12 +320,17 @@ export class TelegramProvider implements IProvider {
     switch (type) {
       case PostType.POST:
         // No media fields should be present
-        if (MediaInputHelper.isDefined(request.cover) ||
+        if (
+          MediaInputHelper.isDefined(request.cover) ||
           MediaInputHelper.isDefined(request.video) ||
           MediaInputHelper.isDefined(request.audio) ||
           MediaInputHelper.isDefined(request.document) ||
-          MediaInputHelper.isNotEmpty(request.media)) {
+          MediaInputHelper.isNotEmpty(request.media)
+        ) {
           throw new BadRequestException("For type 'post', media fields must not be provided");
+        }
+        if (request.body && request.body.length > 4096) {
+          throw new BadRequestException('Text message exceeds maximum length of 4096 characters');
         }
         break;
 
@@ -316,10 +367,10 @@ export class TelegramProvider implements IProvider {
           throw new BadRequestException("Field 'media' is required for type 'album'");
         }
         if (request.media!.length < 2) {
-          throw new BadRequestException("Album must contain at least 2 media items");
+          throw new BadRequestException('Album must contain at least 2 media items');
         }
         if (request.media!.length > 10) {
-          throw new BadRequestException("Album cannot contain more than 10 media items");
+          throw new BadRequestException('Album cannot contain more than 10 media items');
         }
         this.warnIgnoredFields(request, ['cover', 'video', 'audio', 'document']);
         break;
@@ -353,7 +404,9 @@ export class TelegramProvider implements IProvider {
     if (request.scheduledAt) ignoredFields.push('scheduledAt');
 
     if (ignoredFields.length > 0) {
-      this.logger.warn(`Fields ${ignoredFields.join(', ')} are not used by Telegram and will be ignored`);
+      this.logger.warn(
+        `Fields ${ignoredFields.join(', ')} are not used by Telegram and will be ignored`,
+      );
     }
   }
 

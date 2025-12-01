@@ -133,6 +133,18 @@ describe('TelegramProvider', () => {
       });
     });
 
+    it('should throw error if text message exceeds 4096 characters', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: 'a'.repeat(4097),
+        type: PostType.POST,
+      };
+
+      await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
+        'Text message exceeds maximum length of 4096 characters',
+      );
+    });
+
     it('should convert body format when requested', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',

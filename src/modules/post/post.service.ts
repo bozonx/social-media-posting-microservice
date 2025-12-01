@@ -1,10 +1,11 @@
 import { Injectable, BadRequestException, ConflictException, Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { PostRequestDto, PostResponseDto, ErrorResponseDto } from './dto';
-import { PostType } from '../../common/enums';
+import { PostType, ErrorCode } from '../../common/enums';
 import { AppConfigService } from '../app-config/app-config.service';
 import { TelegramProvider } from '../providers/telegram/telegram.provider';
 import { IdempotencyService } from './idempotency.service';
+import { IProvider } from '../providers/base/provider.interface';
 
 @Injectable()
 export class PostService {
@@ -14,7 +15,7 @@ export class PostService {
     private readonly appConfig: AppConfigService,
     private readonly telegramProvider: TelegramProvider,
     private readonly idempotencyService: IdempotencyService,
-  ) {}
+  ) { }
 
   async publish(request: PostRequestDto): Promise<PostResponseDto | ErrorResponseDto> {
     const idempotencyKey = this.idempotencyService.buildKey(request);
@@ -39,41 +40,24 @@ export class PostService {
     const requestId = randomUUID();
 
     try {
-      // Получаем конфигурацию канала
-      let channelConfig: any;
+      const channelConfig = this.getChannelConfig(request);
 
-      if (request.channel) {
-        channelConfig = this.appConfig.getChannel(request.channel);
-      } else if (request.auth) {
-        // Используем auth из запроса
-        channelConfig = {
-          provider: request.platform,
-          enabled: true,
-          auth: request.auth,
-        };
-      } else {
-        throw new BadRequestException('Either "channel" or "auth" must be provided');
-      }
-
-      // Проверяем соответствие провайдера
       if (channelConfig.provider !== request.platform) {
         throw new BadRequestException(
           `Channel provider "${channelConfig.provider}" does not match requested platform "${request.platform}"`,
         );
       }
 
-      // Получаем провайдера
       const provider = this.getProvider(request.platform);
 
-      // Проверяем поддержку типа поста
-      const postType = request.type || PostType.POST;
+      // Check if explicit type is supported
+      const postType = request.type || PostType.AUTO;
       if (!provider.supportedTypes.includes(postType)) {
         throw new BadRequestException(
           `Post type "${postType}" is not supported by ${request.platform}`,
         );
       }
 
-      // Публикуем
       this.logger.log(
         `Publishing to ${request.platform} via ${request.channel || 'inline auth'}, type: ${postType}`,
       );
@@ -124,7 +108,21 @@ export class PostService {
     }
   }
 
-  private getProvider(platform: string) {
+  private getChannelConfig(request: PostRequestDto): any {
+    if (request.channel) {
+      return this.appConfig.getChannel(request.channel);
+    }
+    if (request.auth) {
+      return {
+        provider: request.platform,
+        enabled: true,
+        auth: request.auth,
+      };
+    }
+    throw new BadRequestException('Either "channel" or "auth" must be provided');
+  }
+
+  private getProvider(platform: string): IProvider {
     switch (platform.toLowerCase()) {
       case 'telegram':
         return this.telegramProvider;
@@ -135,24 +133,24 @@ export class PostService {
 
   private getErrorCode(error: any): string {
     if (error instanceof BadRequestException) {
-      return 'VALIDATION_ERROR';
+      return ErrorCode.VALIDATION_ERROR;
     }
     if (error instanceof ConflictException) {
-      return 'VALIDATION_ERROR';
+      return ErrorCode.VALIDATION_ERROR;
     }
     if (error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
-      return 'TIMEOUT_ERROR';
+      return ErrorCode.TIMEOUT_ERROR;
     }
     if (error.response?.status === 429) {
-      return 'RATE_LIMIT_ERROR';
+      return ErrorCode.RATE_LIMIT_ERROR;
     }
     if (error.response?.status >= 500) {
-      return 'PLATFORM_ERROR';
+      return ErrorCode.PLATFORM_ERROR;
     }
     if (error.response?.status === 401 || error.response?.status === 403) {
-      return 'AUTH_ERROR';
+      return ErrorCode.AUTH_ERROR;
     }
-    return 'PLATFORM_ERROR';
+    return ErrorCode.PLATFORM_ERROR;
   }
 
   private async retryWithJitter<T>(
@@ -168,23 +166,19 @@ export class PostService {
       } catch (error: any) {
         lastError = error;
 
-        // Не делаем retry для ошибок валидации
         if (error instanceof BadRequestException) {
           throw error;
         }
 
-        // Не делаем retry на последней попытке
         if (attempt === maxAttempts) {
           break;
         }
 
-        // Retry только для временных ошибок
         const shouldRetry = this.shouldRetry(error);
         if (!shouldRetry) {
           throw error;
         }
 
-        // Вычисляем задержку с jitter ±20%
         const jitter = 0.8 + Math.random() * 0.4; // random(0.8, 1.2)
         const delay = Math.floor(baseDelayMs * jitter * attempt);
 
@@ -200,21 +194,15 @@ export class PostService {
   }
 
   private shouldRetry(error: any): boolean {
-    // Retry для сетевых ошибок
     if (error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
       return true;
     }
-
-    // Retry для 5xx ошибок
     if (error.response?.status >= 500) {
       return true;
     }
-
-    // Retry для rate limit
     if (error.response?.status === 429) {
       return true;
     }
-
     return false;
   }
 

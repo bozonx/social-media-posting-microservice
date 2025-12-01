@@ -2,14 +2,14 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { Bot, InputFile } from 'grammy';
 import { IProvider } from '../base/provider.interface';
 import { PostType, BodyFormat } from '../../../common/enums';
-import { PostRequestDto } from '../../post/dto';
+import { PostRequestDto, PreviewResponseDto, PreviewErrorResponseDto } from '../../post/dto';
 import { ConverterService } from '../../converter/converter.service';
 import { MediaService } from '../../media/media.service';
 import { MediaInputHelper } from '../../../common/helpers/media-input.helper';
 import { AmbiguousMediaValidator } from '../../../common/validators/ambiguous-media.validator';
 import { TelegramTypeDetector } from './telegram-type-detector.service';
 
-interface TelegramChannelConfig {
+export interface TelegramChannelConfig {
   auth: {
     botToken: string;
     chatId: string;
@@ -36,59 +36,35 @@ export class TelegramProvider implements IProvider {
   ];
 
   private readonly logger = new Logger(TelegramProvider.name);
+  private readonly DEFAULT_PARSE_MODE = 'HTML';
+  private readonly MAX_CAPTION_LENGTH = 1024;
+  private readonly MAX_TEXT_LENGTH = 4096;
 
   constructor(
     private readonly converterService: ConverterService,
     private readonly mediaService: MediaService,
     private readonly typeDetector: TelegramTypeDetector,
-  ) {}
+  ) { }
 
   async publish(request: PostRequestDto, channelConfig: TelegramChannelConfig) {
+    const { errors, warnings, actualType } = this.validateRequest(request);
+
+    if (errors.length > 0) {
+      throw new BadRequestException(errors.join('; '));
+    }
+
+    if (warnings.length > 0) {
+      this.logger.warn(`Warnings during publish: ${warnings.join('; ')}`);
+    }
+
     const { botToken, chatId } = channelConfig.auth;
     const bot = new Bot(botToken);
 
-    // Validate ambiguous media fields
-    AmbiguousMediaValidator.validate(request);
+    const { processedBody, parseMode, disableNotification, options } = this.prepareMessageData(
+      request,
+      channelConfig,
+    );
 
-    // Detect actual type
-    const actualType = this.typeDetector.detectType(request);
-
-    // Validate type is supported
-    if (!this.supportedTypes.includes(actualType)) {
-      throw new BadRequestException(`Post type '${actualType}' is not supported for Telegram`);
-    }
-
-    // Validate required fields for explicit types
-    this.validateRequiredFields(request, actualType);
-
-    // Log ignored fields
-    this.logIgnoredFields(request);
-
-    // Validate media URLs (only for URLs, not file_ids)
-    this.validateMediaUrls(request);
-
-    // Convert body
-    const shouldConvert = request.convertBody ?? channelConfig.convertBody ?? true;
-    const targetFormat = this.getTargetBodyFormat(channelConfig.parseMode);
-    const sourceFormat = request.bodyFormat || BodyFormat.TEXT;
-
-    let processedBody = request.body;
-    if (shouldConvert && sourceFormat !== targetFormat) {
-      processedBody = this.converterService.convert(request.body, sourceFormat, targetFormat);
-    }
-
-    // Sanitize HTML if using HTML mode
-    if (channelConfig.parseMode === 'HTML' && targetFormat === BodyFormat.HTML) {
-      processedBody = this.converterService.sanitizeHtml(processedBody);
-    }
-
-    // Platform-specific parameters
-    const options = request.options || {};
-    const parseMode = options.parseMode || channelConfig.parseMode || 'HTML';
-    const disableNotification =
-      options.disableNotification ?? channelConfig.disableNotification ?? false;
-
-    // Publish based on type
     let result: any;
 
     switch (actualType) {
@@ -173,6 +149,98 @@ export class TelegramProvider implements IProvider {
       url: this.buildPostUrl(chatId, result.message_id || result[0]?.message_id),
       raw: result,
     };
+  }
+
+  async preview(
+    request: PostRequestDto,
+    channelConfig: TelegramChannelConfig,
+  ): Promise<PreviewResponseDto | PreviewErrorResponseDto> {
+    const { errors, warnings, actualType } = this.validateRequest(request);
+
+    if (errors.length > 0) {
+      return {
+        success: false,
+        data: {
+          valid: false,
+          errors,
+          warnings,
+        },
+      };
+    }
+
+    const { processedBody, targetFormat } = this.prepareMessageData(request, channelConfig);
+    const limits = this.getLimits(actualType, channelConfig);
+
+    if (processedBody.length > limits.maxLength) {
+      warnings.push(
+        `Body length (${processedBody.length}) exceeds platform limit (${limits.maxLength})`,
+      );
+    }
+
+    return {
+      success: true,
+      data: {
+        valid: true,
+        detectedType: actualType,
+        convertedBody: processedBody,
+        targetFormat,
+        convertedBodyLength: processedBody.length,
+        warnings,
+      },
+    };
+  }
+
+  private validateRequest(request: PostRequestDto) {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    // Ambiguous Media
+    try {
+      AmbiguousMediaValidator.validate(request);
+    } catch (e: any) {
+      errors.push(e.message);
+    }
+
+    // Detect Type
+    const actualType = this.typeDetector.detectType(request);
+
+    if (!this.supportedTypes.includes(actualType)) {
+      errors.push(`Post type '${actualType}' is not supported for Telegram`);
+    }
+
+    // Required Fields
+    errors.push(...this.getRequiredFieldsErrors(request, actualType));
+
+    // Media URLs
+    errors.push(...this.getMediaUrlErrors(request));
+
+    // Ignored Fields
+    warnings.push(...this.getIgnoredFieldsWarnings(request));
+    warnings.push(...this.getIgnoredMediaWarnings(request, actualType));
+
+    return { errors, warnings, actualType };
+  }
+
+  private prepareMessageData(request: PostRequestDto, channelConfig: TelegramChannelConfig) {
+    const shouldConvert = request.convertBody ?? channelConfig.convertBody ?? true;
+    const targetFormat = this.getTargetBodyFormat(channelConfig.parseMode);
+    const sourceFormat = request.bodyFormat || BodyFormat.TEXT;
+
+    let processedBody = request.body;
+    if (shouldConvert && sourceFormat !== targetFormat) {
+      processedBody = this.converterService.convert(request.body, sourceFormat, targetFormat);
+    }
+
+    if (channelConfig.parseMode === 'HTML' && targetFormat === BodyFormat.HTML) {
+      processedBody = this.converterService.sanitizeHtml(processedBody);
+    }
+
+    const options = request.options || {};
+    const parseMode = options.parseMode || channelConfig.parseMode || this.DEFAULT_PARSE_MODE;
+    const disableNotification =
+      options.disableNotification ?? channelConfig.disableNotification ?? false;
+
+    return { processedBody, targetFormat, parseMode, disableNotification, options };
   }
 
   private async sendMessage(
@@ -286,7 +354,6 @@ export class TelegramProvider implements IProvider {
     parseMode: string,
     disableNotification: boolean,
   ) {
-    // Telegram media group (up to 10 items)
     const mediaGroup = media.slice(0, 10).map((item, index) => {
       const url = MediaInputHelper.getUrl(item);
       const fileId = MediaInputHelper.getFileId(item);
@@ -299,7 +366,6 @@ export class TelegramProvider implements IProvider {
         );
       }
 
-      // Determine if it's video or photo based on URL extension
       const isVideo = url ? url.match(/\.(mp4|mov|avi|mkv)$/i) : false;
 
       return {
@@ -316,10 +382,11 @@ export class TelegramProvider implements IProvider {
     });
   }
 
-  private validateRequiredFields(request: PostRequestDto, type: PostType): void {
+  private getRequiredFieldsErrors(request: PostRequestDto, type: PostType): string[] {
+    const errors: string[] = [];
+
     switch (type) {
       case PostType.POST:
-        // No media fields should be present
         if (
           MediaInputHelper.isDefined(request.cover) ||
           MediaInputHelper.isDefined(request.video) ||
@@ -327,86 +394,53 @@ export class TelegramProvider implements IProvider {
           MediaInputHelper.isDefined(request.document) ||
           MediaInputHelper.isNotEmpty(request.media)
         ) {
-          throw new BadRequestException("For type 'post', media fields must not be provided");
+          errors.push("For type 'post', media fields must not be provided");
         }
         break;
 
       case PostType.IMAGE:
         if (!MediaInputHelper.isDefined(request.cover)) {
-          throw new BadRequestException("Field 'cover' is required for type 'image'");
+          errors.push("Field 'cover' is required for type 'image'");
         }
-        this.warnIgnoredFields(request, ['media', 'video', 'audio', 'document']);
         break;
 
       case PostType.VIDEO:
         if (!MediaInputHelper.isDefined(request.video)) {
-          throw new BadRequestException("Field 'video' is required for type 'video'");
+          errors.push("Field 'video' is required for type 'video'");
         }
-        this.warnIgnoredFields(request, ['media', 'cover', 'audio', 'document']);
         break;
 
       case PostType.AUDIO:
         if (!MediaInputHelper.isDefined(request.audio)) {
-          throw new BadRequestException("Field 'audio' is required for type 'audio'");
+          errors.push("Field 'audio' is required for type 'audio'");
         }
-        this.warnIgnoredFields(request, ['media', 'cover', 'video', 'document']);
         break;
 
       case PostType.DOCUMENT:
         if (!MediaInputHelper.isDefined(request.document)) {
-          throw new BadRequestException("Field 'document' is required for type 'document'");
+          errors.push("Field 'document' is required for type 'document'");
         }
-        this.warnIgnoredFields(request, ['media', 'cover', 'video', 'audio']);
         break;
 
       case PostType.ALBUM:
         if (!MediaInputHelper.isNotEmpty(request.media)) {
-          throw new BadRequestException("Field 'media' is required for type 'album'");
+          errors.push("Field 'media' is required for type 'album'");
         }
-        this.warnIgnoredFields(request, ['cover', 'video', 'audio', 'document']);
         break;
     }
+    return errors;
   }
 
-  private warnIgnoredFields(request: PostRequestDto, fields: string[]): void {
-    const ignoredFields: string[] = [];
-
-    for (const field of fields) {
-      if (field === 'media' && MediaInputHelper.isNotEmpty((request as any)[field])) {
-        ignoredFields.push(field);
-      } else if (MediaInputHelper.isDefined((request as any)[field])) {
-        ignoredFields.push(field);
-      }
-    }
-
-    if (ignoredFields.length > 0) {
-      this.logger.warn(`Fields ${ignoredFields.join(', ')} will be ignored for this post type`);
-    }
-  }
-
-  private logIgnoredFields(request: PostRequestDto): void {
-    const ignoredFields: string[] = [];
-
-    if (request.title) ignoredFields.push('title');
-    if (request.description) ignoredFields.push('description');
-    if (request.postLanguage) ignoredFields.push('postLanguage');
-    if (request.tags) ignoredFields.push('tags');
-    if (request.mode) ignoredFields.push('mode');
-    if (request.scheduledAt) ignoredFields.push('scheduledAt');
-
-    if (ignoredFields.length > 0) {
-      this.logger.warn(
-        `Fields ${ignoredFields.join(', ')} are not used by Telegram and will be ignored`,
-      );
-    }
-  }
-
-  private validateMediaUrls(request: PostRequestDto): void {
-    // Validate only URLs, not file_ids
+  private getMediaUrlErrors(request: PostRequestDto): string[] {
+    const errors: string[] = [];
     const validateIfUrl = (media: any) => {
       const url = MediaInputHelper.getUrl(media);
       if (url) {
-        this.mediaService.validateMediaUrl(url);
+        try {
+          this.mediaService.validateMediaUrl(url);
+        } catch (e: any) {
+          errors.push(e.message);
+        }
       }
     };
 
@@ -417,6 +451,79 @@ export class TelegramProvider implements IProvider {
     if (request.media) {
       request.media.forEach(validateIfUrl);
     }
+    return errors;
+  }
+
+  private getIgnoredFieldsWarnings(request: PostRequestDto): string[] {
+    const warnings: string[] = [];
+    const ignoredFields: string[] = [];
+
+    if (request.title) ignoredFields.push('title');
+    if (request.description) ignoredFields.push('description');
+    if (request.postLanguage) ignoredFields.push('postLanguage');
+    if (request.tags) ignoredFields.push('tags');
+    if (request.mode) ignoredFields.push('mode');
+    if (request.scheduledAt) ignoredFields.push('scheduledAt');
+
+    if (ignoredFields.length > 0) {
+      warnings.push(
+        `Fields ${ignoredFields.join(', ')} are not used by Telegram and will be ignored`,
+      );
+    }
+    return warnings;
+  }
+
+  private getIgnoredMediaWarnings(request: PostRequestDto, type: PostType): string[] {
+    const warnings: string[] = [];
+    const ignoredFields: string[] = [];
+
+    const checkField = (field: string, value: any, isArray = false) => {
+      if (isArray ? MediaInputHelper.isNotEmpty(value) : MediaInputHelper.isDefined(value)) {
+        ignoredFields.push(field);
+      }
+    };
+
+    switch (type) {
+      case PostType.IMAGE:
+        checkField('media', request.media, true);
+        checkField('video', request.video);
+        checkField('audio', request.audio);
+        checkField('document', request.document);
+        break;
+
+      case PostType.VIDEO:
+        checkField('media', request.media, true);
+        checkField('cover', request.cover);
+        checkField('audio', request.audio);
+        checkField('document', request.document);
+        break;
+
+      case PostType.AUDIO:
+        checkField('media', request.media, true);
+        checkField('cover', request.cover);
+        checkField('video', request.video);
+        checkField('document', request.document);
+        break;
+
+      case PostType.DOCUMENT:
+        checkField('media', request.media, true);
+        checkField('cover', request.cover);
+        checkField('video', request.video);
+        checkField('audio', request.audio);
+        break;
+
+      case PostType.ALBUM:
+        checkField('cover', request.cover);
+        checkField('video', request.video);
+        checkField('audio', request.audio);
+        checkField('document', request.document);
+        break;
+    }
+
+    if (ignoredFields.length > 0) {
+      warnings.push(`Fields ${ignoredFields.join(', ')} will be ignored for type '${type}'`);
+    }
+    return warnings;
   }
 
   private getTargetBodyFormat(parseMode?: string): BodyFormat {
@@ -431,8 +538,22 @@ export class TelegramProvider implements IProvider {
     }
   }
 
+  private getLimits(type: PostType, channelConfig?: any): { maxLength: number } {
+    const isCaption =
+      type === PostType.IMAGE ||
+      type === PostType.VIDEO ||
+      type === PostType.AUDIO ||
+      type === PostType.DOCUMENT ||
+      type === PostType.ALBUM;
+
+    if (isCaption) {
+      return { maxLength: channelConfig?.maxCaptionLength ?? this.MAX_CAPTION_LENGTH };
+    }
+
+    return { maxLength: channelConfig?.maxTextLength ?? this.MAX_TEXT_LENGTH };
+  }
+
   private buildPostUrl(chatId: string, messageId: number): string | undefined {
-    // For public channels, we can build URL
     if (chatId.startsWith('@')) {
       const channelName = chatId.substring(1);
       return `https://t.me/${channelName}/${messageId}`;

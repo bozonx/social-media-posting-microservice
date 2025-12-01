@@ -1,2 +1,3 @@
 export * from './post-type.enum';
 export * from './body-format.enum';
+export * from './error-code.enum';

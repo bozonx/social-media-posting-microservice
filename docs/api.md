@@ -40,7 +40,7 @@ Publish content to a social media platform.
 | `tags` | string[] | No | Tags/hashtags |
 | `scheduledAt` | string | No | Scheduled publish time (ISO 8601) |
 | `postLanguage` | string | No | Content language code (e.g., `ru`, `ru-RU`). Passed directly to provider (used by YouTube, WordPress, etc). |
-| `mode` | string | No | Publishing mode: `publish`, `draft`, `preview` (default: `publish`) |
+| `mode` | string | No | Publishing mode: `publish`, `draft` (default: `publish`) |
 | `idempotencyKey` | string | No | Unique key to prevent duplicate posts |
 
 **Note:** Either `channel` or `auth` must be provided.

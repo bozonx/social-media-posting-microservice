@@ -76,8 +76,8 @@ export class PostRequestDto {
   postLanguage?: string;
 
   @IsOptional()
-  @IsEnum(['publish', 'draft', 'preview'])
-  mode?: 'publish' | 'draft' | 'preview';
+  @IsEnum(['publish', 'draft'])
+  mode?: 'publish' | 'draft';
 
   @IsOptional()
   @IsString()

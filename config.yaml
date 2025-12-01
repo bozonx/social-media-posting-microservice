@@ -64,6 +64,7 @@ channels:
     enabled: true
     
     # Авторизация (токен бота и ID чата)
+    # Вы можете использовать переменные окружения: ${MY_CUSTOM_VAR}
     auth:
       botToken: your_bot_token_here
       chatId: @your_channel_username

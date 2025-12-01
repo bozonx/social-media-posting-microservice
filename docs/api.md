@@ -287,7 +287,7 @@ channels:
     maxCaptionLength: 1024
 ```
 
-Environment variables are substituted using `${VAR_NAME}` syntax.
+Environment variables are substituted using `${VAR_NAME}` syntax. You can define any variable in your `.env` file and reference it here.
 
 ---
 

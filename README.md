@@ -56,9 +56,13 @@ channels:
     provider: telegram
     enabled: true
     auth:
-    auth:
-      botToken: your_bot_token_here
-      chatId: @your_channel_username
+      # You can use direct values:
+      # botToken: your_bot_token_here
+      # chatId: @your_channel_username
+      
+      # OR use environment variables defined in .env:
+      botToken: ${MY_TELEGRAM_TOKEN}
+      chatId: ${MY_CHANNEL_ID}
     parseMode: HTML
     # ... other settings
 ```
@@ -159,6 +163,9 @@ LISTEN_PORT=8080
 API_BASE_PATH=api
 LOG_LEVEL=warn
 CONFIG_PATH=./config.yaml
+
+# Custom variables for config.yaml
+MY_TOKEN=...
 ```
 
 ### Config File
@@ -275,7 +282,7 @@ Failed requests are automatically retried for temporary errors:
 
 ## Security
 
-- **Secrets:** Stored in `config.yaml` (ensure this file is secure)
+- **Secrets:** Stored in `config.yaml` or environment variables (referenced via `${VAR}`)
 - **Config:** Non-sensitive parameters in `config.yaml`
 - **Logging:** Sensitive data is redacted
 - **Rate Limiting:** Handled at API Gateway level

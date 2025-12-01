@@ -1,9 +1,10 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, BadRequestException, ConflictException, Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { PostRequestDto, PostResponseDto, ErrorResponseDto } from './dto';
 import { PostType } from '../../common/enums';
 import { AppConfigService } from '../app-config/app-config.service';
 import { TelegramProvider } from '../providers/telegram/telegram.provider';
+import { IdempotencyService } from './idempotency.service';
 
 @Injectable()
 export class PostService {
@@ -12,9 +13,29 @@ export class PostService {
   constructor(
     private readonly appConfig: AppConfigService,
     private readonly telegramProvider: TelegramProvider,
+    private readonly idempotencyService: IdempotencyService,
   ) {}
 
   async publish(request: PostRequestDto): Promise<PostResponseDto | ErrorResponseDto> {
+    const idempotencyKey = this.idempotencyService.buildKey(request);
+
+    if (idempotencyKey) {
+      const existing = await this.idempotencyService.getRecord(idempotencyKey);
+      if (existing) {
+        if (existing.status === 'processing') {
+          throw new ConflictException(
+            'Request with the same idempotencyKey is already being processed',
+          );
+        }
+
+        if (existing.status === 'completed' && existing.response) {
+          return existing.response;
+        }
+      }
+
+      await this.idempotencyService.setProcessing(idempotencyKey);
+    }
+
     const requestId = randomUUID();
 
     try {
@@ -76,6 +97,10 @@ export class PostService {
         },
       };
 
+      if (idempotencyKey) {
+        await this.idempotencyService.setCompleted(idempotencyKey, response);
+      }
+
       return response;
     } catch (error: any) {
       this.logger.error(`Failed to publish to ${request.platform}: ${error.message}`, error.stack);
@@ -90,6 +115,10 @@ export class PostService {
           requestId,
         },
       };
+
+      if (idempotencyKey) {
+        await this.idempotencyService.setCompleted(idempotencyKey, errorResponse);
+      }
 
       return errorResponse;
     }

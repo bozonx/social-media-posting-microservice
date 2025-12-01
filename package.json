@@ -21,12 +21,14 @@
     "test:e2e": "NODE_OPTIONS=--experimental-vm-modules jest --selectProjects e2e"
   },
   "dependencies": {
+    "@nestjs/cache-manager": "^3.0.0",
     "@nestjs/common": "^11.1.8",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.8",
     "@nestjs/platform-fastify": "^11.1.8",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
+    "cache-manager": "^5.7.6",
     "fastify": "^5.6.1",
     "grammy": "^1.38.4",
     "html-to-text": "^9.0.5",

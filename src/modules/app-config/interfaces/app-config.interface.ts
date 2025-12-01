@@ -5,6 +5,7 @@ export interface AppConfig {
     convertBody: boolean;
     retryAttempts: number;
     retryDelayMs: number;
+    idempotencyTtlMinutes: number;
   };
   conversion: {
     preserveLinks: boolean;

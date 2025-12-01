@@ -3,8 +3,8 @@ import { ConverterService } from './converter.service';
 import { AppConfigModule } from '../app-config/app-config.module';
 
 @Module({
-    imports: [AppConfigModule],
-    providers: [ConverterService],
-    exports: [ConverterService],
+  imports: [AppConfigModule],
+  providers: [ConverterService],
+  exports: [ConverterService],
 })
-export class ConverterModule { }
+export class ConverterModule {}

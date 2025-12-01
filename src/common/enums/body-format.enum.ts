@@ -1,5 +1,5 @@
 export enum BodyFormat {
-    HTML = 'html',
-    MARKDOWN = 'md',
-    TEXT = 'text',
+  HTML = 'html',
+  MARKDOWN = 'md',
+  TEXT = 'text',
 }

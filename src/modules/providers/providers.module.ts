@@ -4,8 +4,8 @@ import { ConverterModule } from '../converter/converter.module';
 import { MediaModule } from '../media/media.module';
 
 @Module({
-    imports: [ConverterModule, MediaModule],
-    providers: [TelegramProvider],
-    exports: [TelegramProvider],
+  imports: [ConverterModule, MediaModule],
+  providers: [TelegramProvider],
+  exports: [TelegramProvider],
 })
-export class ProvidersModule { }
+export class ProvidersModule {}

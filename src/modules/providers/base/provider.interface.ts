@@ -1,9 +1,9 @@
-import { PostType } from '../../../common/enums';
-import { PostRequestDto } from '../../post/dto';
+import type { PostType } from '../../../common/enums';
+import type { PostRequestDto } from '../../post/dto';
 
 export interface IProvider {
-    readonly name: string;
-    readonly supportedTypes: PostType[];
+  readonly name: string;
+  readonly supportedTypes: PostType[];
 
-    publish(request: PostRequestDto, channelConfig: any): Promise<any>;
+  publish(request: PostRequestDto, channelConfig: any): Promise<any>;
 }

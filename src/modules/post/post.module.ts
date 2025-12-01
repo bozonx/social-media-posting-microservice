@@ -5,8 +5,8 @@ import { AppConfigModule } from '../app-config/app-config.module';
 import { ProvidersModule } from '../providers/providers.module';
 
 @Module({
-    imports: [AppConfigModule, ProvidersModule],
-    controllers: [PostController],
-    providers: [PostService],
+  imports: [AppConfigModule, ProvidersModule],
+  controllers: [PostController],
+  providers: [PostService],
 })
-export class PostModule { }
+export class PostModule {}

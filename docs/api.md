@@ -33,7 +33,7 @@ Publish content to a social media platform.
 | `video` | MediaInput | No | Video file (URL string or MediaInput object) |
 | `audio` | MediaInput | No | Audio file (URL string or MediaInput object) |
 | `document` | MediaInput | No | Document/file (URL string or MediaInput object) |
-| `media` | MediaInput[] | No | Array of media for albums/carousels (2-10 items) |
+| `media` | MediaInput[] | No | Array of media for albums/carousels (Telegram supports 2-10 items; validated by Telegram API) |
 | `channel` | string | No* | Channel name from config.yaml |
 | `auth` | object | No* | Authentication credentials (if not using channel) |
 | `options` | object | No | Platform-specific parameters (formerly `platformData`) |
@@ -102,13 +102,13 @@ Publish content to a social media platform.
 ### Telegram
 
 #### Supported Types
-- `auto` - Automatic type detection based on media fields (default)
-- `post` - Text message (max 4096 characters)
-- `image` - Photo with caption
-- `video` - Video with caption
-- `audio` - Audio file with caption (MP3, M4A, OGG)
-- `album` - Media group (2-10 items, photos and videos)
-- `document` - File/document (any file type)
+ - `auto` - Automatic type detection based on media fields (default)
+ - `post` - Text message
+ - `image` - Photo with caption
+ - `video` - Video with caption
+ - `audio` - Audio file with caption (MP3, M4A, OGG)
+ - `album` - Media group of photos and videos
+ - `document` - File/document (any file type)
 
 #### Automatic Type Detection (`type: auto`)
 
@@ -350,6 +350,8 @@ curl -X POST http://localhost:8080/api/v1/post \
 
 #### Telegram Limitations
 
+These limits are defined by the Telegram Bot API. The microservice does not revalidate them and relies on Telegram responses.
+
 | Type | Limit |
 |------|-------|
 | Text message | 4096 characters |
@@ -387,7 +389,7 @@ The service automatically converts content between formats:
 2. If `convertBody = true` (default):
    - Determines target format based on platform requirements
    - Converts from `bodyFormat` to target format
-   - Applies platform-specific limitations (text length, etc.)
+   - Resulting content must still comply with platform-specific limitations (text length, etc.), which are enforced by the platform APIs
    - Sanitizes HTML if required
 
 ### Example: Markdown to HTML

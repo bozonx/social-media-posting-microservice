@@ -329,9 +329,6 @@ export class TelegramProvider implements IProvider {
         ) {
           throw new BadRequestException("For type 'post', media fields must not be provided");
         }
-        if (request.body && request.body.length > 4096) {
-          throw new BadRequestException('Text message exceeds maximum length of 4096 characters');
-        }
         break;
 
       case PostType.IMAGE:
@@ -365,12 +362,6 @@ export class TelegramProvider implements IProvider {
       case PostType.ALBUM:
         if (!MediaInputHelper.isNotEmpty(request.media)) {
           throw new BadRequestException("Field 'media' is required for type 'album'");
-        }
-        if (request.media!.length < 2) {
-          throw new BadRequestException('Album must contain at least 2 media items');
-        }
-        if (request.media!.length > 10) {
-          throw new BadRequestException('Album cannot contain more than 10 media items');
         }
         this.warnIgnoredFields(request, ['cover', 'video', 'audio', 'document']);
         break;

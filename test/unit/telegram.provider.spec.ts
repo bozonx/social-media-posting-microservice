@@ -134,15 +134,23 @@ describe('TelegramProvider', () => {
       });
     });
 
-    it('should throw error if text message exceeds 4096 characters', async () => {
+    it('should allow long text messages and delegate length validation to Telegram', async () => {
+      const longBody = 'a'.repeat(5000);
       const request: PostRequestDto = {
         platform: 'telegram',
-        body: 'a'.repeat(4097),
+        body: longBody,
         type: PostType.POST,
       };
 
-      await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
-        'Text message exceeds maximum length of 4096 characters',
+      mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
+
+      const result = await provider.publish(request, mockChannelConfig);
+
+      expect(result.postId).toBe('12345');
+      expect(mockApi.sendMessage).toHaveBeenCalledWith(
+        'test-chat-id',
+        longBody,
+        expect.objectContaining({ parse_mode: 'HTML' }),
       );
     });
 
@@ -369,19 +377,6 @@ describe('TelegramProvider', () => {
           },
         ],
         { disable_notification: false },
-      );
-    });
-
-    it('should throw error if album has more than 10 items', async () => {
-      const request: PostRequestDto = {
-        platform: 'telegram',
-        body: 'Album caption',
-        media: Array(15).fill('https://example.com/image.jpg'),
-        type: PostType.ALBUM,
-      };
-
-      await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
-        'Album cannot contain more than 10 media items',
       );
     });
 

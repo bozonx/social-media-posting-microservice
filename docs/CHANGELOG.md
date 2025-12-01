@@ -28,8 +28,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `AmbiguousMediaValidator` - Validator for detecting conflicting media fields
 
 - **Validation Improvements**:
-  - Text message length validation (max 4096 characters for `type: post`)
-  - Album size validation (2-10 items)
   - Required field validation for explicit types
   - Warning logs for ignored fields (title, description, tags, etc.)
 
@@ -45,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Default `type` changed from `post` to `auto`
 - Media fields (`cover`, `video`, `media[]`) now accept `MediaInput` type instead of plain strings
 - `TelegramProvider.supportedTypes` now includes `AUTO` and `AUDIO`
+- Telegram-specific limits (text length, album size) are now delegated to the Telegram API instead of being validated by the microservice
 
 ### Fixed
 

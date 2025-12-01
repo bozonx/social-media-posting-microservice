@@ -1,5 +1,7 @@
-import { IsString, IsOptional, IsEnum, IsBoolean, IsObject, IsArray, IsUrl } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsBoolean, IsObject, IsArray } from 'class-validator';
 import { PostType, BodyFormat } from '../../../common/enums';
+import { MediaInput } from '../../../common/types';
+import { IsMediaInput, IsMediaInputArray } from '../../../common/validators/media-input.validator';
 
 export class PostRequestDto {
   @IsString()
@@ -10,7 +12,7 @@ export class PostRequestDto {
 
   @IsOptional()
   @IsEnum(PostType)
-  type?: PostType;
+  type?: PostType = PostType.AUTO;
 
   @IsOptional()
   @IsEnum(BodyFormat)
@@ -29,17 +31,24 @@ export class PostRequestDto {
   description?: string;
 
   @IsOptional()
-  @IsUrl()
-  cover?: string;
+  @IsMediaInput()
+  cover?: MediaInput;
 
   @IsOptional()
-  @IsUrl()
-  video?: string;
+  @IsMediaInput()
+  video?: MediaInput;
 
   @IsOptional()
-  @IsArray()
-  @IsUrl({}, { each: true })
-  media?: string[];
+  @IsMediaInput()
+  audio?: MediaInput;
+
+  @IsOptional()
+  @IsMediaInput()
+  document?: MediaInput;
+
+  @IsOptional()
+  @IsMediaInputArray()
+  media?: MediaInput[];
 
   @IsOptional()
   @IsString()

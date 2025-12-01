@@ -3,6 +3,7 @@ import { Logger } from '@nestjs/common';
 import { TelegramProvider } from '@/modules/providers/telegram/telegram.provider';
 import { ConverterService } from '@/modules/converter/converter.service';
 import { MediaService } from '@/modules/media/media.service';
+import { TelegramTypeDetector } from '@/modules/providers/telegram/telegram-type-detector.service';
 import type { PostRequestDto } from '@/modules/post/dto';
 import { PostType, BodyFormat } from '@/common/enums';
 import { Bot } from 'grammy';
@@ -59,6 +60,12 @@ describe('TelegramProvider', () => {
             validateMediaUrls: jest.fn(),
           },
         },
+        {
+          provide: TelegramTypeDetector,
+          useValue: {
+            detectType: jest.fn((request: PostRequestDto) => request.type ?? PostType.POST),
+          },
+        },
       ],
     }).compile();
 
@@ -84,10 +91,12 @@ describe('TelegramProvider', () => {
 
     it('should support correct post types', () => {
       expect(provider.supportedTypes).toEqual([
+        PostType.AUTO,
         PostType.POST,
         PostType.IMAGE,
         PostType.VIDEO,
         PostType.ALBUM,
+        PostType.AUDIO,
         PostType.DOCUMENT,
       ]);
     });
@@ -232,12 +241,13 @@ describe('TelegramProvider', () => {
       expect(mockApi.sendPhoto).toHaveBeenCalledWith(
         'test-chat-id',
         'https://example.com/image.jpg',
-        {
+        expect.objectContaining({
           caption: 'Image caption',
           parse_mode: 'HTML',
           disable_notification: false,
           reply_markup: undefined,
-        },
+          has_spoiler: false,
+        }),
       );
     });
 
@@ -249,7 +259,7 @@ describe('TelegramProvider', () => {
       };
 
       await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
-        'Cover image is required for IMAGE type',
+        "Field 'cover' is required for type 'image'",
       );
     });
   });
@@ -272,11 +282,12 @@ describe('TelegramProvider', () => {
       expect(mockApi.sendVideo).toHaveBeenCalledWith(
         'test-chat-id',
         'https://example.com/video.mp4',
-        {
+        expect.objectContaining({
           caption: 'Video caption',
           parse_mode: 'HTML',
           disable_notification: false,
-        },
+          has_spoiler: false,
+        }),
       );
     });
 
@@ -288,7 +299,7 @@ describe('TelegramProvider', () => {
       };
 
       await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
-        'Video URL is required for VIDEO type',
+        "Field 'video' is required for type 'video'",
       );
     });
   });
@@ -315,7 +326,10 @@ describe('TelegramProvider', () => {
       const result = await provider.publish(request, mockChannelConfig);
 
       expect(result.postId).toBe('12345');
-      expect(mediaService.validateMediaUrls).toHaveBeenCalledWith(request.media);
+      expect(mediaService.validateMediaUrl).toHaveBeenCalledTimes(3);
+      expect(mediaService.validateMediaUrl).toHaveBeenCalledWith('https://example.com/image1.jpg');
+      expect(mediaService.validateMediaUrl).toHaveBeenCalledWith('https://example.com/image2.jpg');
+      expect(mediaService.validateMediaUrl).toHaveBeenCalledWith('https://example.com/video.mp4');
       expect(mockApi.sendMediaGroup).toHaveBeenCalledWith(
         'test-chat-id',
         [
@@ -324,25 +338,28 @@ describe('TelegramProvider', () => {
             media: 'https://example.com/image1.jpg',
             caption: 'Album caption',
             parse_mode: 'HTML',
+            has_spoiler: false,
           },
           {
             type: 'photo',
             media: 'https://example.com/image2.jpg',
             caption: undefined,
             parse_mode: undefined,
+            has_spoiler: false,
           },
           {
             type: 'video',
             media: 'https://example.com/video.mp4',
             caption: undefined,
             parse_mode: undefined,
+            has_spoiler: false,
           },
         ],
         { disable_notification: false },
       );
     });
 
-    it('should limit album to 10 items', async () => {
+    it('should throw error if album has more than 10 items', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Album caption',
@@ -350,16 +367,9 @@ describe('TelegramProvider', () => {
         type: PostType.ALBUM,
       };
 
-      mockApi.sendMediaGroup.mockResolvedValue(
-        Array(10)
-          .fill(null)
-          .map((_, i) => ({ message_id: 12345 + i })),
+      await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
+        'Album cannot contain more than 10 media items',
       );
-
-      await provider.publish(request, mockChannelConfig);
-
-      const callArgs = mockApi.sendMediaGroup.mock.calls[0];
-      expect(callArgs[1]).toHaveLength(10);
     });
 
     it('should throw error if media array is empty for ALBUM type', async () => {
@@ -371,51 +381,36 @@ describe('TelegramProvider', () => {
       };
 
       await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
-        'Media array is required for ALBUM type',
+        "Field 'media' is required for type 'album'",
       );
     });
   });
 
   describe('publish - DOCUMENT type', () => {
-    it('should publish document from media array', async () => {
+    it('should publish document with caption', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Document caption',
-        media: ['https://example.com/document.pdf'],
+        document: 'https://example.com/document.pdf',
         type: PostType.DOCUMENT,
       };
 
       mockApi.sendDocument.mockResolvedValue({ message_id: 12345 });
 
-      await provider.publish(request, mockChannelConfig);
+      const result = await provider.publish(request, mockChannelConfig);
 
+      expect(result.postId).toBe('12345');
+      expect(mediaService.validateMediaUrl).toHaveBeenCalledWith(
+        'https://example.com/document.pdf',
+      );
       expect(mockApi.sendDocument).toHaveBeenCalledWith(
         'test-chat-id',
         'https://example.com/document.pdf',
-        {
+        expect.objectContaining({
           caption: 'Document caption',
           parse_mode: 'HTML',
           disable_notification: false,
-        },
-      );
-    });
-
-    it('should publish document from cover if media is empty', async () => {
-      const request: PostRequestDto = {
-        platform: 'telegram',
-        body: 'Document caption',
-        cover: 'https://example.com/document.pdf',
-        type: PostType.DOCUMENT,
-      };
-
-      mockApi.sendDocument.mockResolvedValue({ message_id: 12345 });
-
-      await provider.publish(request, mockChannelConfig);
-
-      expect(mockApi.sendDocument).toHaveBeenCalledWith(
-        'test-chat-id',
-        'https://example.com/document.pdf',
-        expect.any(Object),
+        }),
       );
     });
 
@@ -427,7 +422,7 @@ describe('TelegramProvider', () => {
       };
 
       await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
-        'Document URL is required for DOCUMENT type',
+        "Field 'document' is required for type 'document'",
       );
     });
   });

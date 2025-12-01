@@ -1,4 +1,5 @@
 export enum PostType {
+  AUTO = 'auto',
   POST = 'post',
   ARTICLE = 'article',
   IMAGE = 'image',

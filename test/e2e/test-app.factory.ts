@@ -2,14 +2,30 @@ import { Test } from '@nestjs/testing';
 import { ValidationPipe } from '@nestjs/common';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { AppModule } from '@/app.module';
+import { AppConfigService } from '@/modules/app-config/app-config.service';
 
 export async function createTestApp(): Promise<NestFastifyApplication> {
   // Ensure defaults the same as in main.ts
   process.env.API_BASE_PATH = process.env.API_BASE_PATH ?? 'api';
 
+  const mockAppConfigService = {
+    onModuleInit: jest.fn(),
+    get: jest.fn(),
+    getChannel: jest.fn(),
+    getAllChannels: jest.fn(),
+    getCommonConfig: jest.fn().mockReturnValue({
+      retryAttempts: 1,
+      retryDelayMs: 0,
+    }),
+    getConversionConfig: jest.fn().mockReturnValue({}),
+  };
+
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule],
-  }).compile();
+  })
+    .overrideProvider(AppConfigService)
+    .useValue(mockAppConfigService)
+    .compile();
 
   const app = moduleRef.createNestApplication<NestFastifyApplication>(
     new FastifyAdapter({

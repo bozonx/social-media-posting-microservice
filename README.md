@@ -22,12 +22,13 @@ This microservice provides a simple, unified interface for posting content to mu
 - ✅ Telegram publishing (posts, images, videos, albums, documents, audio)
 - ✅ Automatic post type detection (`type: auto`)
 - ✅ Extended media support (URL, file_id, spoiler)
+- ✅ Best-effort idempotency with `idempotencyKey` (per-instance, in-memory cache)
 - ✅ Content conversion (HTML ↔ Markdown ↔ Text)
 - ✅ Media URL validation
 - ✅ Retry logic with ±20% jitter
 - ✅ YAML configuration with environment variable substitution
 - ✅ Platform-specific parameters support
-- ✅ Comprehensive unit tests (195 tests)
+- ✅ Comprehensive unit tests (195+ tests)
 
 ## Quick Start
 
@@ -285,19 +286,15 @@ docker compose -f docker/docker-compose.yml up -d
 
 ### Phase 1: MVP ✅
 - ✅ Basic project structure
-- ✅ Telegram provider
-- ✅ Content conversion
-- ✅ Media URL validation
-- ✅ API documentation
 
 ### Phase 2: Extended Functionality
-- [x] Unit tests (195 tests)
+- [x] Unit tests (195+ tests)
 - [x] Automatic type detection (`type: auto`)
 - [x] Extended media support (audio, document, file_id, spoiler)
+- [x] Best-effort idempotency with `idempotencyKey` (per-instance, in-memory cache)
 - [ ] E2E tests
 - [ ] `/preview` endpoint
 - [ ] Enhanced error handling
-- [ ] Idempotency support
 
 ## Architecture
 

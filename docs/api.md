@@ -45,6 +45,22 @@ Publish content to a social media platform.
 
 **Note:** Either `channel` or `auth` must be provided.
 
+#### Idempotency (`idempotencyKey`)
+
+If `idempotencyKey` is provided, the service applies **best-effort idempotency** on the request:
+
+- The key is combined with the request payload (platform, channel/auth, body, media, options) and hashed.
+- The result is stored in an **in-memory cache** (per process) with TTL from configuration (`common.idempotencyTtlMinutes`).
+- Subsequent requests with the same `idempotencyKey` **and identical payload** within the TTL window behave as follows:
+  - If the first request is still being processed → the service responds with HTTP `409 Conflict` (idempotency in progress).
+  - If the first request has already completed → the cached response (success or error) is returned without calling the provider again.
+
+**Limitations:**
+
+- Idempotency is **scoped to a single instance** of the microservice.
+- After process restart or TTL expiration, the cache is reset and duplicates are possible.
+- Horizontal scaling (multiple instances) requires an external store (e.g., Redis); this is not implemented in the current version.
+
 #### Success Response
 
 **Code:** `200 OK`
@@ -496,7 +512,7 @@ Returns service health status.
 ## Best Practices
 
 1. **Use named channels** from config instead of inline auth for better security
-2. **Set idempotencyKey** for critical posts to prevent duplicates
+2. **Set idempotencyKey** for critical posts to prevent duplicates (especially when implementing client-side retries)
 3. **Validate media URLs** before sending (microservice does basic validation only)
 4. **Handle both success and error responses** properly
 5. **Use appropriate bodyFormat** for your content type

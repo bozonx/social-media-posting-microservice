@@ -3,6 +3,7 @@ import { BadRequestException, Logger } from '@nestjs/common';
 import { PostService } from '@/modules/post/post.service';
 import { AppConfigService } from '@/modules/app-config/app-config.service';
 import { TelegramProvider } from '@/modules/providers/telegram/telegram.provider';
+import { IdempotencyService } from '@/modules/post/idempotency.service';
 import type { PostRequestDto } from '@/modules/post/dto';
 import { PostType } from '@/common/enums';
 
@@ -10,6 +11,7 @@ describe('PostService', () => {
   let service: PostService;
   let appConfigService: AppConfigService;
   let telegramProvider: TelegramProvider;
+  let idempotencyService: IdempotencyService;
 
   const mockChannelConfig = {
     provider: 'telegram',
@@ -50,12 +52,22 @@ describe('PostService', () => {
             publish: jest.fn(),
           },
         },
+        {
+          provide: IdempotencyService,
+          useValue: {
+            buildKey: jest.fn().mockReturnValue(null),
+            getRecord: jest.fn(),
+            setProcessing: jest.fn(),
+            setCompleted: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<PostService>(PostService);
     appConfigService = module.get<AppConfigService>(AppConfigService);
     telegramProvider = module.get<TelegramProvider>(TelegramProvider);
+    idempotencyService = module.get<IdempotencyService>(IdempotencyService);
 
     // Подавляем логи в тестах
     jest.spyOn(Logger.prototype, 'log').mockImplementation();
@@ -238,6 +250,70 @@ describe('PostService', () => {
       const result = await service.publish(request);
 
       expect(result.success).toBe(false);
+      expect(telegramProvider.publish).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return cached response when idempotent record exists with completed status', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        channel: 'test-channel',
+        body: 'Test message',
+        type: PostType.POST,
+        idempotencyKey: 'idem-1',
+      } as PostRequestDto;
+
+      const cachedResponse = {
+        success: true,
+        data: {
+          postId: 'cached',
+          url: 'https://t.me/test/cached',
+          platform: 'telegram',
+          type: PostType.POST,
+          publishedAt: new Date().toISOString(),
+          requestId: 'cached-req',
+          raw: {},
+        },
+      } as any;
+
+      (idempotencyService.buildKey as jest.Mock).mockReturnValue('idem-key');
+      (idempotencyService.getRecord as jest.Mock).mockResolvedValue({
+        status: 'completed',
+        response: cachedResponse,
+      });
+
+      const result = await service.publish(request);
+
+      expect(result).toEqual(cachedResponse);
+      expect(telegramProvider.publish).not.toHaveBeenCalled();
+      expect(idempotencyService.setProcessing).not.toHaveBeenCalled();
+      expect(idempotencyService.setCompleted).not.toHaveBeenCalled();
+    });
+
+    it('should mark processing and save completed response for new idempotent request', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        channel: 'test-channel',
+        body: 'Test message',
+        type: PostType.POST,
+        idempotencyKey: 'idem-1',
+      } as PostRequestDto;
+
+      const mockProviderResult = {
+        postId: '12345',
+        url: 'https://t.me/test/12345',
+        raw: { message_id: 12345 },
+      };
+
+      (idempotencyService.buildKey as jest.Mock).mockReturnValue('idem-key');
+      (idempotencyService.getRecord as jest.Mock).mockResolvedValue(undefined);
+      (appConfigService.getChannel as jest.Mock).mockReturnValue(mockChannelConfig);
+      (telegramProvider.publish as jest.Mock).mockResolvedValue(mockProviderResult);
+
+      const result = await service.publish(request);
+
+      expect(result.success).toBe(true);
+      expect(idempotencyService.setProcessing).toHaveBeenCalledWith('idem-key');
+      expect(idempotencyService.setCompleted).toHaveBeenCalledWith('idem-key', result);
       expect(telegramProvider.publish).toHaveBeenCalledTimes(1);
     });
   });

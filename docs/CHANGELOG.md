@@ -38,6 +38,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `MediaInputHelper` tests (28 tests)
   - `MediaInputValidator` tests (20 tests)
 
+- **Idempotency Support**:
+  - Best-effort idempotency with `idempotencyKey`
+  - In-memory cache per instance with configurable TTL (`common.idempotencyTtlMinutes`)
+  - Cached reuse of both successful and error responses for identical requests
+
 ### Changed
 
 - Default `type` changed from `post` to `auto`

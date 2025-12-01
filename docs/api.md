@@ -6,64 +6,90 @@
 http://localhost:8080/api/v1
 ```
 
-## Authentication
+## Endpoints
 
-Currently, authentication is handled via channel configuration in `config.yaml` or by passing credentials in the request body.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/post` | Publish content to a platform |
+| POST | `/preview` | Validate and preview without publishing |
+| GET | `/health` | Health check |
 
 ---
 
-## Endpoints
-
-### POST /post
+## POST /post
 
 Publish content to a social media platform.
 
-#### Request Body
+### Request Body
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `platform` | string | Yes | Platform name (e.g., "telegram") |
-| `body` | string | Yes | Main content of the post |
-| `type` | string | No | Post type: `auto`, `post`, `article`, `image`, `album`, `video`, `short`, `audio`, `document`, `story`, `poll` (default: `auto`) |
-| `bodyFormat` | string | No | Format of body content: `html`, `md`, `text` (default: `text`) |
-| `convertBody` | boolean | No | Auto-convert body to platform-required format (default: `true`) |
-| `title` | string | No | Post title (for platforms that require it) |
-| `description` | string | No | Post description (for platforms like YouTube, Instagram) |
-| `cover` | MediaInput | No | Cover image (URL string or MediaInput object) |
-| `video` | MediaInput | No | Video file (URL string or MediaInput object) |
-| `audio` | MediaInput | No | Audio file (URL string or MediaInput object) |
-| `document` | MediaInput | No | Document/file (URL string or MediaInput object) |
-| `media` | MediaInput[] | No | Array of media for albums/carousels (Telegram supports 2-10 items; validated by Telegram API) |
-| `channel` | string | No* | Channel name from config.yaml |
-| `auth` | object | No* | Authentication credentials (if not using channel) |
-| `options` | object | No | Platform-specific parameters (formerly `platformData`) |
+| `platform` | string | Yes | Platform name (`telegram`) |
+| `body` | string | Yes | Post content |
+| `channel` | string | No* | Channel name from `config.yaml` |
+| `auth` | object | No* | Inline authentication credentials |
+| `type` | string | No | Post type (default: `auto`) |
+| `bodyFormat` | string | No | Body format: `html`, `md`, `text` |
+| `convertBody` | boolean | No | Convert body to platform format (default: `true`) |
+| `title` | string | No | Post title (platform-specific) |
+| `description` | string | No | Post description (platform-specific) |
+| `cover` | MediaInput | No | Cover image |
+| `video` | MediaInput | No | Video file |
+| `audio` | MediaInput | No | Audio file |
+| `document` | MediaInput | No | Document file |
+| `media` | MediaInput[] | No | Media array for albums (2-10 items) |
+| `options` | object | No | Platform-specific options |
 | `tags` | string[] | No | Tags/hashtags |
-| `scheduledAt` | string | No | Scheduled publish time (ISO 8601) |
-| `postLanguage` | string | No | Content language code (e.g., `ru`, `ru-RU`). Passed directly to provider (used by YouTube, WordPress, etc). |
-| `mode` | string | No | Publishing mode: `publish`, `draft` (default: `publish`) |
-| `idempotencyKey` | string | No | Unique key to prevent duplicate posts |
+| `scheduledAt` | string | No | Scheduled time (ISO 8601) |
+| `postLanguage` | string | No | Content language code |
+| `mode` | string | No | Mode: `publish`, `draft` |
+| `idempotencyKey` | string | No | Key to prevent duplicates |
 
 **Note:** Either `channel` or `auth` must be provided.
 
-#### Idempotency (`idempotencyKey`)
+### Post Types
 
-If `idempotencyKey` is provided, the service applies **best-effort idempotency** on the request:
+| Type | Description |
+|------|-------------|
+| `auto` | Auto-detect from media fields (default) |
+| `post` | Text-only message |
+| `image` | Single image with caption |
+| `video` | Video with caption |
+| `audio` | Audio file with caption |
+| `album` | Media group (2-10 items) |
+| `document` | Document/file |
+| `article` | Long-form article |
+| `short` | Short-form video |
+| `story` | Story/status |
+| `poll` | Poll |
 
-- The key is combined with the request payload (platform, channel/auth, body, media, options) and hashed.
-- The result is stored in an **in-memory cache** (per process) with TTL from configuration (`common.idempotencyTtlMinutes`).
-- Subsequent requests with the same `idempotencyKey` **and identical payload** within the TTL window behave as follows:
-  - If the first request is still being processed → the service responds with HTTP `409 Conflict` (idempotency in progress).
-  - If the first request has already completed → the cached response (success or error) is returned without calling the provider again.
+### MediaInput Format
 
-**Limitations:**
+Media fields accept a string URL or an object:
 
-- Idempotency is **scoped to a single instance** of the microservice.
-- After process restart or TTL expiration, the cache is reset and duplicates are possible.
-- Horizontal scaling (multiple instances) requires an external store (e.g., Redis); this is not implemented in the current version.
+```json
+// String URL
+"cover": "https://example.com/image.jpg"
 
-#### Success Response
+// Object with options
+"cover": {
+  "url": "https://example.com/image.jpg",
+  "fileId": "AgACAgIAAxkBAAIC...",
+  "hasSpoiler": true
+}
+```
 
-**Code:** `200 OK`
+| Property | Type | Description |
+|----------|------|-------------|
+| `url` | string | Media file URL |
+| `fileId` | string | Telegram file_id (reuse uploaded files) |
+| `hasSpoiler` | boolean | Hide under spoiler |
+
+Either `url` or `fileId` must be provided. If both present, `fileId` takes priority.
+
+### Success Response
+
+**Status:** `200 OK`
 
 ```json
 {
@@ -74,15 +100,15 @@ If `idempotencyKey` is provided, the service applies **best-effort idempotency**
     "platform": "telegram",
     "type": "post",
     "publishedAt": "2025-11-30T20:00:00.000Z",
-    "raw": { /* platform response */ },
+    "raw": {},
     "requestId": "uuid-v4"
   }
 }
 ```
 
-#### Error Response
+### Error Response
 
-**Code:** `200 OK` (with `success: false`)
+**Status:** `200 OK`
 
 ```json
 {
@@ -90,400 +116,37 @@ If `idempotencyKey` is provided, the service applies **best-effort idempotency**
   "error": {
     "code": "VALIDATION_ERROR",
     "message": "Error description",
-    "details": { /* additional info */ },
-    "raw": { /* platform error response */ },
+    "details": {},
+    "raw": {},
     "requestId": "uuid-v4"
   }
 }
 ```
 
-#### Error Codes
+### Error Codes
 
-| Code | HTTP Status | Description |
-|------|-------------|-------------|
-| `VALIDATION_ERROR` | 400 | Invalid request parameters |
-| `PROVIDER_NOT_FOUND` | 400 | Platform not supported |
-| `CHANNEL_NOT_FOUND` | 404 | Channel not found in config |
-| `AUTH_ERROR` | 401 | Authentication failed |
-| `PLATFORM_ERROR` | 502 | Error from platform API |
-| `MEDIA_DOWNLOAD_ERROR` | 500 | Failed to download media |
-| `CONVERSION_ERROR` | 500 | Content conversion failed |
-| `TIMEOUT_ERROR` | 504 | Request timeout |
-| `RATE_LIMIT_ERROR` | 429 | Rate limit exceeded |
+| Code | Description |
+|------|-------------|
+| `VALIDATION_ERROR` | Invalid request parameters |
+| `AUTH_ERROR` | Authentication failed |
+| `PLATFORM_ERROR` | Platform API error |
+| `TIMEOUT_ERROR` | Request timeout |
+| `RATE_LIMIT_ERROR` | Rate limit exceeded |
+| `INTERNAL_ERROR` | Internal server error |
 
 ---
 
-## Platform-Specific Parameters
+## POST /preview
 
-### Telegram
+Validate and preview content without publishing.
 
-#### Supported Types
- - `auto` - Automatic type detection based on media fields (default)
- - `post` - Text message
- - `image` - Photo with caption
- - `video` - Video with caption
- - `audio` - Audio file with caption (MP3, M4A, OGG)
- - `album` - Media group of photos and videos
- - `document` - File/document (any file type)
+### Request Body
 
-#### Automatic Type Detection (`type: auto`)
+Same as `/post`. The `idempotencyKey` field is ignored.
 
-When `type` is `auto` (or omitted), the system automatically determines the message type based on provided media fields:
+### Success Response
 
-| Priority | Field | Detected Type | Telegram API Method |
-|----------|-------|---------------|---------------------|
-| 1 | `media[]` | `album` | sendMediaGroup |
-| 2 | `document` | `document` | sendDocument |
-| 3 | `audio` | `audio` | sendAudio |
-| 4 | `video` | `video` | sendVideo |
-| 5 | `cover` | `image` | sendPhoto |
-| 6 | (none) | `post` | sendMessage |
-
-**Important:** When using `type: auto`, only one media field should be provided (except `media[]` which takes priority over all others). If multiple conflicting fields are present, a validation error is returned.
-
-#### MediaInput Format
-
-Media fields (`cover`, `video`, `audio`, `document`, `media[]`) accept either:
-
-1. **String URL:**
-   ```json
-   "cover": "https://example.com/image.jpg"
-   ```
-
-2. **Object with options:**
-   ```json
-   "cover": {
-     "url": "https://example.com/image.jpg",
-     "fileId": "AgACAgIAAxkBAAIC...",
-     "hasSpoiler": true
-   }
-   ```
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `url` | string | URL of the media file |
-| `fileId` | string | Telegram file_id (for reusing uploaded files) |
-| `hasSpoiler` | boolean | Hide media under spoiler (for sensitive content) |
-
-**Note:** Either `url` or `fileId` must be provided. If both are present, `fileId` takes priority.
-
-#### Platform Options (`options`)
-
-```typescript
-{
-  "parseMode": "HTML" | "Markdown" | "MarkdownV2",
-  "disableNotification": boolean,
-  "inlineKeyboard": InlineKeyboardButton[][],
-  "disableWebPagePreview": boolean,
-  "replyToMessageId": number,
-  "protectContent": boolean
-}
-```
-
-#### Example: Text Post
-
-```bash
-curl -X POST http://localhost:8080/api/v1/post \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "telegram",
-    "channel": "company_telegram",
-    "type": "post",
-    "body": "<b>Hello!</b> This is a test post with <a href=\"https://example.com\">link</a>",
-    "bodyFormat": "html",
-    "options": {
-      "parseMode": "HTML",
-      "disableNotification": false
-    }
-  }'
-```
-
-#### Example: Image Post
-
-```bash
-curl -X POST http://localhost:8080/api/v1/post \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "telegram",
-    "channel": "company_telegram",
-    "type": "image",
-    "body": "Image description",
-    "cover": "https://example.com/image.jpg"
-  }'
-```
-
-#### Example: Album (Carousel)
-
-```bash
-curl -X POST http://localhost:8080/api/v1/post \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "telegram",
-    "channel": "company_telegram",
-    "type": "album",
-    "body": "Album description",
-    "media": [
-      "https://example.com/photo1.jpg",
-      "https://example.com/photo2.jpg",
-      "https://example.com/photo3.jpg"
-    ]
-  }'
-```
-
-#### Example: With Inline Keyboard
-
-```bash
-curl -X POST http://localhost:8080/api/v1/post \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "telegram",
-    "channel": "company_telegram",
-    "type": "post",
-    "body": "Check out our website!",
-    "options": {
-      "inlineKeyboard": [
-        [
-          {
-            "text": "Visit Website",
-            "url": "https://example.com"
-          }
-        ],
-        [
-          {
-            "text": "Contact Us",
-            "url": "https://example.com/contact"
-          }
-        ]
-      ]
-    }
-  }'
-```
-
-#### Example: With Inline Auth
-
-```bash
-curl -X POST http://localhost:8080/api/v1/post \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "telegram",
-    "type": "post",
-    "body": "Test post",
-    "auth": {
-      "botToken": "1234567890:ABCdefGHIjklMNOpqrsTUVwxyz",
-      "chatId": "@my_channel"
-    }
-  }'
-```
-
-#### Example: Auto Type Detection
-
-```bash
-# Automatically detected as IMAGE (cover is present)
-curl -X POST http://localhost:8080/api/v1/post \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "telegram",
-    "channel": "company_telegram",
-    "body": "Beautiful sunset",
-    "cover": "https://example.com/sunset.jpg"
-  }'
-```
-
-#### Example: Audio Message
-
-```bash
-curl -X POST http://localhost:8080/api/v1/post \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "telegram",
-    "channel": "company_telegram",
-    "body": "New podcast episode",
-    "audio": "https://example.com/podcast.mp3"
-  }'
-```
-
-#### Example: Document
-
-```bash
-curl -X POST http://localhost:8080/api/v1/post \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "telegram",
-    "channel": "company_telegram",
-    "body": "Monthly report",
-    "document": "https://example.com/report.pdf"
-  }'
-```
-
-#### Example: Image with Spoiler
-
-```bash
-curl -X POST http://localhost:8080/api/v1/post \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "telegram",
-    "channel": "company_telegram",
-    "body": "⚠️ Sensitive content",
-    "cover": {
-      "url": "https://example.com/sensitive.jpg",
-      "hasSpoiler": true
-    }
-  }'
-```
-
-#### Example: Using Telegram file_id
-
-```bash
-# Reuse previously uploaded video without re-uploading
-curl -X POST http://localhost:8080/api/v1/post \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "telegram",
-    "channel": "company_telegram",
-    "body": "Reposting video",
-    "video": {
-      "fileId": "BAACAgIAAxkBAAIC4mF9..."
-    }
-  }'
-```
-
-#### Example: Mixed Media Album
-
-```bash
-curl -X POST http://localhost:8080/api/v1/post \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "telegram",
-    "channel": "company_telegram",
-    "body": "Event photos and videos",
-    "media": [
-      "https://example.com/photo1.jpg",
-      {"url": "https://example.com/photo2.jpg", "hasSpoiler": true},
-      "https://example.com/video.mp4"
-    ]
-  }'
-```
-
-#### Telegram Limitations
-
-These limits are defined by the Telegram Bot API. The microservice does not revalidate them and relies on Telegram responses.
-
-| Type | Limit |
-|------|-------|
-| Text message | 4096 characters |
-| Caption (for media) | 1024 characters |
-| Album items | 2-10 media files |
-| File size | 50 MB (via URL) |
-
-#### Ignored Fields for Telegram
-
-The following fields are **not used** by Telegram and will be ignored (with a warning in logs):
-
-- `title` - Telegram doesn't support separate titles
-- `description` - Use `body` instead
-- `tags` - Add hashtags directly to `body`
-- `postLanguage` - Not supported
-- `mode` - Telegram Bot API doesn't support drafts
-- `scheduledAt` - Scheduled posting not supported via Bot API
-
----
-
-## Content Conversion
-
-The service automatically converts content between formats:
-
-### Supported Conversions
-
-- HTML → Markdown
-- HTML → Plain Text
-- Markdown → HTML
-- Markdown → Plain Text
-
-### Conversion Rules
-
-1. If `convertBody = false`, content is sent as-is
-2. If `convertBody = true` (default):
-   - Determines target format based on platform requirements
-   - Converts from `bodyFormat` to target format
-   - Resulting content must still comply with platform-specific limitations (text length, etc.), which are enforced by the platform APIs
-   - Sanitizes HTML if required
-
-### Example: Markdown to HTML
-
-```bash
-curl -X POST http://localhost:8080/api/v1/post \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "telegram",
-    "channel": "company_telegram",
-    "body": "# Hello\n\nThis is **bold** and this is *italic*",
-    "bodyFormat": "md",
-    "convertBody": true,
-    "options": {
-      "parseMode": "HTML"
-    }
-  }'
-```
-
----
-
-## Retry Logic
-
-The service automatically retries failed requests for temporary errors:
-
-- **Retryable errors:** Network timeouts, 5xx errors, rate limits
-- **Non-retryable errors:** Validation errors, 4xx errors (except 429)
-- **Retry count:** Configurable in `config.yaml` (default: 3)
-- **Delay:** Configurable with **±20% jitter** (hardcoded)
-- **Formula:** `delay = retryDelayMs * random(0.8, 1.2) * attemptNumber`
-
----
-
-## Configuration
-
-Channels are configured in `config.yaml`:
-
-```yaml
-channels:
-  company_telegram:
-    provider: telegram
-    enabled: true
-    auth:
-      botToken: your_bot_token_here
-      chatId: @your_channel_username
-    parseMode: HTML
-    disableNotification: false
-    convertBody: true
-    bodyFormat: html
-    maxTextLength: 4096
-    maxCaptionLength: 1024
-```
-
-Environment variables are substituted using `${VAR_NAME}` syntax. You can define any variable in your `.env` file and reference it here.
-
----
-
-## Rate Limiting
-
-Rate limiting is handled at the API Gateway level, not by this microservice.
-
----
-
-### POST /preview
-
-Validate and preview content without publishing. Useful for:
-
-- Previewing body conversion (markdown → HTML, etc.)
-- Validating request parameters before publishing
-- Checking for warnings about ignored fields or length limits
-
-#### Request Body
-
-Same as `/post` endpoint. The `idempotencyKey` field is ignored.
-
-#### Success Response
-
-**Code:** `200 OK`
+**Status:** `200 OK`
 
 ```json
 {
@@ -499,124 +162,16 @@ Same as `/post` endpoint. The `idempotencyKey` field is ignored.
 }
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `valid` | boolean | Always `true` for success response |
-| `detectedType` | string | Detected post type (`post`, `image`, `video`, `album`, `audio`, `document`) |
-| `convertedBody` | string | Body content after conversion and sanitization |
-| `targetFormat` | string | Target format used (`html`, `md`, `text`) |
-| `convertedBodyLength` | number | Length of `convertedBody` in characters (Unicode code units) |
-| `warnings` | string[] | Array of warning messages (e.g., ignored fields, length limits) |
+### Error Response
 
-#### Error Response
-
-**Code:** `200 OK` (with `success: false`)
+**Status:** `200 OK`
 
 ```json
 {
   "success": false,
   "data": {
     "valid": false,
-    "errors": [
-      "Field 'platform' is required",
-      "Either 'channel' or 'auth' must be provided"
-    ],
-    "warnings": []
-  }
-}
-```
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `valid` | boolean | Always `false` for error response |
-| `errors` | string[] | Array of validation error messages |
-| `warnings` | string[] | Array of warning messages (may be present even with errors) |
-
-#### Example: Preview Text Post
-
-```bash
-curl -X POST http://localhost:8080/api/v1/preview \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "telegram",
-    "channel": "company_telegram",
-    "body": "# Hello\n\nThis is **bold** text",
-    "bodyFormat": "md"
-  }'
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "valid": true,
-    "detectedType": "post",
-    "convertedBody": "<h1>Hello</h1>\n<p>This is <b>bold</b> text</p>",
-    "targetFormat": "html",
-    "convertedBodyLength": 46,
-    "warnings": []
-  }
-}
-```
-
-#### Example: Preview with Warnings
-
-```bash
-curl -X POST http://localhost:8080/api/v1/preview \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "telegram",
-    "channel": "company_telegram",
-    "body": "Test message",
-    "title": "My Title",
-    "tags": ["tag1", "tag2"]
-  }'
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "valid": true,
-    "detectedType": "post",
-    "convertedBody": "Test message",
-    "targetFormat": "html",
-    "convertedBodyLength": 12,
-    "warnings": [
-      "Fields title, tags are not used by Telegram and will be ignored"
-    ]
-  }
-}
-```
-
-#### Example: Preview with Validation Errors
-
-```bash
-curl -X POST http://localhost:8080/api/v1/preview \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "telegram",
-    "body": "Test message",
-    "cover": "https://example.com/image.jpg",
-    "video": "https://example.com/video.mp4"
-  }'
-```
-
-**Response:**
-
-```json
-{
-  "success": false,
-  "data": {
-    "valid": false,
-    "errors": [
-      "Either 'channel' or 'auth' must be provided",
-      "Ambiguous media fields: cannot use 'video' and 'cover' together. Please specify only one media type or set explicit 'type'."
-    ],
+    "errors": ["Either 'channel' or 'auth' must be provided"],
     "warnings": []
   }
 }
@@ -624,36 +179,286 @@ curl -X POST http://localhost:8080/api/v1/preview \
 
 ---
 
-## Health Check
-
-### GET /health
+## GET /health
 
 Returns service health status.
 
 **Response:**
+
 ```json
 {
-  "status": "ok",
-  "timestamp": "2025-11-30T20:00:00.000Z"
+  "status": "ok"
 }
 ```
 
 ---
 
-## Best Practices
+## Telegram
 
-1. **Use named channels** from config instead of inline auth for better security
-2. **Set idempotencyKey** for critical posts to prevent duplicates (especially when implementing client-side retries)
-3. **Validate media URLs** before sending (microservice does basic validation only)
-4. **Handle both success and error responses** properly
-5. **Use appropriate bodyFormat** for your content type
-6. **Monitor requestId** in responses for debugging
+### Supported Types
+
+| Type | API Method |
+|------|------------|
+| `post` | sendMessage |
+| `image` | sendPhoto |
+| `video` | sendVideo |
+| `audio` | sendAudio |
+| `document` | sendDocument |
+| `album` | sendMediaGroup |
+
+### Auto Type Detection
+
+When `type` is `auto` (default), the type is detected by priority:
+
+| Priority | Field | Detected Type |
+|----------|-------|---------------|
+| 1 | `media[]` | `album` |
+| 2 | `document` | `document` |
+| 3 | `audio` | `audio` |
+| 4 | `video` | `video` |
+| 5 | `cover` | `image` |
+| 6 | (none) | `post` |
+
+**Note:** With `type: auto`, only one media field should be provided. Multiple conflicting fields return a validation error.
+
+### Platform Options
+
+```typescript
+{
+  "parseMode": "HTML" | "Markdown" | "MarkdownV2",
+  "disableNotification": boolean,
+  "disableWebPagePreview": boolean,
+  "protectContent": boolean,
+  "replyToMessageId": number,
+  "inlineKeyboard": InlineKeyboardButton[][]
+}
+```
+
+### Telegram Limits
+
+| Type | Limit |
+|------|-------|
+| Text message | 4096 characters |
+| Caption | 1024 characters |
+| Album items | 2-10 files |
+| File size (URL) | 50 MB |
+
+### Ignored Fields
+
+These fields are not used by Telegram and will be ignored:
+
+- `title`, `description`, `tags`, `postLanguage`, `mode`, `scheduledAt`
 
 ---
 
-## Support
+## Examples
 
-For issues or questions, please refer to:
-- [PRD Documentation](../dev_docs/PRD.md)
-- [Configuration Example](../config.yaml)
-- [GitHub Issues](https://github.com/your-repo/issues)
+### Text Post
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "my_channel",
+    "body": "<b>Hello!</b> Test post",
+    "bodyFormat": "html"
+  }'
+```
+
+### Image Post
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "my_channel",
+    "body": "Image caption",
+    "cover": "https://example.com/image.jpg"
+  }'
+```
+
+### Album
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "my_channel",
+    "body": "Photo gallery",
+    "media": [
+      "https://example.com/photo1.jpg",
+      "https://example.com/photo2.jpg"
+    ]
+  }'
+```
+
+### Audio
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "my_channel",
+    "body": "New podcast",
+    "audio": "https://example.com/podcast.mp3"
+  }'
+```
+
+### Document
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "my_channel",
+    "body": "Monthly report",
+    "document": "https://example.com/report.pdf"
+  }'
+```
+
+### Image with Spoiler
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "my_channel",
+    "body": "Sensitive content",
+    "cover": {
+      "url": "https://example.com/image.jpg",
+      "hasSpoiler": true
+    }
+  }'
+```
+
+### Using file_id
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "my_channel",
+    "body": "Reposting video",
+    "video": {
+      "fileId": "BAACAgIAAxkBAAIC4mF9..."
+    }
+  }'
+```
+
+### With Inline Keyboard
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "my_channel",
+    "body": "Check our website!",
+    "options": {
+      "inlineKeyboard": [[{"text": "Visit", "url": "https://example.com"}]]
+    }
+  }'
+```
+
+### With Inline Auth
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "body": "Test post",
+    "auth": {
+      "botToken": "123456:ABC...",
+      "chatId": "@my_channel"
+    }
+  }'
+```
+
+### Preview
+
+```bash
+curl -X POST http://localhost:8080/api/v1/preview \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "my_channel",
+    "body": "# Hello\n\nThis is **bold**",
+    "bodyFormat": "md"
+  }'
+```
+
+---
+
+## Idempotency
+
+When `idempotencyKey` is provided:
+
+1. Key is combined with payload and hashed
+2. Stored in in-memory cache with TTL (`common.idempotencyTtlMinutes`)
+3. Duplicate requests within TTL:
+   - If processing → `409 Conflict`
+   - If completed → cached response returned
+
+**Limitations:**
+
+- Scoped to single instance
+- Lost on restart
+- No cross-instance support (requires Redis)
+
+---
+
+## Content Conversion
+
+Supported conversions:
+
+- HTML → Markdown, Plain Text
+- Markdown → HTML, Plain Text
+
+When `convertBody: true` (default), body is converted to platform's preferred format.
+
+---
+
+## Retry Logic
+
+Automatic retries for transient errors:
+
+- **Retryable:** Network timeouts, 5xx, rate limits
+- **Non-retryable:** Validation errors, 4xx (except 429)
+- **Formula:** `delay = retryDelayMs × random(0.8, 1.2) × attempt`
+
+Configure in `config.yaml`:
+
+```yaml
+common:
+  retryAttempts: 3
+  retryDelayMs: 1000
+```
+
+---
+
+## Configuration
+
+Channel configuration in `config.yaml`:
+
+```yaml
+channels:
+  my_channel:
+    provider: telegram
+    enabled: true
+    auth:
+      botToken: ${MY_TELEGRAM_TOKEN}
+      chatId: "@my_channel"
+    parseMode: HTML
+    convertBody: true
+    bodyFormat: html
+```
+
+Environment variables are substituted using `${VAR_NAME}` syntax.

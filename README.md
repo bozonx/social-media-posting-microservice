@@ -1,157 +1,94 @@
 # Social Media Posting Microservice
 
-A microservice for publishing content to various social media platforms through a unified REST API.
+A stateless microservice for publishing content to social media platforms through a unified REST API.
 
-## Overview
+## Features
 
-This microservice provides a simple, unified interface for posting content to multiple social media platforms. It handles content format conversion, media validation, and platform-specific requirements automatically.
-
-**Architecture Principles:**
-
-- **Proxy Mode:** Synchronous request-response processing
-- **Stateless:** No database, only configuration file
-- **Scalable:** Run multiple instances with identical config
-- **No Async Processing:** Direct API calls to platforms (no queues or workers)
-
-## Current Status
-
-✅ **MVP Implemented** with Telegram support
-
-### Implemented Features:
-
-- ✅ Telegram publishing (posts, images, videos, albums, documents, audio)
-- ✅ Automatic post type detection (`type: auto`)
-- ✅ Extended media support (URL, file_id, spoiler)
-- ✅ Best-effort idempotency with `idempotencyKey` (per-instance, in-memory cache)
-- ✅ Content conversion (HTML ↔ Markdown ↔ Text)
-- ✅ Media URL validation
-- ✅ Retry logic with ±20% jitter
-- ✅ YAML configuration with environment variable substitution
-- ✅ Platform-specific parameters support
-- ✅ Comprehensive unit tests (195+ tests)
+- **Unified API** — Single endpoint for all platforms
+- **Telegram Support** — Posts, images, videos, albums, documents, audio
+- **Auto Type Detection** — Automatically determines post type from media fields
+- **Content Conversion** — HTML ↔ Markdown ↔ Plain Text
+- **Idempotency** — Prevents duplicate posts with `idempotencyKey`
+- **Retry Logic** — Automatic retries with jitter for transient errors
+- **YAML Config** — Environment variable substitution support
 
 ## Quick Start
 
-### 1. Install Dependencies
+### 1. Install
 
 ```bash
 pnpm install
 ```
 
-### 2. Configure Environment
-
-Copy example env file and set your credentials:
+### 2. Configure
 
 ```bash
 cp env.production.example .env.production
 ```
 
-Edit `.env.production`:
-
-
-
-### 3. Configure Channels
-
-The `config.yaml` file is already set up with example configuration. Update it with your channel details:
+Edit `config.yaml` with your Telegram credentials:
 
 ```yaml
 channels:
-  company_telegram:
+  my_channel:
     provider: telegram
     enabled: true
     auth:
-      # You can use direct values:
-      # botToken: your_bot_token_here
-      # chatId: @your_channel_username
-      
-      # OR use environment variables defined in .env:
-      botToken: ${MY_TELEGRAM_TOKEN}
-      chatId: ${MY_CHANNEL_ID}
+      botToken: ${MY_TELEGRAM_TOKEN}  # or direct value
+      chatId: "@my_channel"
     parseMode: HTML
-    # ... other settings
 ```
 
-### 4. Run
+### 3. Run
 
 ```bash
-# Development
-pnpm start:dev
-
-# Production
-pnpm build
-pnpm start:prod
+pnpm start:dev        # Development
+pnpm build && pnpm start:prod  # Production
 ```
 
-The API will be available at: `http://localhost:8080/api/v1`
+API available at `http://localhost:8080/api/v1`
 
 ## Usage Examples
 
-### Publish a Text Post
+### Text Post
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "channel": "company_telegram",
-    "body": "<b>Hello World!</b> This is a test post",
+    "channel": "my_channel",
+    "body": "<b>Hello!</b> This is a test post",
     "bodyFormat": "html"
   }'
 ```
 
-### Publish an Image (Auto-detected)
+### Image Post
 
 ```bash
-# Type is automatically detected as "image" when cover is provided
 curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "channel": "company_telegram",
+    "channel": "my_channel",
     "body": "Check out this image!",
     "cover": "https://example.com/image.jpg"
   }'
 ```
 
-### Publish an Album (Carousel)
+### Album
 
 ```bash
 curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "channel": "company_telegram",
+    "channel": "my_channel",
     "body": "Photo gallery",
     "media": [
       "https://example.com/photo1.jpg",
       "https://example.com/photo2.jpg"
     ]
-  }'
-```
-
-### Publish Audio
-
-```bash
-curl -X POST http://localhost:8080/api/v1/post \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "telegram",
-    "channel": "company_telegram",
-    "body": "New podcast episode!",
-    "audio": "https://example.com/podcast.mp3"
-  }'
-```
-
-### Publish Document
-
-```bash
-curl -X POST http://localhost:8080/api/v1/post \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "telegram",
-    "channel": "company_telegram",
-    "body": "Monthly report",
-    "document": "https://example.com/report.pdf"
   }'
 ```
 
@@ -162,8 +99,8 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "channel": "company_telegram",
-    "body": "⚠️ Sensitive content",
+    "channel": "my_channel",
+    "body": "Sensitive content",
     "cover": {
       "url": "https://example.com/image.jpg",
       "hasSpoiler": true
@@ -171,177 +108,109 @@ curl -X POST http://localhost:8080/api/v1/post \
   }'
 ```
 
-## API Documentation
+## API Endpoints
 
-For complete API documentation, see [docs/api.md](docs/api.md)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/post` | Publish content |
+| POST | `/api/v1/preview` | Validate and preview without publishing |
+| GET | `/api/v1/health` | Health check |
 
-**Available endpoints:**
-- `POST /api/v1/post` - Publish content
-- `GET /api/v1/health` - Health check
+See [API Documentation](docs/api.md) for complete reference.
 
-## Supported Platforms
+## Project Structure
 
-### Currently Supported
-
-- ✅ **Telegram** - Posts, images, videos, albums, documents, audio
-  - Automatic type detection
-  - Spoiler support for sensitive content
-  - Telegram file_id reuse
-
-### Coming Soon
-
-- ⏳ **VK** - Posts, photos, videos
-- ⏳ **Twitter/X** - Tweets, media
-- ⏳ **YouTube** - Video uploads
-- ⏳ **Instagram** - Posts, stories, reels
-- ⏳ **TikTok** - Short videos
-- ⏳ **Facebook** - Posts, videos
+```
+src/
+├── main.ts                     # Entry point
+├── app.module.ts               # Root module
+├── config/                     # App configuration
+├── common/
+│   ├── enums/                  # PostType, BodyFormat, ErrorCode
+│   ├── types/                  # MediaInput type
+│   └── validators/             # Custom validators
+└── modules/
+    ├── app-config/             # YAML config loader
+    ├── post/                   # Post controller, service, DTOs
+    ├── providers/
+    │   ├── base/               # Provider interface
+    │   └── telegram/           # Telegram implementation
+    ├── converter/              # Content format conversion
+    ├── media/                  # Media URL validation
+    └── health/                 # Health check endpoint
+```
 
 ## Configuration
 
 ### Environment Variables
 
-See `env.production.example` for all available options:
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `NODE_ENV` | `development` | Environment mode |
+| `LISTEN_HOST` | `0.0.0.0` | Server bind address |
+| `LISTEN_PORT` | `8080` | Server port |
+| `API_BASE_PATH` | `api` | API base path |
+| `LOG_LEVEL` | `warn` | Logging level |
+| `CONFIG_PATH` | `./config.yaml` | Path to config file |
 
-```bash
-NODE_ENV=production
-LISTEN_HOST=0.0.0.0
-LISTEN_PORT=8080
-API_BASE_PATH=api
-LOG_LEVEL=warn
-CONFIG_PATH=./config.yaml
+### Config File (`config.yaml`)
 
-# Custom variables for config.yaml
-MY_TOKEN=...
-```
+```yaml
+common:
+  connectionTimeoutSecs: 45
+  requestTimeoutSecs: 60
+  retryAttempts: 3
+  retryDelayMs: 1000
+  idempotencyTtlMinutes: 10
 
-### Config File
+conversion:
+  preserveLinks: true
+  stripHtml: false
 
-The `config.yaml` file controls:
-- Platform-specific settings
-- Channel configurations
-- Retry logic parameters
-- Content conversion options
-
-See `config.yaml` for detailed configuration structure.
-
-## Development
-
-### Project Structure
-
-```
-src/
-├── app.module.ts               # Main application module
-├── main.ts                     # Application entry point
-├── common/
-│   └── enums/                  # Shared enumerations
-├── modules/
-│   ├── app-config/             # Configuration loader
-│   ├── post/                   # Post controller & service
-│   ├── providers/              # Platform implementations
-│   │   ├── base/               # Base provider interface
-│   │   └── telegram/           # Telegram provider
-│   ├── converter/              # Content format conversion
-│   └── media/                  # Media URL validation
-└── config/                     # App configuration
-```
-
-### Adding a New Provider
-
-1. Create provider directory: `src/modules/providers/yourplatform/`
-2. Implement `IProvider` interface
-3. Add provider to `providers.module.ts`
-4. Update `PostService.getProvider()`
-5. Add configuration to `config.yaml`
-
-### Building
-
-```bash
-# Build
-pnpm build
-
-# Lint
-pnpm lint
-
-# Format
-pnpm format
+channels:
+  my_channel:
+    provider: telegram
+    enabled: true
+    auth:
+      botToken: ${MY_TELEGRAM_TOKEN}
+      chatId: "@my_channel"
+    parseMode: HTML
+    convertBody: true
 ```
 
 ## Docker
 
-### Build
-
 ```bash
 pnpm build
 docker build -t social-posting:latest -f docker/Dockerfile .
-```
-
-### Run with Docker Compose
-
-```bash
 docker compose -f docker/docker-compose.yml up -d
 ```
 
-## Roadmap
+## Development
 
-### Phase 1: MVP ✅
-- ✅ Basic project structure
+```bash
+pnpm start:dev    # Watch mode
+pnpm build        # Build
+pnpm lint         # Lint
+pnpm format       # Format
+pnpm test:unit    # Unit tests
+pnpm test:e2e     # E2E tests
+```
 
-### Phase 2: Extended Functionality
-- [x] Unit tests (195+ tests)
-- [x] Automatic type detection (`type: auto`)
-- [x] Extended media support (audio, document, file_id, spoiler)
-- [x] Best-effort idempotency with `idempotencyKey` (per-instance, in-memory cache)
-- [ ] E2E tests
-- [ ] `/preview` endpoint
-- [ ] Enhanced error handling
+### Adding a New Provider
+
+1. Create `src/modules/providers/<platform>/`
+2. Implement `IProvider` interface
+3. Register in `providers.module.ts`
+4. Add channel config to `config.yaml`
 
 ## Architecture
 
-### Principles
-
-- **Stateless:** No state between requests
-- **Proxy Mode:** Synchronous request-response
-- **Modular:** Easy to add new providers
-- **Configurable:** YAML config + environment variables
-
-### Modules
-
-- `app-config` - Configuration loader with env substitution
-- `post` - Publishing controller and service
-- `providers` - Platform implementations
-- `converter` - Content format conversion
-- `media` - Media URL validation
-
-### Retry Logic
-
-Failed requests are automatically retried for temporary errors:
-
-- **Retryable:** Network timeouts, 5xx errors, rate limits
-- **Non-retryable:** Validation errors, 4xx errors
-- **Attempts:** Configurable (default: 3)
-- **Delay:** Configurable with **±20% jitter**
-- **Formula:** `delay = retryDelayMs * random(0.8, 1.2) * attempt`
-
-## Security
-
-- **Secrets:** Stored in `config.yaml` or environment variables (referenced via `${VAR}`)
-- **Config:** Non-sensitive parameters in `config.yaml`
-- **Logging:** Sensitive data is redacted
-- **Rate Limiting:** Handled at API Gateway level
-- **Validation:** All inputs validated via class-validator
-
-## Documentation
-
-- [API Documentation](docs/api.md) - Complete API reference
-- [Config Example](config.yaml) - Configuration structure
+- **Stateless** — No database, in-memory idempotency cache only
+- **Proxy Mode** — Synchronous request-response
+- **Modular** — Easy to add new providers
+- **Retry Logic** — `delay = retryDelayMs × random(0.8, 1.2) × attempt`
 
 ## License
 
 MIT
-
-## Support
-
-For issues or questions:
-- Check the [API Documentation](docs/api.md)
-- Open an issue on GitHub

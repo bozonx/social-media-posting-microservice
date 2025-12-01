@@ -222,12 +222,17 @@ enum BodyFormat {
 - Позволить клиенту безопасно ретраить запросы (сетевые ошибки, таймауты, 5xx) без риска создать дублирующие посты.
 
 **Базовая идея реализации (best-effort, без внешнего хранилища):**
-- Ввести сервис `IdempotencyService` с in-memory хранилищем на уровне процесса (например, `Map`/LRU-cache).
+- Ввести сервис `IdempotencyService`, использующий in-memory кэш с поддержкой TTL и авто-очистки (например, через `@nestjs/cache-manager` с memory store или легкую LRU/TTL-библиотеку).
 - Ключ: комбинация `idempotencyKey`, `platform`, `channel`/`auth` и хеша полезной нагрузки (`body`, медиа, `options`).
 - Значение: структура вида:
   - `status: 'processing' | 'completed'`
   - `response: PostResponse | ErrorResponse`
-  - `expiresAt: Date` (TTL, например 10–15 минут).
+  - `expiresAt: Date` (TTL, задается в конфиге, см. ниже).
+
+**Конфигурация TTL для in-memory кэша:**
+- Добавить параметр в конфиге (например, в секции `common`):
+  - `idempotencyTtlMinutes: number` — время жизни записи идемпотентности в минутах (рекомендуемое значение по умолчанию: 10–15 минут).
+- Значение параметра может переопределяться через переменную окружения (например, `IDEMPOTENCY_TTL_MINUTES`).
 
 **Поток обработки:**
 1. При входящем запросе с `idempotencyKey`:

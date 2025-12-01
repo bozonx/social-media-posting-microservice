@@ -128,5 +128,13 @@ describe('IdempotencyService', () => {
 
       expect(cache.set).toHaveBeenCalledWith('key', { status: 'completed', response }, 10 * 60_000);
     });
+
+    it('should use default TTL when config does not define idempotencyTtlMinutes', async () => {
+      (appConfigService.getCommonConfig as jest.Mock).mockReturnValue({});
+
+      await service.setProcessing('default-key');
+
+      expect(cache.set).toHaveBeenCalledWith('default-key', { status: 'processing' }, 10 * 60_000);
+    });
   });
 });

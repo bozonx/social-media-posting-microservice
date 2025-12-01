@@ -630,4 +630,48 @@ describe('TelegramProvider', () => {
       expect(url).toBeUndefined();
     });
   });
+
+  describe('preview', () => {
+    it('should return invalid preview result when validation fails', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: 'Test message',
+        type: PostType.ARTICLE,
+      };
+
+      const result = await provider.preview(request, mockChannelConfig as any);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.data.valid).toBe(false);
+        expect(result.data.errors).toContain("Post type 'article' is not supported for Telegram");
+        expect(Array.isArray(result.data.warnings)).toBe(true);
+      }
+    });
+
+    it('should return valid preview result and include length warning when body exceeds limit', async () => {
+      const longBody = 'x'.repeat(50);
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: longBody,
+        type: PostType.POST,
+      };
+
+      const channelConfigWithLimit: TelegramChannelConfig = {
+        ...mockChannelConfig,
+        maxTextLength: 10,
+      };
+
+      const result = await provider.preview(request, channelConfigWithLimit);
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.valid).toBe(true);
+        expect(result.data.detectedType).toBe(PostType.POST);
+        expect(result.data.convertedBody).toBe(longBody);
+        expect(result.data.convertedBodyLength).toBe(longBody.length);
+        expect(result.data.warnings).toContain('Body length (50) exceeds platform limit (10)');
+      }
+    });
+  });
 });

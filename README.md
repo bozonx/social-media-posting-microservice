@@ -243,38 +243,13 @@ docker compose -f docker/docker-compose.yml up -d
 - ✅ API documentation
 
 ### Phase 2: Extended Functionality
+- [ ] Unit tests
+- [ ] E2E tests
 - [ ] `/preview` endpoint
 - [ ] Enhanced error handling
-- [ ] Swagger/OpenAPI spec
 - [ ] Request ID tracking
-
-### Phase 3: New Providers
-- [ ] VK provider
-- [ ] Twitter/X provider
-- [ ] Provider configurations
-
-### Phase 4: Advanced Features
 - [ ] Idempotency support
-- [ ] Webhook callbacks
-- [ ] Prometheus metrics
-- [ ] Rate limiting per provider
-
-### Phase 5: Video Platforms
-- [ ] YouTube provider
-- [ ] Instagram provider
-- [ ] TikTok provider
-
-### Phase 6: Testing
-- [ ] Unit tests
 - [ ] Integration tests
-- [ ] E2E tests
-- [ ] CI/CD pipeline
-
-### Phase 7: Production Ready
-- [ ] Docker optimization
-- [ ] Kubernetes manifests
-- [ ] Monitoring & alerting
-- [ ] Comprehensive docs
 
 ## Architecture
 
@@ -311,20 +286,9 @@ Failed requests are automatically retried for temporary errors:
 - **Rate Limiting:** Handled at API Gateway level
 - **Validation:** All inputs validated via class-validator
 
-## Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
 ## Documentation
 
 - [API Documentation](docs/api.md) - Complete API reference
-- [PRD](dev_docs/PRD.md) - Product requirements (Russian)
 - [Config Example](config.yaml) - Configuration structure
 
 ## License
@@ -335,5 +299,4 @@ MIT
 
 For issues or questions:
 - Check the [API Documentation](docs/api.md)
-- Review the [PRD](dev_docs/PRD.md)
 - Open an issue on GitHub

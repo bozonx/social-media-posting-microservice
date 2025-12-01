@@ -80,93 +80,94 @@ export class TelegramProvider implements IProvider {
         // Публикация в зависимости от типа
         const type = request.type || PostType.POST;
 
-        try {
-            let result: any;
 
-            switch (type) {
-                case PostType.POST:
-                    result = await bot.api.sendMessage(chatId, processedBody, {
-                        parse_mode: parseMode,
-                        disable_notification: disableNotification,
-                        reply_markup: platformData.inlineKeyboard
-                            ? { inline_keyboard: platformData.inlineKeyboard }
-                            : undefined,
-                        link_preview_options: platformData.disableWebPagePreview
-                            ? { is_disabled: true }
-                            : undefined,
-                        reply_to_message_id: platformData.replyToMessageId,
-                        protect_content: platformData.protectContent,
-                    });
-                    break;
+        let result: any;
 
-                case PostType.IMAGE:
-                    if (!request.cover) {
-                        throw new Error('Cover image is required for IMAGE type');
-                    }
-                    result = await bot.api.sendPhoto(chatId, request.cover, {
-                        caption: processedBody,
-                        parse_mode: parseMode,
-                        disable_notification: disableNotification,
-                        reply_markup: platformData.inlineKeyboard
-                            ? { inline_keyboard: platformData.inlineKeyboard }
-                            : undefined,
-                    });
-                    break;
+        switch (type) {
+            case PostType.POST:
+                result = await bot.api.sendMessage(chatId, processedBody, {
+                    parse_mode: parseMode,
+                    disable_notification: disableNotification,
+                    reply_markup: platformData.inlineKeyboard
+                        ? { inline_keyboard: platformData.inlineKeyboard }
+                        : undefined,
+                    link_preview_options: platformData.disableWebPagePreview
+                        ? { is_disabled: true }
+                        : undefined,
+                    reply_to_message_id: platformData.replyToMessageId,
+                    protect_content: platformData.protectContent,
+                });
+                break;
 
-                case PostType.VIDEO:
-                    if (!request.video) {
-                        throw new Error('Video URL is required for VIDEO type');
-                    }
-                    result = await bot.api.sendVideo(chatId, request.video, {
-                        caption: processedBody,
-                        parse_mode: parseMode,
-                        disable_notification: disableNotification,
-                    });
-                    break;
+            case PostType.IMAGE:
+                if (!request.cover) {
+                    throw new Error('Cover image is required for IMAGE type');
+                }
+                result = await bot.api.sendPhoto(chatId, request.cover, {
+                    caption: processedBody,
+                    parse_mode: parseMode,
+                    disable_notification: disableNotification,
+                    reply_markup: platformData.inlineKeyboard
+                        ? { inline_keyboard: platformData.inlineKeyboard }
+                        : undefined,
+                });
+                break;
 
-                case PostType.ALBUM:
-                    if (!request.media || request.media.length === 0) {
-                        throw new Error('Media array is required for ALBUM type');
-                    }
-                    // Telegram media group (до 10 элементов)
-                    const mediaGroup = request.media.slice(0, 10).map((url, index) => ({
-                        type: 'photo' as const,
+            case PostType.VIDEO:
+                if (!request.video) {
+                    throw new Error('Video URL is required for VIDEO type');
+                }
+                result = await bot.api.sendVideo(chatId, request.video, {
+                    caption: processedBody,
+                    parse_mode: parseMode,
+                    disable_notification: disableNotification,
+                });
+                break;
+
+            case PostType.ALBUM:
+                if (!request.media || request.media.length === 0) {
+                    throw new Error('Media array is required for ALBUM type');
+                }
+                // Telegram media group (до 10 элементов)
+                const mediaGroup = request.media.slice(0, 10).map((url, index) => {
+                    const isVideo = url.match(/\.(mp4|mov|avi|mkv)$/i);
+                    return {
+                        type: isVideo ? 'video' : 'photo',
                         media: url,
                         caption: index === 0 ? processedBody : undefined,
                         parse_mode: index === 0 ? parseMode : undefined,
-                    }));
+                    } as any;
+                });
 
-                    result = await bot.api.sendMediaGroup(chatId, mediaGroup, {
-                        disable_notification: disableNotification,
-                    });
-                    break;
+                result = await bot.api.sendMediaGroup(chatId, mediaGroup, {
+                    disable_notification: disableNotification,
+                });
+                break;
 
-                case PostType.DOCUMENT:
-                    if (!request.cover) {
-                        throw new Error('Document URL is required for DOCUMENT type');
-                    }
-                    result = await bot.api.sendDocument(chatId, request.cover, {
-                        caption: processedBody,
-                        parse_mode: parseMode,
-                        disable_notification: disableNotification,
-                    });
-                    break;
+            case PostType.DOCUMENT:
+                const documentUrl = request.media?.[0] || request.cover;
+                if (!documentUrl) {
+                    throw new Error('Document URL is required for DOCUMENT type');
+                }
+                result = await bot.api.sendDocument(chatId, documentUrl, {
+                    caption: processedBody,
+                    parse_mode: parseMode,
+                    disable_notification: disableNotification,
+                });
+                break;
 
-                default:
-                    throw new Error(`Unsupported post type: ${type}`);
-            }
-
-            this.logger.log(`Published to Telegram chat ${chatId}, type: ${type}`);
-
-            return {
-                postId: String(result.message_id || result[0]?.message_id),
-                url: this.buildPostUrl(chatId, result.message_id || result[0]?.message_id),
-                raw: result,
-            };
-        } finally {
-            // Закрываем бота для освобождения ресурсов
-            await bot.stop();
+            default:
+                throw new Error(`Unsupported post type: ${type}`);
         }
+
+        this.logger.log(`Published to Telegram chat ${chatId}, type: ${type}`);
+
+        return {
+            postId: String(result.message_id || result[0]?.message_id),
+            url: this.buildPostUrl(chatId, result.message_id || result[0]?.message_id),
+            raw: result,
+        };
+
     }
 
     private getTargetBodyFormat(parseMode?: string): BodyFormat {

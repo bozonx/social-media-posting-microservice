@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import TurndownService from 'turndown';
 import { convert as htmlToText } from 'html-to-text';
 import sanitizeHtml from 'sanitize-html';
@@ -6,8 +6,10 @@ import { BodyFormat } from '../../common/enums';
 import { AppConfigService } from '../app-config/app-config.service';
 
 @Injectable()
-export class ConverterService {
+export class ConverterService implements OnModuleInit {
     private readonly turndownService: TurndownService;
+    private marked: any;
+    private readonly logger = new Logger(ConverterService.name);
 
     constructor(private readonly appConfig: AppConfigService) {
         const conversionConfig = this.appConfig.getConversionConfig();
@@ -21,6 +23,15 @@ export class ConverterService {
         // Настройка правил конвертации
         if (conversionConfig.preserveLinks) {
             // Links сохраняются по умолчанию в turndown
+        }
+    }
+
+    async onModuleInit() {
+        try {
+            const markedModule = await import('marked');
+            this.marked = markedModule.marked;
+        } catch (error) {
+            this.logger.error('Failed to load marked library', error);
         }
     }
 
@@ -92,28 +103,11 @@ export class ConverterService {
     }
 
     private markdownToHtml(markdown: string): string {
-        // Используем простую регулярную конвертацию для базовой поддержки
-        // Полноценный marked можно будет добавить позже через dynamic import
-        let html = markdown;
-
-        // Заголовки
-        html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-        html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-        html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-
-        // Жирный
-        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-        // Курсив
-        html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-
-        // Ссылки
-        html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href=\"$2\">$1</a>');
-
-        // Переносы строк
-        html = html.replace(/\n/g, '<br>');
-
-        return html;
+        if (!this.marked) {
+            this.logger.warn('Marked library not loaded, returning raw markdown');
+            return markdown;
+        }
+        return this.marked.parse(markdown) as string;
     }
 
     private htmlToPlainText(html: string): string {

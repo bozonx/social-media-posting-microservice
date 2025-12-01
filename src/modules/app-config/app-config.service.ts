@@ -1,54 +1,20 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { readFileSync } from 'fs';
-import * as yaml from 'js-yaml';
-import { AppConfig } from './interfaces/app-config.interface';
+import { YAML_CONFIG_NAMESPACE } from '@config/yaml.config';
+import type { AppConfig, ChannelConfig } from './interfaces/app-config.interface';
 
 @Injectable()
-export class AppConfigService implements OnModuleInit {
-  private config!: AppConfig;
+export class AppConfigService {
+  private readonly config: AppConfig;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) {
+    const loadedConfig = this.configService.get<AppConfig>(YAML_CONFIG_NAMESPACE);
 
-  onModuleInit() {
-    const configPath = this.configService.get<string>('CONFIG_PATH') || './config.yaml';
-
-    try {
-      const fileContent = readFileSync(configPath, 'utf8');
-      const rawConfig = yaml.load(fileContent) as AppConfig;
-
-      // Подстановка переменных окружения
-      this.config = this.substituteEnvVariables(rawConfig);
-    } catch (error: any) {
-      throw new Error(`Failed to load config from ${configPath}: ${error.message}`);
-    }
-  }
-
-  private substituteEnvVariables(obj: any): any {
-    if (typeof obj === 'string') {
-      // Заменяем ${VAR_NAME} на значение из process.env
-      return obj.replace(/\$\{([^}]+)\}/g, (_, varName) => {
-        const value = process.env[varName];
-        if (value === undefined) {
-          throw new Error(`Environment variable ${varName} is not defined`);
-        }
-        return value;
-      });
+    if (!loadedConfig) {
+      throw new Error(`Configuration section "${YAML_CONFIG_NAMESPACE}" is not loaded`);
     }
 
-    if (Array.isArray(obj)) {
-      return obj.map(item => this.substituteEnvVariables(item));
-    }
-
-    if (obj !== null && typeof obj === 'object') {
-      const result: any = {};
-      for (const [key, value] of Object.entries(obj)) {
-        result[key] = this.substituteEnvVariables(value);
-      }
-      return result;
-    }
-
-    return obj;
+    this.config = loadedConfig;
   }
 
   get<T = any>(path: string): T | undefined {
@@ -65,7 +31,7 @@ export class AppConfigService implements OnModuleInit {
     return value as T;
   }
 
-  getChannel(channelName: string) {
+  getChannel(channelName: string): ChannelConfig {
     const channel = this.config.channels?.[channelName];
     if (!channel) {
       throw new Error(`Channel "${channelName}" not found in config`);
@@ -76,15 +42,15 @@ export class AppConfigService implements OnModuleInit {
     return channel;
   }
 
-  getAllChannels() {
+  getAllChannels(): AppConfig['channels'] {
     return this.config.channels || {};
   }
 
-  getCommonConfig() {
+  getCommonConfig(): AppConfig['common'] {
     return this.config.common;
   }
 
-  getConversionConfig() {
+  getConversionConfig(): AppConfig['conversion'] {
     return this.config.conversion;
   }
 }

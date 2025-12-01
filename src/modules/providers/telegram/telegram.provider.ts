@@ -1,6 +1,6 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { Bot, InputFile } from 'grammy';
-import { IProvider } from '../base/provider.interface';
+import { IProvider, ProviderPublishResponse } from '../base/provider.interface';
 import { PostType, BodyFormat } from '../../../common/enums';
 import { PostRequestDto, PreviewResponseDto, PreviewErrorResponseDto } from '../../post/dto';
 import { ConverterService } from '../../converter/converter.service';
@@ -8,12 +8,9 @@ import { MediaService } from '../../media/media.service';
 import { MediaInputHelper } from '../../../common/helpers/media-input.helper';
 import { AmbiguousMediaValidator } from '../../../common/validators/ambiguous-media.validator';
 import { TelegramTypeDetector } from './telegram-type-detector.service';
+import type { ChannelConfig } from '../../app-config/interfaces/app-config.interface';
 
-export interface TelegramChannelConfig {
-  auth: {
-    botToken: string;
-    chatId: string;
-  };
+export interface TelegramChannelConfig extends ChannelConfig {
   parseMode?: 'HTML' | 'Markdown' | 'MarkdownV2';
   disableNotification?: boolean;
   convertBody?: boolean;
@@ -39,14 +36,18 @@ export class TelegramProvider implements IProvider {
   private readonly DEFAULT_PARSE_MODE = 'HTML';
   private readonly MAX_CAPTION_LENGTH = 1024;
   private readonly MAX_TEXT_LENGTH = 4096;
+  private readonly MAX_MEDIA_GROUP_SIZE = 10;
 
   constructor(
     private readonly converterService: ConverterService,
     private readonly mediaService: MediaService,
     private readonly typeDetector: TelegramTypeDetector,
-  ) { }
+  ) {}
 
-  async publish(request: PostRequestDto, channelConfig: TelegramChannelConfig) {
+  async publish(
+    request: PostRequestDto,
+    channelConfig: TelegramChannelConfig,
+  ): Promise<ProviderPublishResponse> {
     const { errors, warnings, actualType } = this.validateRequest(request);
 
     if (errors.length > 0) {
@@ -354,7 +355,7 @@ export class TelegramProvider implements IProvider {
     parseMode: string,
     disableNotification: boolean,
   ) {
-    const mediaGroup = media.slice(0, 10).map((item, index) => {
+    const mediaGroup = media.slice(0, this.MAX_MEDIA_GROUP_SIZE).map((item, index) => {
       const url = MediaInputHelper.getUrl(item);
       const fileId = MediaInputHelper.getFileId(item);
       const hasSpoiler = MediaInputHelper.getHasSpoiler(item);

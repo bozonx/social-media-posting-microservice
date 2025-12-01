@@ -43,6 +43,7 @@ describe('PostService', () => {
           useValue: {
             name: 'telegram',
             supportedTypes: [
+              PostType.AUTO,
               PostType.POST,
               PostType.IMAGE,
               PostType.VIDEO,

@@ -1,6 +1,9 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
-import { TelegramProvider } from '@/modules/providers/telegram/telegram.provider';
+import {
+  TelegramProvider,
+  type TelegramChannelConfig,
+} from '@/modules/providers/telegram/telegram.provider';
 import { ConverterService } from '@/modules/converter/converter.service';
 import { MediaService } from '@/modules/media/media.service';
 import { TelegramTypeDetector } from '@/modules/providers/telegram/telegram-type-detector.service';
@@ -32,7 +35,9 @@ describe('TelegramProvider', () => {
   let converterService: ConverterService;
   let mediaService: MediaService;
 
-  const mockChannelConfig = {
+  const mockChannelConfig: TelegramChannelConfig = {
+    provider: 'telegram',
+    enabled: true,
     auth: {
       botToken: 'test-token',
       chatId: 'test-chat-id',
@@ -223,7 +228,9 @@ describe('TelegramProvider', () => {
     });
 
     it('should build URL for public channels', async () => {
-      const publicChannelConfig = {
+      const publicChannelConfig: TelegramChannelConfig = {
+        provider: 'telegram',
+        enabled: true,
         auth: {
           botToken: 'test-token',
           chatId: '@publicchannel',

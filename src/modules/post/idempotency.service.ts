@@ -11,6 +11,8 @@ interface IdempotencyRecord {
 
 @Injectable()
 export class IdempotencyService {
+  private static readonly DEFAULT_IDEMPOTENCY_TTL_MINUTES = 10;
+
   constructor(
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
     private readonly appConfig: AppConfigService,
@@ -58,9 +60,11 @@ export class IdempotencyService {
   }
 
   private getTtlMs(): number {
-    const common = this.appConfig.getCommonConfig() as any;
+    const common = this.appConfig.getCommonConfig();
     const minutes =
-      typeof common.idempotencyTtlMinutes === 'number' ? common.idempotencyTtlMinutes : 10;
+      typeof common.idempotencyTtlMinutes === 'number'
+        ? common.idempotencyTtlMinutes
+        : IdempotencyService.DEFAULT_IDEMPOTENCY_TTL_MINUTES;
     return minutes * 60_000;
   }
 }

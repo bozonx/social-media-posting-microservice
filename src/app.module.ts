@@ -7,6 +7,7 @@ import { HealthModule } from '@modules/health/health.module';
 import { AllExceptionsFilter } from '@common/filters/all-exceptions.filter';
 import appConfig from '@config/app.config';
 import type { AppConfig } from '@config/app.config';
+import yamlConfig from '@config/yaml.config';
 import pkg from '../package.json';
 import { PostModule } from '@modules/post/post.module';
 import { AppConfigModule } from '@modules/app-config/app-config.module';
@@ -18,7 +19,7 @@ import { AppConfigModule } from '@modules/app-config/app-config.module';
     }),
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig],
+      load: [appConfig, yamlConfig],
       envFilePath: [`.env.${process.env.NODE_ENV || 'development'}`, '.env'],
       cache: true,
     }),
@@ -38,15 +39,15 @@ import { AppConfigModule } from '@modules/app-config/app-config.module';
             },
             transport: isDev
               ? {
-                  target: 'pino-pretty',
-                  options: {
-                    colorize: true,
-                    singleLine: false,
-                    translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
-                    ignore: 'pid,hostname',
-                    messageFormat: '[{context}] {msg}',
-                  },
-                }
+                target: 'pino-pretty',
+                options: {
+                  colorize: true,
+                  singleLine: false,
+                  translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
+                  ignore: 'pid,hostname',
+                  messageFormat: '[{context}] {msg}',
+                },
+              }
               : undefined,
             serializers: {
               req: req => ({
@@ -106,4 +107,4 @@ import { AppConfigModule } from '@modules/app-config/app-config.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

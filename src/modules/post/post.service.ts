@@ -10,12 +10,14 @@ import { IProvider } from '../providers/base/provider.interface';
 @Injectable()
 export class PostService {
   private readonly logger = new Logger(PostService.name);
+  private static readonly MIN_JITTER_FACTOR = 0.8;
+  private static readonly MAX_JITTER_FACTOR = 1.2;
 
   constructor(
     private readonly appConfig: AppConfigService,
     private readonly telegramProvider: TelegramProvider,
     private readonly idempotencyService: IdempotencyService,
-  ) { }
+  ) {}
 
   async publish(request: PostRequestDto): Promise<PostResponseDto | ErrorResponseDto> {
     const idempotencyKey = this.idempotencyService.buildKey(request);
@@ -179,7 +181,8 @@ export class PostService {
           throw error;
         }
 
-        const jitter = 0.8 + Math.random() * 0.4; // random(0.8, 1.2)
+        const jitterRange = PostService.MAX_JITTER_FACTOR - PostService.MIN_JITTER_FACTOR;
+        const jitter = PostService.MIN_JITTER_FACTOR + Math.random() * jitterRange; // random(0.8, 1.2)
         const delay = Math.floor(baseDelayMs * jitter * attempt);
 
         this.logger.warn(

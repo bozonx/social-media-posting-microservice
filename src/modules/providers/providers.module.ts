@@ -7,6 +7,6 @@ import { TelegramTypeDetector } from './telegram/telegram-type-detector.service'
 @Module({
   imports: [ConverterModule, MediaModule],
   providers: [TelegramProvider, TelegramTypeDetector],
-  exports: [TelegramProvider],
+  exports: [TelegramProvider, TelegramTypeDetector, ConverterModule, MediaModule],
 })
 export class ProvidersModule {}

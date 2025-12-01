@@ -137,6 +137,9 @@ export class PostService {
     if (error instanceof BadRequestException) {
       return 'VALIDATION_ERROR';
     }
+    if (error instanceof ConflictException) {
+      return 'VALIDATION_ERROR';
+    }
     if (error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
       return 'TIMEOUT_ERROR';
     }

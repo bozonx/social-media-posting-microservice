@@ -316,6 +316,30 @@ describe('PostService', () => {
       expect(idempotencyService.setCompleted).toHaveBeenCalledWith('idem-key', result);
       expect(telegramProvider.publish).toHaveBeenCalledTimes(1);
     });
+
+    it('should return conflict when idempotent record is in processing state', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        channel: 'test-channel',
+        body: 'Test message',
+        type: PostType.POST,
+        idempotencyKey: 'idem-1',
+      } as PostRequestDto;
+
+      (idempotencyService.buildKey as jest.Mock).mockReturnValue('idem-key');
+      (idempotencyService.getRecord as jest.Mock).mockResolvedValue({
+        status: 'processing',
+      });
+
+      const result = await service.publish(request);
+
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('VALIDATION_ERROR');
+      expect(result.error?.message).toContain('idempotencyKey is already being processed');
+      expect(telegramProvider.publish).not.toHaveBeenCalled();
+      expect(idempotencyService.setProcessing).not.toHaveBeenCalled();
+      expect(idempotencyService.setCompleted).not.toHaveBeenCalled();
+    });
   });
 
   describe('getProvider', () => {

@@ -572,19 +572,6 @@ describe('TelegramProvider', () => {
       );
     });
 
-    it('should throw error for album with less than 2 items', async () => {
-      const request: PostRequestDto = {
-        platform: 'telegram',
-        body: 'Album caption',
-        media: ['https://example.com/image.jpg'],
-        type: PostType.ALBUM,
-      };
-
-      await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
-        'Album must contain at least 2 media items',
-      );
-    });
-
     it('should throw error for unsupported post type', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',

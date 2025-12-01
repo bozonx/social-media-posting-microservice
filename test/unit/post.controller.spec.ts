@@ -1,12 +1,20 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { PostController } from '@/modules/post/post.controller';
 import { PostService } from '@/modules/post/post.service';
-import type { PostRequestDto, PostResponseDto, ErrorResponseDto } from '@/modules/post/dto';
-import { PostType } from '@/common/enums';
+import { PreviewService } from '@/modules/post/preview.service';
+import type {
+  PostRequestDto,
+  PostResponseDto,
+  ErrorResponseDto,
+  PreviewResponseDto,
+  PreviewErrorResponseDto,
+} from '@/modules/post/dto';
+import { PostType, BodyFormat } from '@/common/enums';
 
 describe('PostController', () => {
   let controller: PostController;
   let postService: PostService;
+  let previewService: PreviewService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -18,11 +26,18 @@ describe('PostController', () => {
             publish: jest.fn(),
           },
         },
+        {
+          provide: PreviewService,
+          useValue: {
+            preview: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     controller = module.get<PostController>(PostController);
     postService = module.get<PostService>(PostService);
+    previewService = module.get<PreviewService>(PreviewService);
   });
 
   it('should be defined', () => {
@@ -79,6 +94,58 @@ describe('PostController', () => {
       const result = await controller.publish(request);
 
       expect(postService.publish).toHaveBeenCalledWith(request);
+      expect(result).toEqual(errorResponse);
+    });
+  });
+
+  describe('preview', () => {
+    it('should call previewService.preview with correct parameters', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        channel: 'test-channel',
+        body: 'Test message',
+      };
+
+      const expectedResponse: PreviewResponseDto = {
+        success: true,
+        data: {
+          valid: true,
+          detectedType: PostType.POST,
+          convertedBody: 'Test message',
+          targetFormat: BodyFormat.HTML,
+          convertedBodyLength: 12,
+          warnings: [],
+        },
+      };
+
+      (previewService.preview as jest.Mock).mockResolvedValue(expectedResponse);
+
+      const result = await controller.preview(request);
+
+      expect(previewService.preview).toHaveBeenCalledWith(request);
+      expect(result).toEqual(expectedResponse);
+    });
+
+    it('should return error response from preview service', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: 'Test message',
+      };
+
+      const errorResponse: PreviewErrorResponseDto = {
+        success: false,
+        data: {
+          valid: false,
+          errors: ["Either 'channel' or 'auth' must be provided"],
+          warnings: [],
+        },
+      };
+
+      (previewService.preview as jest.Mock).mockResolvedValue(errorResponse);
+
+      const result = await controller.preview(request);
+
+      expect(previewService.preview).toHaveBeenCalledWith(request);
       expect(result).toEqual(errorResponse);
     });
   });

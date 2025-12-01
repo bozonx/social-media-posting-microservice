@@ -469,23 +469,154 @@ Rate limiting is handled at the API Gateway level, not by this microservice.
 
 ---
 
-## Future Endpoints (Not Yet Implemented)
-
 ### POST /preview
 
-Validate and preview content without publishing.
+Validate and preview content without publishing. Useful for:
 
-**Request:** Same as `/post`
+- Previewing body conversion (markdown → HTML, etc.)
+- Validating request parameters before publishing
+- Checking for warnings about ignored fields or length limits
 
-**Response:**
+#### Request Body
+
+Same as `/post` endpoint. The `idempotencyKey` field is ignored.
+
+#### Success Response
+
+**Code:** `200 OK`
+
 ```json
 {
   "success": true,
   "data": {
     "valid": true,
-    "convertedBody": "processed content",
+    "detectedType": "post",
+    "convertedBody": "<b>Hello</b> world",
     "targetFormat": "html",
-    "estimatedLength": 150,
+    "convertedBodyLength": 19,
+    "warnings": []
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `valid` | boolean | Always `true` for success response |
+| `detectedType` | string | Detected post type (`post`, `image`, `video`, `album`, `audio`, `document`) |
+| `convertedBody` | string | Body content after conversion and sanitization |
+| `targetFormat` | string | Target format used (`html`, `md`, `text`) |
+| `convertedBodyLength` | number | Length of `convertedBody` in characters (Unicode code units) |
+| `warnings` | string[] | Array of warning messages (e.g., ignored fields, length limits) |
+
+#### Error Response
+
+**Code:** `200 OK` (with `success: false`)
+
+```json
+{
+  "success": false,
+  "data": {
+    "valid": false,
+    "errors": [
+      "Field 'platform' is required",
+      "Either 'channel' or 'auth' must be provided"
+    ],
+    "warnings": []
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `valid` | boolean | Always `false` for error response |
+| `errors` | string[] | Array of validation error messages |
+| `warnings` | string[] | Array of warning messages (may be present even with errors) |
+
+#### Example: Preview Text Post
+
+```bash
+curl -X POST http://localhost:8080/api/v1/preview \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "company_telegram",
+    "body": "# Hello\n\nThis is **bold** text",
+    "bodyFormat": "md"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "valid": true,
+    "detectedType": "post",
+    "convertedBody": "<h1>Hello</h1>\n<p>This is <b>bold</b> text</p>",
+    "targetFormat": "html",
+    "convertedBodyLength": 46,
+    "warnings": []
+  }
+}
+```
+
+#### Example: Preview with Warnings
+
+```bash
+curl -X POST http://localhost:8080/api/v1/preview \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "company_telegram",
+    "body": "Test message",
+    "title": "My Title",
+    "tags": ["tag1", "tag2"]
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "valid": true,
+    "detectedType": "post",
+    "convertedBody": "Test message",
+    "targetFormat": "html",
+    "convertedBodyLength": 12,
+    "warnings": [
+      "Fields title, tags are not used by Telegram and will be ignored"
+    ]
+  }
+}
+```
+
+#### Example: Preview with Validation Errors
+
+```bash
+curl -X POST http://localhost:8080/api/v1/preview \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "body": "Test message",
+    "cover": "https://example.com/image.jpg",
+    "video": "https://example.com/video.mp4"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "success": false,
+  "data": {
+    "valid": false,
+    "errors": [
+      "Either 'channel' or 'auth' must be provided",
+      "Ambiguous media fields: cannot use 'video' and 'cover' together. Please specify only one media type or set explicit 'type'."
+    ],
     "warnings": []
   }
 }

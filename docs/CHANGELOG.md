@@ -43,6 +43,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - In-memory cache per instance with configurable TTL (`common.idempotencyTtlMinutes`)
   - Cached reuse of both successful and error responses for identical requests
 
+- **Preview Endpoint (`POST /preview`)**:
+  - Validate request parameters without publishing
+  - Preview body conversion (markdown → HTML, etc.)
+  - Get warnings about ignored fields and length limits
+  - Returns `detectedType`, `convertedBody`, `targetFormat`, `convertedBodyLength`, `warnings`
+
 ### Changed
 
 - Default `type` changed from `post` to `auto`

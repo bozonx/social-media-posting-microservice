@@ -317,7 +317,7 @@ describe('PostService', () => {
       expect(telegramProvider.publish).toHaveBeenCalledTimes(1);
     });
 
-    it('should return conflict when idempotent record is in processing state', async () => {
+    it('should throw ConflictException when idempotent record is in processing state', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         channel: 'test-channel',
@@ -331,11 +331,10 @@ describe('PostService', () => {
         status: 'processing',
       });
 
-      const result = await service.publish(request);
+      await expect(service.publish(request)).rejects.toThrow(
+        'Request with the same idempotencyKey is already being processed',
+      );
 
-      expect(result.success).toBe(false);
-      expect(result.error?.code).toBe('VALIDATION_ERROR');
-      expect(result.error?.message).toContain('idempotencyKey is already being processed');
       expect(telegramProvider.publish).not.toHaveBeenCalled();
       expect(idempotencyService.setProcessing).not.toHaveBeenCalled();
       expect(idempotencyService.setCompleted).not.toHaveBeenCalled();

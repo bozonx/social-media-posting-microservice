@@ -1,0 +1,72 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- **Automatic Type Detection (`type: auto`)**: New default post type that automatically determines the Telegram API method based on provided media fields
+  - Priority order: `media[]` → `document` → `audio` → `video` → `cover` → text message
+  - Validation for ambiguous media fields (multiple conflicting media types)
+
+- **New Media Fields**:
+  - `audio` - Audio file support (MP3, M4A, OGG) via `sendAudio`
+  - `document` - Document/file support (any file type) via `sendDocument`
+
+- **MediaInput Type**: Extended media field format supporting:
+  - String URL: `"https://example.com/file.jpg"`
+  - Object with options: `{ "url": "...", "fileId": "...", "hasSpoiler": true }`
+  - `fileId` - Telegram file_id for reusing previously uploaded files
+  - `hasSpoiler` - Hide media under spoiler animation (for sensitive content)
+
+- **New Services**:
+  - `TelegramTypeDetector` - Service for automatic type detection based on media fields
+  - `AmbiguousMediaValidator` - Validator for detecting conflicting media fields
+
+- **Validation Improvements**:
+  - Text message length validation (max 4096 characters for `type: post`)
+  - Album size validation (2-10 items)
+  - Required field validation for explicit types
+  - Warning logs for ignored fields (title, description, tags, etc.)
+
+- **Unit Tests**: Comprehensive test coverage (195 tests)
+  - `TelegramProvider` tests (38 tests)
+  - `TelegramTypeDetector` tests (16 tests)
+  - `AmbiguousMediaValidator` tests (12 tests)
+  - `MediaInputHelper` tests (28 tests)
+  - `MediaInputValidator` tests (20 tests)
+
+### Changed
+
+- Default `type` changed from `post` to `auto`
+- Media fields (`cover`, `video`, `media[]`) now accept `MediaInput` type instead of plain strings
+- `TelegramProvider.supportedTypes` now includes `AUTO` and `AUDIO`
+
+### Fixed
+
+- Import paths in `TelegramTypeDetector` service
+- DI registration for `TelegramTypeDetector` in `ProvidersModule`
+
+---
+
+## [0.1.0] - 2025-11-30
+
+### Added
+
+- Initial MVP release
+- Telegram provider with support for:
+  - Text posts (`sendMessage`)
+  - Images (`sendPhoto`)
+  - Videos (`sendVideo`)
+  - Albums (`sendMediaGroup`)
+  - Documents (`sendDocument`)
+- Content conversion (HTML ↔ Markdown ↔ Text)
+- Media URL validation
+- Retry logic with ±20% jitter
+- YAML configuration with environment variable substitution
+- Platform-specific options support
+- Health check endpoint

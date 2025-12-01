@@ -19,12 +19,15 @@ This microservice provides a simple, unified interface for posting content to mu
 
 ### Implemented Features:
 
-- ✅ Telegram publishing (posts, images, videos, albums, documents)
+- ✅ Telegram publishing (posts, images, videos, albums, documents, audio)
+- ✅ Automatic post type detection (`type: auto`)
+- ✅ Extended media support (URL, file_id, spoiler)
 - ✅ Content conversion (HTML ↔ Markdown ↔ Text)
 - ✅ Media URL validation
 - ✅ Retry logic with ±20% jitter
 - ✅ YAML configuration with environment variable substitution
 - ✅ Platform-specific parameters support
+- ✅ Comprehensive unit tests (195 tests)
 
 ## Quick Start
 
@@ -90,21 +93,20 @@ curl -X POST http://localhost:8080/api/v1/post \
   -d '{
     "platform": "telegram",
     "channel": "company_telegram",
-    "type": "post",
     "body": "<b>Hello World!</b> This is a test post",
     "bodyFormat": "html"
   }'
 ```
 
-### Publish an Image
+### Publish an Image (Auto-detected)
 
 ```bash
+# Type is automatically detected as "image" when cover is provided
 curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
     "channel": "company_telegram",
-    "type": "image",
     "body": "Check out this image!",
     "cover": "https://example.com/image.jpg"
   }'
@@ -118,12 +120,53 @@ curl -X POST http://localhost:8080/api/v1/post \
   -d '{
     "platform": "telegram",
     "channel": "company_telegram",
-    "type": "album",
     "body": "Photo gallery",
     "media": [
       "https://example.com/photo1.jpg",
       "https://example.com/photo2.jpg"
     ]
+  }'
+```
+
+### Publish Audio
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "company_telegram",
+    "body": "New podcast episode!",
+    "audio": "https://example.com/podcast.mp3"
+  }'
+```
+
+### Publish Document
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "company_telegram",
+    "body": "Monthly report",
+    "document": "https://example.com/report.pdf"
+  }'
+```
+
+### Image with Spoiler
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "company_telegram",
+    "body": "⚠️ Sensitive content",
+    "cover": {
+      "url": "https://example.com/image.jpg",
+      "hasSpoiler": true
+    }
   }'
 ```
 
@@ -139,7 +182,10 @@ For complete API documentation, see [docs/api.md](docs/api.md)
 
 ### Currently Supported
 
-- ✅ **Telegram** - Posts, images, videos, albums, documents
+- ✅ **Telegram** - Posts, images, videos, albums, documents, audio
+  - Automatic type detection
+  - Spoiler support for sensitive content
+  - Telegram file_id reuse
 
 ### Coming Soon
 
@@ -245,13 +291,13 @@ docker compose -f docker/docker-compose.yml up -d
 - ✅ API documentation
 
 ### Phase 2: Extended Functionality
-- [ ] Unit tests
+- [x] Unit tests (195 tests)
+- [x] Automatic type detection (`type: auto`)
+- [x] Extended media support (audio, document, file_id, spoiler)
 - [ ] E2E tests
 - [ ] `/preview` endpoint
 - [ ] Enhanced error handling
-- [ ] Request ID tracking
 - [ ] Idempotency support
-- [ ] Integration tests
 
 ## Architecture
 

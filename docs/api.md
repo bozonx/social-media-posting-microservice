@@ -24,14 +24,16 @@ Publish content to a social media platform.
 |-------|------|----------|-------------|
 | `platform` | string | Yes | Platform name (e.g., "telegram") |
 | `body` | string | Yes | Main content of the post |
-| `type` | string | No | Post type: `post`, `article`, `image`, `album`, `video`, `short`, `audio`, `document`, `story`, `poll` |
+| `type` | string | No | Post type: `auto`, `post`, `article`, `image`, `album`, `video`, `short`, `audio`, `document`, `story`, `poll` (default: `auto`) |
 | `bodyFormat` | string | No | Format of body content: `html`, `md`, `text` (default: `text`) |
 | `convertBody` | boolean | No | Auto-convert body to platform-required format (default: `true`) |
 | `title` | string | No | Post title (for platforms that require it) |
 | `description` | string | No | Post description (for platforms like YouTube, Instagram) |
-| `cover` | string | No | URL of cover image |
-| `video` | string | No | URL of video file |
-| `media` | string[] | No | Array of media URLs for albums/carousels |
+| `cover` | MediaInput | No | Cover image (URL string or MediaInput object) |
+| `video` | MediaInput | No | Video file (URL string or MediaInput object) |
+| `audio` | MediaInput | No | Audio file (URL string or MediaInput object) |
+| `document` | MediaInput | No | Document/file (URL string or MediaInput object) |
+| `media` | MediaInput[] | No | Array of media for albums/carousels (2-10 items) |
 | `channel` | string | No* | Channel name from config.yaml |
 | `auth` | object | No* | Authentication credentials (if not using channel) |
 | `options` | object | No | Platform-specific parameters (formerly `platformData`) |
@@ -100,11 +102,54 @@ Publish content to a social media platform.
 ### Telegram
 
 #### Supported Types
-- `post` - Text post
+- `auto` - Automatic type detection based on media fields (default)
+- `post` - Text message (max 4096 characters)
 - `image` - Photo with caption
 - `video` - Video with caption
-- `album` - Media group (up to 10 items)
-- `document` - File/document
+- `audio` - Audio file with caption (MP3, M4A, OGG)
+- `album` - Media group (2-10 items, photos and videos)
+- `document` - File/document (any file type)
+
+#### Automatic Type Detection (`type: auto`)
+
+When `type` is `auto` (or omitted), the system automatically determines the message type based on provided media fields:
+
+| Priority | Field | Detected Type | Telegram API Method |
+|----------|-------|---------------|---------------------|
+| 1 | `media[]` | `album` | sendMediaGroup |
+| 2 | `document` | `document` | sendDocument |
+| 3 | `audio` | `audio` | sendAudio |
+| 4 | `video` | `video` | sendVideo |
+| 5 | `cover` | `image` | sendPhoto |
+| 6 | (none) | `post` | sendMessage |
+
+**Important:** When using `type: auto`, only one media field should be provided (except `media[]` which takes priority over all others). If multiple conflicting fields are present, a validation error is returned.
+
+#### MediaInput Format
+
+Media fields (`cover`, `video`, `audio`, `document`, `media[]`) accept either:
+
+1. **String URL:**
+   ```json
+   "cover": "https://example.com/image.jpg"
+   ```
+
+2. **Object with options:**
+   ```json
+   "cover": {
+     "url": "https://example.com/image.jpg",
+     "fileId": "AgACAgIAAxkBAAIC...",
+     "hasSpoiler": true
+   }
+   ```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `url` | string | URL of the media file |
+| `fileId` | string | Telegram file_id (for reusing uploaded files) |
+| `hasSpoiler` | boolean | Hide media under spoiler (for sensitive content) |
+
+**Note:** Either `url` or `fileId` must be provided. If both are present, `fileId` takes priority.
 
 #### Platform Options (`options`)
 
@@ -213,6 +258,115 @@ curl -X POST http://localhost:8080/api/v1/post \
     }
   }'
 ```
+
+#### Example: Auto Type Detection
+
+```bash
+# Automatically detected as IMAGE (cover is present)
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "company_telegram",
+    "body": "Beautiful sunset",
+    "cover": "https://example.com/sunset.jpg"
+  }'
+```
+
+#### Example: Audio Message
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "company_telegram",
+    "body": "New podcast episode",
+    "audio": "https://example.com/podcast.mp3"
+  }'
+```
+
+#### Example: Document
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "company_telegram",
+    "body": "Monthly report",
+    "document": "https://example.com/report.pdf"
+  }'
+```
+
+#### Example: Image with Spoiler
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "company_telegram",
+    "body": "⚠️ Sensitive content",
+    "cover": {
+      "url": "https://example.com/sensitive.jpg",
+      "hasSpoiler": true
+    }
+  }'
+```
+
+#### Example: Using Telegram file_id
+
+```bash
+# Reuse previously uploaded video without re-uploading
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "company_telegram",
+    "body": "Reposting video",
+    "video": {
+      "fileId": "BAACAgIAAxkBAAIC4mF9..."
+    }
+  }'
+```
+
+#### Example: Mixed Media Album
+
+```bash
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "company_telegram",
+    "body": "Event photos and videos",
+    "media": [
+      "https://example.com/photo1.jpg",
+      {"url": "https://example.com/photo2.jpg", "hasSpoiler": true},
+      "https://example.com/video.mp4"
+    ]
+  }'
+```
+
+#### Telegram Limitations
+
+| Type | Limit |
+|------|-------|
+| Text message | 4096 characters |
+| Caption (for media) | 1024 characters |
+| Album items | 2-10 media files |
+| File size | 50 MB (via URL) |
+
+#### Ignored Fields for Telegram
+
+The following fields are **not used** by Telegram and will be ignored (with a warning in logs):
+
+- `title` - Telegram doesn't support separate titles
+- `description` - Use `body` instead
+- `tags` - Add hashtags directly to `body`
+- `postLanguage` - Not supported
+- `mode` - Telegram Bot API doesn't support drafts
+- `scheduledAt` - Scheduled posting not supported via Bot API
 
 ---
 

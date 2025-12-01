@@ -1,8 +1,19 @@
 import { registerDecorator, ValidationOptions, ValidationArguments, ValidatorConstraint, ValidatorConstraintInterface } from 'class-validator';
 import { MediaInput } from '../types/media-input.type';
 
+/**
+ * Validator constraint for MediaInput type
+ * Validates that a value is either a valid URL string or an object with url/fileId
+ */
 @ValidatorConstraint({ name: 'isMediaInput', async: false })
 export class IsMediaInputConstraint implements ValidatorConstraintInterface {
+    /**
+     * Validates MediaInput value
+     * Accepts either a valid URL string or an object with url/fileId properties
+     * @param value - Value to validate
+     * @param args - Validation arguments
+     * @returns True if valid, false otherwise
+     */
     validate(value: any, args: ValidationArguments) {
         if (!value) {
             return true; // Optional field
@@ -36,6 +47,12 @@ export class IsMediaInputConstraint implements ValidatorConstraintInterface {
     }
 }
 
+/**
+ * Decorator factory for MediaInput validation
+ * Use on DTO properties that accept MediaInput type
+ * @param validationOptions - Optional validation options
+ * @returns Property decorator
+ */
 export function IsMediaInput(validationOptions?: ValidationOptions) {
     return function (object: Object, propertyName: string) {
         registerDecorator({
@@ -48,8 +65,18 @@ export function IsMediaInput(validationOptions?: ValidationOptions) {
     };
 }
 
+/**
+ * Validator constraint for MediaInput array type
+ * Validates that each item in the array is a valid MediaInput
+ */
 @ValidatorConstraint({ name: 'isMediaInputArray', async: false })
 export class IsMediaInputArrayConstraint implements ValidatorConstraintInterface {
+    /**
+     * Validates array of MediaInput values
+     * @param value - Array to validate
+     * @param args - Validation arguments
+     * @returns True if all items are valid MediaInput, false otherwise
+     */
     validate(value: any, args: ValidationArguments) {
         if (!value) {
             return true; // Optional field
@@ -68,6 +95,12 @@ export class IsMediaInputArrayConstraint implements ValidatorConstraintInterface
     }
 }
 
+/**
+ * Decorator factory for MediaInput array validation
+ * Use on DTO properties that accept MediaInput[] type
+ * @param validationOptions - Optional validation options
+ * @returns Property decorator
+ */
 export function IsMediaInputArray(validationOptions?: ValidationOptions) {
     return function (object: Object, propertyName: string) {
         registerDecorator({

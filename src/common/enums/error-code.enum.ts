@@ -1,3 +1,7 @@
+/**
+ * Error codes for categorizing different types of failures
+ * Used in error responses to provide machine-readable error classification
+ */
 export enum ErrorCode {
     VALIDATION_ERROR = 'VALIDATION_ERROR',
     TIMEOUT_ERROR = 'TIMEOUT_ERROR',

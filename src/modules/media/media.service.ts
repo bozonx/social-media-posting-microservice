@@ -2,6 +2,12 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class MediaService {
+  /**
+   * Validate a single media URL
+   * Ensures the URL is well-formed and uses HTTP/HTTPS protocol
+   * @param url - URL to validate
+   * @throws BadRequestException if URL is invalid or uses unsupported protocol
+   */
   validateMediaUrl(url: string): void {
     if (!url) {
       return;
@@ -10,7 +16,7 @@ export class MediaService {
     try {
       const parsedUrl = new URL(url);
 
-      // Проверяем протокол
+      // Only HTTP and HTTPS protocols are allowed
       if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
         throw new BadRequestException(
           `Invalid media URL protocol: ${parsedUrl.protocol}. Only HTTP and HTTPS are allowed.`,
@@ -24,6 +30,11 @@ export class MediaService {
     }
   }
 
+  /**
+   * Validate multiple media URLs
+   * @param urls - Array of URLs to validate
+   * @throws BadRequestException if any URL is invalid
+   */
   validateMediaUrls(urls: string[]): void {
     if (!urls || urls.length === 0) {
       return;

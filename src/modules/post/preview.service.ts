@@ -11,6 +11,12 @@ export class PreviewService {
     private readonly telegramProvider: TelegramProvider,
   ) { }
 
+  /**
+   * Preview a post without actually publishing it
+   * Validates the request and returns converted content with warnings
+   * @param request - Post request to preview
+   * @returns Preview response with validation results or error response
+   */
   async preview(request: PostRequestDto): Promise<PreviewResponseDto | PreviewErrorResponseDto> {
     // Validate platform
     const platform = request.platform?.toLowerCase();
@@ -45,6 +51,12 @@ export class PreviewService {
     return provider.preview(request, channelConfig);
   }
 
+  /**
+   * Get provider instance by platform name
+   * @param platform - Platform name
+   * @returns Provider instance
+   * @throws BadRequestException if platform is not supported
+   */
   private getProvider(platform: string): IProvider {
     switch (platform.toLowerCase()) {
       case 'telegram':
@@ -54,6 +66,13 @@ export class PreviewService {
     }
   }
 
+  /**
+   * Get channel configuration from request
+   * Supports both named channels and inline auth
+   * @param request - Post request
+   * @returns Channel configuration
+   * @throws BadRequestException if channel not found or auth missing
+   */
   private getChannelConfig(request: PostRequestDto): any {
     if (request.channel) {
       try {
@@ -74,6 +93,11 @@ export class PreviewService {
     throw new BadRequestException("Either 'channel' or 'auth' must be provided");
   }
 
+  /**
+   * Create error response for preview failures
+   * @param errors - List of error messages
+   * @returns Preview error response
+   */
   private createErrorResponse(errors: string[]): PreviewErrorResponseDto {
     return {
       success: false,

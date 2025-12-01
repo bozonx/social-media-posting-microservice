@@ -1,93 +1,114 @@
-# Конфигурация микросервиса постинга в социальные сети
-# Этот файл является источником истины для структуры конфигурации
+# Social Media Posting Microservice Configuration
+# This file is the source of truth for the configuration structure
 
 # ============================================
-# ОБЩИЕ ПАРАМЕТРЫ
+# COMMON PARAMETERS
 # ============================================
 common:
-  # Таймаут соединения с провайдером (сек)
+  # Connection timeout with provider (seconds)
+  # Maximum time to wait for establishing a connection to the platform API
   connectionTimeoutSecs: 45
   
-  # Таймаут запроса (сек)
+  # Request timeout (seconds)
+  # Maximum time to wait for a complete API request/response cycle
   requestTimeoutSecs: 60
 
-  # Автоматическая конвертация body (по умолчанию)
+  # Automatic body conversion (default)
+  # If true, automatically converts body content to the platform's preferred format
   convertBody: true
   
-  # Количество попыток при ошибке
+  # Number of retry attempts on error
+  # How many times to retry a failed request before giving up
   retryAttempts: 3
   
-  # Задержка между попытками (мс)
+  # Delay between retry attempts (milliseconds)
+  # Base delay before retrying a failed request
   retryDelayMs: 1000
   
-  # Время жизни записей идемпотентности в кэше (минуты)
+  # Time-to-live for idempotency records in cache (minutes)
+  # How long to keep idempotency keys in cache to prevent duplicate posts
   idempotencyTtlMinutes: 10
   
-  # Примечание: Jitter для retry (±20%) захардкожен в коде
-  # Фактическая задержка будет: retryDelayMs * random(0.8, 1.2)
+  # Note: Jitter for retry (±20%) is hardcoded in the implementation
+  # Actual delay will be: retryDelayMs * random(0.8, 1.2)
 
 # ============================================
-# НАСТРОЙКИ КОНВЕРТАЦИИ
+# CONVERSION SETTINGS
 # ============================================
 conversion:
-  # Сохранять ссылки при конвертации
+  # Preserve links during conversion
+  # If true, keeps hyperlinks intact when converting between formats
   preserveLinks: true
   
-  # Удалять HTML теги при конвертации в text
+  # Strip HTML tags when converting to text
+  # If true, removes all HTML tags; if false, keeps safe HTML tags
   stripHtml: false
 
 # ============================================
-# ПРИМЕЧАНИЕ О МЕДИА
+# MEDIA PROCESSING NOTE
 # ============================================
-# Обработка и конвертация медиа не реализованы в текущей версии
-# Медиа-файлы передаются платформам по URL as-is
-# В будущих версиях возможно добавление:
-# - Конвертации изображений
-# - Сжатия изображений
-# - Конвертации видео
+# Media processing and conversion are not implemented in the current version
+# Media files are passed to platforms by URL as-is
+# Future versions may include:
+# - Image conversion
+# - Image compression
+# - Video conversion
 
 # ============================================
-# НАСТРОЙКИ ПРОВАЙДЕРОВ ПО УМОЛЧАНИЮ
+# DEFAULT PROVIDER SETTINGS
 # ============================================
 providers:
   telegram:
+    # SDK version to use (not currently enforced)
     sdkVersion: latest
+    # Maximum retries for this provider (not currently used)
     maxRetries: 3
 
 # ============================================
-# КАНАЛЫ (ИМЕНОВАННЫЕ КОНФИГУРАЦИИ)
+# CHANNELS (NAMED CONFIGURATIONS)
 # ============================================
 channels:
-  # Telegram канал компании
+  # Company Telegram channel
   company_telegram:
-    # Имя провайдера
+    # Provider name
+    # Must match one of the supported providers (currently: telegram)
     provider: telegram
     
-    # Включен ли канал
+    # Whether this channel is enabled
+    # Disabled channels cannot be used for posting
     enabled: true
     
-    # Авторизация (токен бота и ID чата)
-    # Вы можете использовать переменные окружения: ${MY_CUSTOM_VAR}
+    # Authentication (bot token and chat ID)
+    # You can use environment variables: ${MY_CUSTOM_VAR}
     auth:
+      # Telegram bot token from @BotFather
       botToken: your_bot_token_here
+      # Chat ID or channel username (with @ prefix for public channels)
       chatId: @your_channel_username
 
-    # Режим парсинга для Telegram
+    # Parse mode for Telegram
+    # Options: HTML, Markdown, MarkdownV2
+    # Determines how text formatting is interpreted
     parseMode: HTML
     
-    # Отключить уведомления по умолчанию
+    # Disable notifications by default
+    # If true, posts will be sent silently without notifying subscribers
     disableNotification: false
     
-    # Конвертировать body автоматически
+    # Convert body automatically
+    # If true, converts body to the format specified by parseMode
     convertBody: true
     
-    # Формат body по умолчанию
+    # Default body format
+    # Format of the body content before conversion (html, markdown, or text)
     bodyFormat: html
 
-    # Максимальная длина текста сообщения
+    # Maximum text message length
+    # Telegram's limit for text-only messages
     maxTextLength: 4096
     
-    # Максимальная длина подписи к медиа
+    # Maximum caption length for media
+    # Telegram's limit for captions on photos, videos, etc.
     maxCaptionLength: 1024
   
-  # Остальные социальные сети будут добавлены в следующих версиях
+  # Additional social networks will be added in future versions

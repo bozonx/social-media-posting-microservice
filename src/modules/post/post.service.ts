@@ -10,15 +10,23 @@ import { IProvider } from '../providers/base/provider.interface';
 @Injectable()
 export class PostService {
   private readonly logger = new Logger(PostService.name);
+  /** Minimum jitter factor for retry delay randomization (80%) */
   private static readonly MIN_JITTER_FACTOR = 0.8;
+  /** Maximum jitter factor for retry delay randomization (120%) */
   private static readonly MAX_JITTER_FACTOR = 1.2;
 
   constructor(
     private readonly appConfig: AppConfigService,
     private readonly telegramProvider: TelegramProvider,
     private readonly idempotencyService: IdempotencyService,
-  ) {}
+  ) { }
 
+  /**
+   * Publish a post to a social media platform
+   * Handles idempotency, provider selection, retry logic, and error handling
+   * @param request - Post request with platform, content, and media
+   * @returns Success response with post details or error response
+   */
   async publish(request: PostRequestDto): Promise<PostResponseDto | ErrorResponseDto> {
     const idempotencyKey = this.idempotencyService.buildKey(request);
 
@@ -110,6 +118,13 @@ export class PostService {
     }
   }
 
+  /**
+   * Get channel configuration from request
+   * Supports both named channels from config and inline auth
+   * @param request - Post request
+   * @returns Channel configuration object
+   * @throws BadRequestException if neither channel nor auth is provided
+   */
   private getChannelConfig(request: PostRequestDto): any {
     if (request.channel) {
       return this.appConfig.getChannel(request.channel);
@@ -124,6 +139,12 @@ export class PostService {
     throw new BadRequestException('Either "channel" or "auth" must be provided');
   }
 
+  /**
+   * Get provider instance by platform name
+   * @param platform - Platform name (e.g., 'telegram')
+   * @returns Provider instance
+   * @throws BadRequestException if platform is not supported
+   */
   private getProvider(platform: string): IProvider {
     switch (platform.toLowerCase()) {
       case 'telegram':
@@ -133,6 +154,12 @@ export class PostService {
     }
   }
 
+  /**
+   * Map error to appropriate error code
+   * Categorizes errors for better error handling and monitoring
+   * @param error - Error object
+   * @returns Error code string
+   */
   private getErrorCode(error: any): string {
     if (error instanceof BadRequestException) {
       return ErrorCode.VALIDATION_ERROR;
@@ -155,6 +182,15 @@ export class PostService {
     return ErrorCode.PLATFORM_ERROR;
   }
 
+  /**
+   * Retry function with exponential backoff and jitter
+   * Implements retry logic with randomized delays to avoid thundering herd
+   * @param fn - Async function to retry
+   * @param maxAttempts - Maximum number of attempts
+   * @param baseDelayMs - Base delay in milliseconds
+   * @returns Result of successful function execution
+   * @throws Last error if all attempts fail
+   */
   private async retryWithJitter<T>(
     fn: () => Promise<T>,
     maxAttempts: number,
@@ -196,6 +232,12 @@ export class PostService {
     throw lastError;
   }
 
+  /**
+   * Determine if an error should trigger a retry
+   * Retries on network errors, server errors, and rate limits
+   * @param error - Error object
+   * @returns True if should retry, false otherwise
+   */
   private shouldRetry(error: any): boolean {
     if (error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
       return true;
@@ -209,6 +251,11 @@ export class PostService {
     return false;
   }
 
+  /**
+   * Sleep for specified milliseconds
+   * @param ms - Milliseconds to sleep
+   * @returns Promise that resolves after delay
+   */
   private sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }

@@ -11,6 +11,11 @@ export class ConverterService implements OnModuleInit {
   private marked: any;
   private readonly logger = new Logger(ConverterService.name);
 
+  /**
+   * Initializes the converter service with Turndown configuration
+   * Sets up HTML to Markdown conversion rules based on app configuration
+   * @param appConfig - Application configuration service
+   */
   constructor(private readonly appConfig: AppConfigService) {
     const conversionConfig = this.appConfig.getConversionConfig();
 
@@ -20,12 +25,16 @@ export class ConverterService implements OnModuleInit {
       emDelimiter: '_',
     });
 
-    // Настройка правил конвертации
+    // Turndown preserves links by default
     if (conversionConfig.preserveLinks) {
-      // Links сохраняются по умолчанию в turndown
+      // Links are preserved by default in turndown
     }
   }
 
+  /**
+   * Dynamically loads the marked library on module initialization
+   * Uses dynamic import to avoid bundling issues
+   */
   async onModuleInit() {
     try {
       const markedModule = await import('marked');
@@ -35,12 +44,20 @@ export class ConverterService implements OnModuleInit {
     }
   }
 
+  /**
+   * Convert content between different body formats
+   * Supports conversions between HTML, Markdown, and plain text
+   * @param content - Content to convert
+   * @param fromFormat - Source format
+   * @param toFormat - Target format
+   * @returns Converted content
+   */
   convert(content: string, fromFormat: BodyFormat, toFormat: BodyFormat): string {
     if (fromFormat === toFormat) {
       return content;
     }
 
-    // HTML → другие форматы
+    // HTML → other formats
     if (fromFormat === BodyFormat.HTML) {
       if (toFormat === BodyFormat.MARKDOWN) {
         return this.htmlToMarkdown(content);
@@ -50,31 +67,37 @@ export class ConverterService implements OnModuleInit {
       }
     }
 
-    // Markdown → другие форматы
+    // Markdown → other formats
     if (fromFormat === BodyFormat.MARKDOWN) {
       if (toFormat === BodyFormat.HTML) {
         return this.markdownToHtml(content);
       }
       if (toFormat === BodyFormat.TEXT) {
-        // Markdown → HTML → Text
+        // Markdown → HTML → Text for best results
         const html = this.markdownToHtml(content);
         return this.htmlToPlainText(html);
       }
     }
 
-    // Text → другие форматы (базовая конвертация)
+    // Text → other formats (basic conversion)
     if (fromFormat === BodyFormat.TEXT) {
       if (toFormat === BodyFormat.HTML) {
         return this.textToHtml(content);
       }
       if (toFormat === BodyFormat.MARKDOWN) {
-        return content; // Text уже похож на markdown
+        return content; // Plain text is already similar to markdown
       }
     }
 
     return content;
   }
 
+  /**
+   * Sanitize HTML content to remove potentially dangerous tags
+   * Configurable based on app settings
+   * @param html - HTML content to sanitize
+   * @returns Sanitized HTML
+   */
   sanitizeHtml(html: string): string {
     const conversionConfig = this.appConfig.getConversionConfig();
 

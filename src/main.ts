@@ -7,6 +7,11 @@ import { Logger } from 'nestjs-pino';
 import { AppModule } from '@/app.module';
 import type { AppConfig } from '@config/app.config';
 
+/**
+ * Bootstrap the NestJS application with Fastify adapter
+ * Initializes the application with Pino logger, global validation pipes,
+ * and configures the API prefix based on environment settings
+ */
 async function bootstrap() {
   // Create app with bufferLogs enabled to capture early logs
   const app = await NestFactory.create<NestFastifyApplication>(

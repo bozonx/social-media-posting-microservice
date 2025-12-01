@@ -63,10 +63,10 @@ channels:
     # Включен ли канал
     enabled: true
     
-    # Авторизация (секреты передаются через переменные окружения)
+    # Авторизация (токен бота и ID чата)
     auth:
-      botToken: ${TELEGRAM_BOT_TOKEN}
-      chatId: ${TELEGRAM_CHAT_ID}
+      botToken: your_bot_token_here
+      chatId: @your_channel_username
 
     # Режим парсинга для Telegram
     parseMode: HTML

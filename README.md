@@ -44,10 +44,7 @@ cp env.production.example .env.production
 
 Edit `.env.production`:
 
-```bash
-TELEGRAM_BOT_TOKEN=your_bot_token_here
-TELEGRAM_CHAT_ID=@your_channel
-```
+
 
 ### 3. Configure Channels
 
@@ -59,8 +56,9 @@ channels:
     provider: telegram
     enabled: true
     auth:
-      botToken: ${TELEGRAM_BOT_TOKEN}
-      chatId: ${TELEGRAM_CHAT_ID}
+    auth:
+      botToken: your_bot_token_here
+      chatId: @your_channel_username
     parseMode: HTML
     # ... other settings
 ```
@@ -161,9 +159,6 @@ LISTEN_PORT=8080
 API_BASE_PATH=api
 LOG_LEVEL=warn
 CONFIG_PATH=./config.yaml
-
-TELEGRAM_BOT_TOKEN=your_token
-TELEGRAM_CHAT_ID=@your_channel
 ```
 
 ### Config File
@@ -280,7 +275,7 @@ Failed requests are automatically retried for temporary errors:
 
 ## Security
 
-- **Secrets:** Stored in environment variables
+- **Secrets:** Stored in `config.yaml` (ensure this file is secure)
 - **Config:** Non-sensitive parameters in `config.yaml`
 - **Logging:** Sensitive data is redacted
 - **Rate Limiting:** Handled at API Gateway level

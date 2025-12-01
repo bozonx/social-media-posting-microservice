@@ -277,8 +277,8 @@ channels:
     provider: telegram
     enabled: true
     auth:
-      botToken: ${TELEGRAM_BOT_TOKEN}
-      chatId: ${TELEGRAM_CHAT_ID}
+      botToken: your_bot_token_here
+      chatId: @your_channel_username
     parseMode: HTML
     disableNotification: false
     convertBody: true

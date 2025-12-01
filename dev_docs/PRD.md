@@ -480,8 +480,8 @@ channels:
     provider: telegram
     enabled: true
     auth:
-      botToken: ${TELEGRAM_BOT_TOKEN}
-      chatId: ${TELEGRAM_CHAT_ID}
+      botToken: your_bot_token_here
+      chatId: @your_channel_username
     options:
       parseMode: HTML
       disableNotification: false
@@ -736,17 +736,14 @@ interface TelegramAdditional {
 
 **Разделение ответственности:**
 
-- **Секреты (токены, ключи API) → Переменные окружения**
-  - Передаются через environment variables
-  - Используются в конфиге через подстановку `${VARIABLE_NAME}`
-  - Управляются через Docker secrets / Kubernetes secrets
-  - Пример: `TELEGRAM_BOT_TOKEN`, `VK_ACCESS_TOKEN`
-
-- **Несекретные параметры → Конфиг `config.yaml`**
+- **Секреты и конфигурация → Конфиг `config.yaml`**
+  - Токены и ключи API указываются в секции `auth` каждого канала
   - Настройки платформ (parse mode, опции)
   - Лимиты и таймауты
   - Флаги конвертации
-  - Пример: `parseMode: HTML`, `maxRetries: 3`
+  - Пример: `botToken: ...`, `parseMode: HTML`
+
+**Важно:** Файл `config.yaml` содержит секретные данные и должен быть защищен (например, монтироваться как Secret в Kubernetes или не попадать в публичный репозиторий).
 
 **Безопасность:**
 - Логирование не должно содержать токенов и ключей

@@ -157,8 +157,8 @@ src/
 
 ```yaml
 common:
-  connectionTimeoutSecs: 45
-  requestTimeoutSecs: 60
+  providerTimeoutSecs: 45
+  incomingRequestTimeoutSecs: 60
   retryAttempts: 3
   retryDelayMs: 1000
   idempotencyTtlMinutes: 10

@@ -79,7 +79,7 @@ export class PostService extends BasePostService {
         },
       });
 
-      const timeoutMs = this.getRequestTimeoutMs(commonConfig?.requestTimeoutSecs);
+      const timeoutMs = this.getRequestTimeoutMs(commonConfig?.incomingRequestTimeoutSecs);
 
       const result = await this.executeWithRequestTimeout(
         () =>
@@ -170,17 +170,17 @@ export class PostService extends BasePostService {
     return ErrorCode.PLATFORM_ERROR;
   }
 
-  private getRequestTimeoutMs(requestTimeoutSecs: number | undefined): number {
+  private getRequestTimeoutMs(incomingRequestTimeoutSecs: number | undefined): number {
     const defaultSecs = PostService.DEFAULT_REQUEST_TIMEOUT_SECS;
     const maxSecs = PostService.MAX_REQUEST_TIMEOUT_SECS;
 
     const normalizedSecs =
-      typeof requestTimeoutSecs === 'number' && requestTimeoutSecs > 0
-        ? requestTimeoutSecs
+      typeof incomingRequestTimeoutSecs === 'number' && incomingRequestTimeoutSecs > 0
+        ? incomingRequestTimeoutSecs
         : defaultSecs;
 
     if (normalizedSecs > maxSecs) {
-      throw new Error(`requestTimeoutSecs must not exceed ${maxSecs} seconds`);
+      throw new Error(`incomingRequestTimeoutSecs must not exceed ${maxSecs} seconds`);
     }
 
     return normalizedSecs * 1000;

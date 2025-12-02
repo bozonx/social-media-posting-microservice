@@ -10,8 +10,8 @@ describe('AppConfigService', () => {
 
   const mockConfig = {
     common: {
-      connectionTimeoutSecs: 45,
-      requestTimeoutSecs: 60,
+      providerTimeoutSecs: 45,
+      incomingRequestTimeoutSecs: 60,
       convertBody: true,
       retryAttempts: 3,
       retryDelayMs: 1000,

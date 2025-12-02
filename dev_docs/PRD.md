@@ -484,10 +484,10 @@ graph TD
 # Общие параметры
 common:
   # Таймаут соединения с провайдером (сек)
-  connectionTimeoutSecs: 45
+  providerTimeoutSecs: 45
   
-  # Таймаут запроса (сек)
-  requestTimeoutSecs: 60
+  # Таймаут входящего запроса к микросервису (сек)
+  incomingRequestTimeoutSecs: 60
 
   # Автоматическая конвертация body (по умолчанию)
   convertBody: true

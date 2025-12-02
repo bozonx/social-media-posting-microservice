@@ -7,11 +7,11 @@
 common:
   # Connection timeout with provider (seconds)
   # Maximum time to wait for establishing a connection to the platform API
-  connectionTimeoutSecs: 45
+  providerTimeoutSecs: 45
   
   # Request timeout (seconds)
   # Maximum time to wait for a complete API request/response cycle
-  requestTimeoutSecs: 60
+  incomingRequestTimeoutSecs: 60
 
   # Automatic body conversion (default)
   # If true, automatically converts body content to the platform's preferred format

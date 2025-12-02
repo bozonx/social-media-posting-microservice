@@ -22,7 +22,7 @@ interface ChannelConfig {
 interface CommonConfig {
   retryAttempts: number;
   retryDelayMs: number;
-  requestTimeoutSecs?: number;
+  incomingRequestTimeoutSecs?: number;
 }
 
 interface ProviderResult {
@@ -287,7 +287,7 @@ describe('PostService', () => {
         );
         appConfigService.getCommonConfig.mockReturnValue({
           ...commonConfig,
-          requestTimeoutSecs: 1,
+          incomingRequestTimeoutSecs: 1,
         } as any);
 
         const publishPromise = service.publish(request);
@@ -309,7 +309,7 @@ describe('PostService', () => {
         );
         appConfigService.getCommonConfig.mockReturnValue({
           ...commonConfig,
-          requestTimeoutSecs: 1000,
+          incomingRequestTimeoutSecs: 1000,
         } as any);
 
         const result = await service.publish(request);

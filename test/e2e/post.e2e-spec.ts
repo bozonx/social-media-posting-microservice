@@ -76,6 +76,20 @@ describe('PostController (e2e)', () => {
     buildKey: jest
       .fn()
       .mockImplementation(req => (req.idempotencyKey ? `key:${req.idempotencyKey}` : null)),
+    acquireLock: jest.fn().mockImplementation(key => {
+      const record = idempotencyCache.get(key);
+
+      if (record?.status === 'processing') {
+        return { acquired: false, status: 'processing' };
+      }
+
+      if (record?.status === 'completed' && record.response) {
+        return { acquired: false, status: 'completed', response: record.response };
+      }
+
+      idempotencyCache.set(key, { status: 'processing' });
+      return { acquired: true, status: 'processing' };
+    }),
     getRecord: jest.fn().mockImplementation(key => Promise.resolve(idempotencyCache.get(key))),
     setProcessing: jest.fn().mockImplementation(key => {
       idempotencyCache.set(key, { status: 'processing' });

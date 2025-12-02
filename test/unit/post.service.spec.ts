@@ -3,8 +3,9 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { BadRequestException, Logger } from '@nestjs/common';
 import { PostService } from '@/modules/post/post.service.js';
 import { AppConfigService } from '@/modules/app-config/app-config.service.js';
-import { TelegramProvider } from '@/modules/providers/telegram/telegram.provider.js';
 import { IdempotencyService } from '@/modules/post/idempotency.service.js';
+import { ProviderRegistry } from '@/modules/providers/base/provider-registry.service.js';
+import { AuthValidatorRegistry } from '@/modules/providers/base/auth-validator-registry.service.js';
 import type { PostRequestDto, PostResponseDto } from '@/modules/post/dto/index.js';
 import { PostType } from '@/common/enums/index.js';
 
@@ -33,7 +34,7 @@ const createChannelConfig = (overrides: Partial<ChannelConfig> = {}): ChannelCon
   provider: 'telegram',
   enabled: true,
   auth: {
-    botToken: 'test-token',
+    botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
     chatId: 'test-chat-id',
   },
   ...overrides,
@@ -85,6 +86,20 @@ const createMockIdempotencyService = () => ({
   setCompleted: jest.fn(),
 });
 
+const createMockProviderRegistry = (mockTelegramProvider: any) => ({
+  get: jest.fn().mockImplementation((platform: string) => {
+    if (platform.toLowerCase() === 'telegram') {
+      return mockTelegramProvider;
+    }
+    throw new BadRequestException(`Provider "${platform}" is not supported`);
+  }),
+  has: jest.fn().mockImplementation((platform: string) => platform.toLowerCase() === 'telegram'),
+});
+
+const createMockAuthValidatorRegistry = () => ({
+  validate: jest.fn(),
+});
+
 // =============================================================================
 // Test Suite
 // =============================================================================
@@ -92,29 +107,33 @@ const createMockIdempotencyService = () => ({
 describe('PostService', () => {
   let service: PostService;
   let appConfigService: jest.Mocked<AppConfigService>;
-  let telegramProvider: jest.Mocked<TelegramProvider>;
+  let providerRegistry: jest.Mocked<ProviderRegistry>;
   let idempotencyService: jest.Mocked<IdempotencyService>;
+  let mockTelegramProvider: ReturnType<typeof createMockTelegramProvider>;
 
   const channelConfig = createChannelConfig();
   const commonConfig = createCommonConfig();
 
   beforeEach(async () => {
     const mockAppConfig = createMockAppConfigService(channelConfig, commonConfig);
-    const mockTelegram = createMockTelegramProvider();
+    mockTelegramProvider = createMockTelegramProvider();
     const mockIdempotency = createMockIdempotencyService();
+    const mockProviderReg = createMockProviderRegistry(mockTelegramProvider);
+    const mockAuthValidatorReg = createMockAuthValidatorRegistry();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PostService,
         { provide: AppConfigService, useValue: mockAppConfig },
-        { provide: TelegramProvider, useValue: mockTelegram },
+        { provide: ProviderRegistry, useValue: mockProviderReg },
+        { provide: AuthValidatorRegistry, useValue: mockAuthValidatorReg },
         { provide: IdempotencyService, useValue: mockIdempotency },
       ],
     }).compile();
 
     service = module.get<PostService>(PostService);
     appConfigService = module.get(AppConfigService);
-    telegramProvider = module.get(TelegramProvider);
+    providerRegistry = module.get(ProviderRegistry);
     idempotencyService = module.get(IdempotencyService);
 
     jest.spyOn(Logger.prototype, 'log').mockImplementation();
@@ -136,7 +155,7 @@ describe('PostService', () => {
         const request = createPostRequest();
         const providerResult = createProviderResult();
 
-        telegramProvider.publish.mockResolvedValue(providerResult);
+        mockTelegramProvider.publish.mockResolvedValue(providerResult);
 
         const result = await service.publish(request);
 
@@ -153,7 +172,10 @@ describe('PostService', () => {
         expect((result as PostResponseDto).data?.requestId).toBeDefined();
         expect((result as PostResponseDto).data?.publishedAt).toBeDefined();
         expect(appConfigService.getChannel).toHaveBeenCalledWith('test-channel');
-        expect(telegramProvider.publish).toHaveBeenCalledWith(request, channelConfig);
+        expect(mockTelegramProvider.publish).toHaveBeenCalledWith(request, {
+          ...channelConfig,
+          source: 'channel',
+        });
       });
 
       it('should publish using inline auth', async () => {
@@ -163,13 +185,13 @@ describe('PostService', () => {
         });
         const providerResult = createProviderResult();
 
-        telegramProvider.publish.mockResolvedValue(providerResult);
+        mockTelegramProvider.publish.mockResolvedValue(providerResult);
 
         const result = await service.publish(request);
 
         expect(result.success).toBe(true);
         expect(appConfigService.getChannel).not.toHaveBeenCalled();
-        expect(telegramProvider.publish).toHaveBeenCalled();
+        expect(mockTelegramProvider.publish).toHaveBeenCalled();
       });
     });
 
@@ -210,7 +232,7 @@ describe('PostService', () => {
         const request = createPostRequest();
         const error = new Error('Publishing failed');
 
-        telegramProvider.publish.mockRejectedValue(error);
+        mockTelegramProvider.publish.mockRejectedValue(error);
 
         const result = await service.publish(request);
 
@@ -230,26 +252,26 @@ describe('PostService', () => {
         const request = createPostRequest();
         const providerResult = createProviderResult();
 
-        telegramProvider.publish
+        mockTelegramProvider.publish
           .mockRejectedValueOnce({ response: { status: 500 } })
           .mockResolvedValue(providerResult);
 
         const result = await service.publish(request);
 
         expect(result.success).toBe(true);
-        expect(telegramProvider.publish).toHaveBeenCalledTimes(2);
+        expect(mockTelegramProvider.publish).toHaveBeenCalledTimes(2);
       });
 
       it('should not retry on validation errors', async () => {
         const request = createPostRequest();
         const error = new BadRequestException('Validation error');
 
-        telegramProvider.publish.mockRejectedValue(error);
+        mockTelegramProvider.publish.mockRejectedValue(error);
 
         const result = await service.publish(request);
 
         expect(result.success).toBe(false);
-        expect(telegramProvider.publish).toHaveBeenCalledTimes(1);
+        expect(mockTelegramProvider.publish).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -279,7 +301,7 @@ describe('PostService', () => {
         const result = await service.publish(idempotentRequest);
 
         expect(result).toEqual(cachedResponse);
-        expect(telegramProvider.publish).not.toHaveBeenCalled();
+        expect(mockTelegramProvider.publish).not.toHaveBeenCalled();
         expect(idempotencyService.setProcessing).not.toHaveBeenCalled();
         expect(idempotencyService.setCompleted).not.toHaveBeenCalled();
       });
@@ -289,14 +311,14 @@ describe('PostService', () => {
 
         idempotencyService.buildKey.mockReturnValue('idem-key');
         idempotencyService.getRecord.mockResolvedValue(undefined);
-        telegramProvider.publish.mockResolvedValue(providerResult);
+        mockTelegramProvider.publish.mockResolvedValue(providerResult);
 
         const result = await service.publish(idempotentRequest);
 
         expect(result.success).toBe(true);
         expect(idempotencyService.setProcessing).toHaveBeenCalledWith('idem-key');
         expect(idempotencyService.setCompleted).toHaveBeenCalledWith('idem-key', result);
-        expect(telegramProvider.publish).toHaveBeenCalledTimes(1);
+        expect(mockTelegramProvider.publish).toHaveBeenCalledTimes(1);
       });
 
       it('should throw ConflictException when record is processing', async () => {
@@ -307,7 +329,7 @@ describe('PostService', () => {
           'Request with the same idempotencyKey is already being processed',
         );
 
-        expect(telegramProvider.publish).not.toHaveBeenCalled();
+        expect(mockTelegramProvider.publish).not.toHaveBeenCalled();
         expect(idempotencyService.setProcessing).not.toHaveBeenCalled();
         expect(idempotencyService.setCompleted).not.toHaveBeenCalled();
       });
@@ -321,7 +343,7 @@ describe('PostService', () => {
   describe('getProvider', () => {
     it('should return telegram provider for telegram platform', () => {
       const provider = (service as any).getProvider('telegram');
-      expect(provider).toBe(telegramProvider);
+      expect(provider).toBe(mockTelegramProvider);
     });
 
     it('should throw error for unsupported platform', () => {

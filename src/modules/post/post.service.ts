@@ -3,23 +3,27 @@ import { randomUUID } from 'crypto';
 import { PostRequestDto, PostResponseDto, ErrorResponseDto } from './dto/index.js';
 import { PostType, ErrorCode } from '../../common/enums/index.js';
 import { AppConfigService } from '../app-config/app-config.service.js';
-import { TelegramProvider } from '../providers/telegram/telegram.provider.js';
 import { IdempotencyService } from './idempotency.service.js';
-import { IProvider } from '../providers/base/provider.interface.js';
+import { ProviderRegistry } from '../providers/base/provider-registry.service.js';
+import { AuthValidatorRegistry } from '../providers/base/auth-validator-registry.service.js';
+import { BasePostService, ResolvedChannelConfig } from './base-post.service.js';
 
 @Injectable()
-export class PostService {
-  private readonly logger = new Logger(PostService.name);
+export class PostService extends BasePostService {
+  protected readonly logger = new Logger(PostService.name);
   /** Minimum jitter factor for retry delay randomization (80%) */
   private static readonly MIN_JITTER_FACTOR = 0.8;
   /** Maximum jitter factor for retry delay randomization (120%) */
   private static readonly MAX_JITTER_FACTOR = 1.2;
 
   constructor(
-    private readonly appConfig: AppConfigService,
-    private readonly telegramProvider: TelegramProvider,
+    appConfig: AppConfigService,
+    providerRegistry: ProviderRegistry,
+    authValidatorRegistry: AuthValidatorRegistry,
     private readonly idempotencyService: IdempotencyService,
-  ) {}
+  ) {
+    super(appConfig, providerRegistry, authValidatorRegistry);
+  }
 
   /**
    * Publish a post to a social media platform
@@ -29,6 +33,7 @@ export class PostService {
    */
   async publish(request: PostRequestDto): Promise<PostResponseDto | ErrorResponseDto> {
     const idempotencyKey = this.idempotencyService.buildKey(request);
+    let idempotencyLocked = false;
 
     if (idempotencyKey) {
       const existing = await this.idempotencyService.getRecord(idempotencyKey);
@@ -45,20 +50,13 @@ export class PostService {
       }
 
       await this.idempotencyService.setProcessing(idempotencyKey);
+      idempotencyLocked = true;
     }
 
     const requestId = randomUUID();
 
     try {
-      const channelConfig = this.getChannelConfig(request);
-
-      if (String(channelConfig.provider).toLowerCase() !== request.platform.toLowerCase()) {
-        throw new BadRequestException(
-          `Channel provider "${channelConfig.provider}" does not match requested platform "${request.platform}"`,
-        );
-      }
-
-      const provider = this.getProvider(request.platform);
+      const { provider, channelConfig } = this.validateRequest(request);
 
       // Check if explicit type is supported
       const postType = request.type || PostType.AUTO;
@@ -69,7 +67,7 @@ export class PostService {
       }
 
       this.logger.log({
-        message: `Publishing to ${request.platform} via ${request.channel || 'inline auth'}, type: ${postType}`,
+        message: `Publishing to ${request.platform} via ${channelConfig.source === 'channel' ? request.channel : 'inline auth'}, type: ${postType}`,
         metadata: {
           requestId,
           platform: request.platform,
@@ -103,6 +101,7 @@ export class PostService {
 
       return response;
     } catch (error: any) {
+      // Log full error with stack trace for debugging
       this.logger.error({
         message: `Failed to publish to ${request.platform}: ${error?.message ?? 'Unknown error'}`,
         metadata: {
@@ -110,8 +109,8 @@ export class PostService {
           platform: request.platform,
           channel: request.channel,
           type: request.type,
-          error: error?.stack,
         },
+        err: error, // Full error object with stack trace
       });
 
       const errorResponse: ErrorResponseDto = {
@@ -125,47 +124,12 @@ export class PostService {
         },
       };
 
-      if (idempotencyKey) {
+      // Always update idempotency record if we locked it
+      if (idempotencyKey && idempotencyLocked) {
         await this.idempotencyService.setCompleted(idempotencyKey, errorResponse);
       }
 
       return errorResponse;
-    }
-  }
-
-  /**
-   * Get channel configuration from request
-   * Supports both named channels from config and inline auth
-   * @param request - Post request
-   * @returns Channel configuration object
-   * @throws BadRequestException if neither channel nor auth is provided
-   */
-  private getChannelConfig(request: PostRequestDto): any {
-    if (request.channel) {
-      return this.appConfig.getChannel(request.channel);
-    }
-    if (request.auth) {
-      return {
-        provider: request.platform.toLowerCase(),
-        enabled: true,
-        auth: request.auth,
-      };
-    }
-    throw new BadRequestException('Either "channel" or "auth" must be provided');
-  }
-
-  /**
-   * Get provider instance by platform name
-   * @param platform - Platform name (e.g., 'telegram')
-   * @returns Provider instance
-   * @throws BadRequestException if platform is not supported
-   */
-  private getProvider(platform: string): IProvider {
-    switch (platform.toLowerCase()) {
-      case 'telegram':
-        return this.telegramProvider;
-      default:
-        throw new BadRequestException(`Provider "${platform}" is not supported`);
     }
   }
 

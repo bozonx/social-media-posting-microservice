@@ -1,5 +1,5 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { Bot, InputFile } from 'grammy';
+import { Bot } from 'grammy';
 import { IProvider, ProviderPublishResponse } from '../base/provider.interface.js';
 import { PostType, BodyFormat } from '../../../common/enums/index.js';
 import {
@@ -12,6 +12,7 @@ import { MediaService } from '../../media/media.service.js';
 import { MediaInputHelper } from '../../../common/helpers/media-input.helper.js';
 import { AmbiguousMediaValidator } from '../../../common/validators/ambiguous-media.validator.js';
 import { TelegramTypeDetector } from './telegram-type-detector.service.js';
+import { TelegramBotCache } from './telegram-bot-cache.service.js';
 import type { ChannelConfig } from '../../app-config/interfaces/app-config.interface.js';
 
 export interface TelegramChannelConfig extends ChannelConfig {
@@ -46,6 +47,7 @@ export class TelegramProvider implements IProvider {
     private readonly converterService: ConverterService,
     private readonly mediaService: MediaService,
     private readonly typeDetector: TelegramTypeDetector,
+    private readonly botCache: TelegramBotCache,
   ) {}
 
   async publish(
@@ -70,7 +72,7 @@ export class TelegramProvider implements IProvider {
     }
 
     const { botToken, chatId } = channelConfig.auth;
-    const bot = new Bot(botToken);
+    const bot = this.botCache.getOrCreate(botToken);
 
     const { processedBody, parseMode, disableNotification, options } = this.prepareMessageData(
       request,

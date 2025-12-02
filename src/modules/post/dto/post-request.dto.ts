@@ -1,10 +1,21 @@
-import { IsString, IsOptional, IsEnum, IsBoolean, IsObject, IsArray } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsBoolean,
+  IsObject,
+  IsArray,
+  MaxLength,
+} from 'class-validator';
 import { PostType, BodyFormat } from '../../../common/enums/index.js';
 import type { MediaInput } from '../../../common/types/index.js';
 import {
   IsMediaInput,
   IsMediaInputArray,
 } from '../../../common/validators/media-input.validator.js';
+
+/** Maximum body length in characters */
+const MAX_BODY_LENGTH = 100_000;
 
 /**
  * Post request DTO
@@ -15,8 +26,9 @@ export class PostRequestDto {
   @IsString()
   platform!: string;
 
-  /** Post content/text body */
+  /** Post content/text body (max 100,000 characters) */
   @IsString()
+  @MaxLength(MAX_BODY_LENGTH)
   body!: string;
 
   /** Post type (auto-detected if not specified) */
@@ -78,6 +90,11 @@ export class PostRequestDto {
   @IsOptional()
   @IsObject()
   auth?: Record<string, any>;
+
+  /** Whether inline auth is enabled (defaults to true) */
+  @IsOptional()
+  @IsBoolean()
+  enabled?: boolean;
 
   /** Platform-specific options */
   @IsOptional()

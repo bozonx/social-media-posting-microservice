@@ -85,11 +85,12 @@ describe('ConverterService', () => {
         expect(result).not.toContain('<h1');
       });
 
-      it('should handle missing marked library gracefully', async () => {
-        // Симулируем отсутствие marked
+      it('should throw error when marked library is not available', async () => {
+        // Simulate missing marked library
         (service as any).marked = undefined;
-        const result = service.convert(markdown, BodyFormat.MARKDOWN, BodyFormat.HTML);
-        expect(result).toBe(markdown);
+        expect(() => service.convert(markdown, BodyFormat.MARKDOWN, BodyFormat.HTML)).toThrow(
+          'Markdown to HTML conversion is not available',
+        );
       });
     });
 

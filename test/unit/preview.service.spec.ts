@@ -1,21 +1,22 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { Test, type TestingModule } from '@nestjs/testing';
-import { Logger } from '@nestjs/common';
+import { BadRequestException, Logger } from '@nestjs/common';
 import { PreviewService } from '@/modules/post/preview.service.js';
 import { AppConfigService } from '@/modules/app-config/app-config.service.js';
-import { TelegramProvider } from '@/modules/providers/telegram/telegram.provider.js';
+import { ProviderRegistry } from '@/modules/providers/base/provider-registry.service.js';
+import { AuthValidatorRegistry } from '@/modules/providers/base/auth-validator-registry.service.js';
 import type { PostRequestDto, PreviewResponseDto } from '@/modules/post/dto/index.js';
 
 describe('PreviewService', () => {
   let service: PreviewService;
   let appConfigService: AppConfigService;
-  let telegramProvider: TelegramProvider;
+  let mockTelegramProvider: any;
 
   const mockChannelConfig = {
     provider: 'telegram',
     enabled: true,
     auth: {
-      botToken: 'test-token',
+      botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
       chatId: 'test-chat-id',
     },
     parseMode: 'HTML',
@@ -24,6 +25,28 @@ describe('PreviewService', () => {
   };
 
   beforeEach(async () => {
+    mockTelegramProvider = {
+      name: 'telegram',
+      supportedTypes: [],
+      preview: jest.fn(),
+    };
+
+    const mockProviderRegistry = {
+      get: jest.fn().mockImplementation((platform: string) => {
+        if (platform.toLowerCase() === 'telegram') {
+          return mockTelegramProvider;
+        }
+        throw new BadRequestException(`Provider "${platform}" is not supported`);
+      }),
+      has: jest
+        .fn()
+        .mockImplementation((platform: string) => platform.toLowerCase() === 'telegram'),
+    };
+
+    const mockAuthValidatorRegistry = {
+      validate: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PreviewService,
@@ -34,19 +57,18 @@ describe('PreviewService', () => {
           },
         },
         {
-          provide: TelegramProvider,
-          useValue: {
-            name: 'telegram',
-            supportedTypes: [],
-            preview: jest.fn(),
-          },
+          provide: ProviderRegistry,
+          useValue: mockProviderRegistry,
+        },
+        {
+          provide: AuthValidatorRegistry,
+          useValue: mockAuthValidatorRegistry,
         },
       ],
     }).compile();
 
     service = module.get<PreviewService>(PreviewService);
     appConfigService = module.get<AppConfigService>(AppConfigService);
-    telegramProvider = module.get<TelegramProvider>(TelegramProvider);
 
     jest.spyOn(Logger.prototype, 'log').mockImplementation();
     jest.spyOn(Logger.prototype, 'warn').mockImplementation();
@@ -165,12 +187,15 @@ describe('PreviewService', () => {
       };
 
       (appConfigService.getChannel as jest.Mock).mockReturnValue(mockChannelConfig);
-      (telegramProvider.preview as jest.Mock).mockResolvedValue(previewResult);
+      (mockTelegramProvider.preview as jest.Mock).mockResolvedValue(previewResult);
 
       const result = await service.preview(request);
 
       expect(appConfigService.getChannel).toHaveBeenCalledWith('test-channel');
-      expect(telegramProvider.preview).toHaveBeenCalledWith(request, mockChannelConfig);
+      expect(mockTelegramProvider.preview).toHaveBeenCalledWith(request, {
+        ...mockChannelConfig,
+        source: 'channel',
+      });
       expect(result).toBe(previewResult);
     });
 
@@ -196,15 +221,16 @@ describe('PreviewService', () => {
         },
       };
 
-      (telegramProvider.preview as jest.Mock).mockResolvedValue(previewResult);
+      (mockTelegramProvider.preview as jest.Mock).mockResolvedValue(previewResult);
 
       const result = await service.preview(request);
 
       expect(appConfigService.getChannel).not.toHaveBeenCalled();
-      expect(telegramProvider.preview).toHaveBeenCalledWith(request, {
+      expect(mockTelegramProvider.preview).toHaveBeenCalledWith(request, {
         provider: 'telegram',
         enabled: true,
         auth: request.auth,
+        source: 'inline',
       });
       expect(result).toBe(previewResult);
     });

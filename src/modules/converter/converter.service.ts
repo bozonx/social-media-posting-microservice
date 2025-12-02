@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger, InternalServerErrorException } from '@nestjs/common';
 import TurndownService from 'turndown';
 import { convert as htmlToText } from 'html-to-text';
 import sanitizeHtml from 'sanitize-html';
@@ -9,6 +9,7 @@ import { AppConfigService } from '../app-config/app-config.service.js';
 export class ConverterService implements OnModuleInit {
   private readonly turndownService: TurndownService;
   private marked: any;
+  private markedLoadError: Error | null = null;
   private readonly logger = new Logger(ConverterService.name);
 
   /**
@@ -39,9 +40,22 @@ export class ConverterService implements OnModuleInit {
     try {
       const markedModule = await import('marked');
       this.marked = markedModule.marked;
-    } catch (error) {
-      this.logger.error('Failed to load marked library', error);
+      this.logger.log('Marked library loaded successfully');
+    } catch (error: any) {
+      this.markedLoadError = error;
+      this.logger.error({
+        message: 'Failed to load marked library - markdown to HTML conversion will not work',
+        err: error,
+      });
     }
+  }
+
+  /**
+   * Check if marked library is available
+   * @returns True if marked is loaded and ready
+   */
+  isMarkedAvailable(): boolean {
+    return this.marked !== null && this.marked !== undefined;
   }
 
   /**
@@ -118,10 +132,29 @@ export class ConverterService implements OnModuleInit {
 
   private markdownToHtml(markdown: string): string {
     if (!this.marked) {
-      this.logger.warn('Marked library not loaded, returning raw markdown');
-      return markdown;
+      const errorMessage = this.markedLoadError
+        ? `Marked library failed to load: ${this.markedLoadError.message}`
+        : 'Marked library is not available';
+
+      this.logger.error({
+        message: `Cannot convert markdown to HTML: ${errorMessage}`,
+        err: this.markedLoadError,
+      });
+
+      throw new InternalServerErrorException(
+        `Markdown to HTML conversion is not available: ${errorMessage}`,
+      );
     }
-    return this.marked.parse(markdown) as string;
+
+    try {
+      return this.marked.parse(markdown) as string;
+    } catch (error: any) {
+      this.logger.error({
+        message: `Failed to parse markdown: ${error.message}`,
+        err: error,
+      });
+      throw new InternalServerErrorException(`Failed to parse markdown: ${error.message}`);
+    }
   }
 
   private htmlToPlainText(html: string): string {

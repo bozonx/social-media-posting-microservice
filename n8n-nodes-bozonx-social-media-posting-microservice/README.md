@@ -4,15 +4,15 @@ An n8n community node for publishing content to social media platforms via the [
 
 ## Features
 
-- **Multiple Platforms**: Telegram (VK, Instagram coming soon)
+- **Multiple Platforms**: Telegram (VK, Instagram support coming soon)
 - **Multiple Post Types**: Text, image, video, audio, album, document, article, story, poll
-- **Flexible Authentication**: Use pre-configured channels or inline credentials
+- **Flexible Authentication**: Use pre-configured channels from `config.yaml` or provide inline credentials
 - **MediaInput Support**: Upload by URL, reuse uploaded files with `fileId`, add spoiler effects
-- **Content Conversion**: Auto-convert between HTML, Markdown, and plain text
-- **Platform Options**: Customize with platform-specific options (inline keyboards, parse mode, etc.)
-- **Idempotency**: Prevent duplicate posts with idempotency keys
-- **Error Handling**: Built-in retry logic and continue-on-fail support
-- **Preview Mode**: Validate and preview posts without publishing
+- **Content Conversion**: Auto-convert between HTML, Markdown, and plain text formats
+- **Platform Options**: Customize with platform-specific options (inline keyboards, parse mode, notifications, etc.)
+- **Idempotency**: Prevent duplicate posts with idempotency keys (in-memory cache with configurable TTL)
+- **Error Handling**: Built-in retry logic for transient errors and continue-on-fail support
+- **Preview Mode**: Validate and preview posts without publishing to test content formatting
 
 ## Installation
 
@@ -56,9 +56,9 @@ curl http://localhost:8080/api/v1/health
 
 ### 2. Configure n8n Credentials
 
-1. Create a new **Bozonx Microservices API** credential
-2. Set **Gateway URL**: `http://localhost:8080`
-3. Set **API Token** (optional, if authentication is required)
+1. In n8n, create a new **Bozonx Microservices API** credential
+2. Set **Gateway URL**: `http://localhost:8080` (without `/api/v1` suffix)
+3. Set **API Token** (optional, only if your microservice requires authentication)
 
 ### 3. Use the Node
 
@@ -85,10 +85,14 @@ Add the **Social Media Post** node to your workflow and configure:
 
 ### Required Parameters
 
-- **Operation**: `Publish Post` or `Preview Post`
-- **Platform**: Social media platform (`telegram`)
-- **Post Content**: Main content of the post
-- **Authentication**: Either channel name or inline credentials
+| Parameter | Description | Values |
+|-----------|-------------|--------|
+| **Operation** | Action to perform | `Publish Post`, `Preview Post` |
+| **Platform** | Social media platform | `telegram` |
+| **Post Content** | Main content/body of the post | Any text (max 100,000 characters) |
+| **Authentication Mode** | How to authenticate | `Use Channel from Config`, `Use Inline Auth` |
+
+**Note:** Either channel name (from microservice `config.yaml`) or inline credentials must be provided.
 
 ### Additional Options
 
@@ -113,13 +117,15 @@ Add the **Social Media Post** node to your workflow and configure:
 
 ### MediaInput Format
 
-Media fields accept either a string URL or a JSON object:
+Media fields (`Cover Image`, `Video`, `Audio`, `Document`) accept either:
 
-```javascript
-// String URL
-"https://example.com/image.jpg"
+**Simple URL string:**
+```
+https://example.com/image.jpg
+```
 
-// JSON object with options
+**JSON object with options:**
+```json
 {
   "url": "https://example.com/image.jpg",
   "fileId": "AgACAgIAAxkBAAIC...",
@@ -127,9 +133,18 @@ Media fields accept either a string URL or a JSON object:
 }
 ```
 
+**Properties:**
+- `url` (string): Direct URL to media file
+- `fileId` (string): Telegram file_id to reuse previously uploaded files
+- `hasSpoiler` (boolean): Hide media under spoiler (Telegram only)
+
+**Note:** Either `url` or `fileId` must be provided. If both are present, `fileId` takes priority.
+
 ### Platform Options (Telegram)
 
-```javascript
+Provide as JSON object in the **Platform Options** field:
+
+```json
 {
   "parseMode": "HTML",
   "disableNotification": true,
@@ -139,6 +154,14 @@ Media fields accept either a string URL or a JSON object:
   "inlineKeyboard": [[{"text": "Visit", "url": "https://example.com"}]]
 }
 ```
+
+**Available options:**
+- `parseMode`: Text formatting mode (`HTML`, `Markdown`, `MarkdownV2`)
+- `disableNotification`: Send silently without notification
+- `disableWebPagePreview`: Disable link previews
+- `protectContent`: Restrict forwarding and saving
+- `replyToMessageId`: Reply to specific message
+- `inlineKeyboard`: Add inline buttons (array of button rows)
 
 ## Usage Examples
 
@@ -227,48 +250,89 @@ Output:
 
 ## Error Handling
 
-Enable **Continue On Fail** to handle errors gracefully. Errors are returned as:
+Enable **Continue On Fail** in node settings to handle errors gracefully without stopping workflow execution.
 
+### Error Response Format
+
+**Publish operation:**
 ```json
 {
   "error": "Error message",
   "code": "ERROR_CODE",
-  "details": {}
+  "details": {},
+  "requestId": "uuid-v4"
+}
+```
+
+**Preview operation:**
+```json
+{
+  "valid": false,
+  "errors": ["Error message 1", "Error message 2"],
+  "warnings": [],
+  "code": "ERROR_CODE"
 }
 ```
 
 ### Common Error Codes
 
-| Code | Description |
-|------|-------------|
-| `VALIDATION_ERROR` | Invalid request parameters |
-| `AUTH_ERROR` | Authentication failed |
-| `PLATFORM_ERROR` | Platform API error |
-| `TIMEOUT_ERROR` | Request timeout |
-| `RATE_LIMIT_ERROR` | Rate limit exceeded |
-| `INTERNAL_ERROR` | Internal server error |
+| Code | Description | Retry |
+|------|-------------|-------|
+| `VALIDATION_ERROR` | Invalid request parameters | No |
+| `AUTH_ERROR` | Authentication failed | No |
+| `PLATFORM_ERROR` | Platform API error | Depends |
+| `TIMEOUT_ERROR` | Request timeout | Yes |
+| `RATE_LIMIT_ERROR` | Rate limit exceeded | Yes |
+| `INTERNAL_ERROR` | Internal server error | Yes |
+
+**Note:** The microservice automatically retries transient errors (timeouts, 5xx, rate limits) based on `config.yaml` settings.
 
 ## Troubleshooting
 
-### Node Not Found
-- Restart n8n after installation
-- Check **Settings** → **Community Nodes** for installation status
+### Node Not Found After Installation
+1. Restart n8n completely
+2. Check **Settings** → **Community Nodes** for installation status
+3. Verify package name: `n8n-nodes-bozonx-social-media-posting-microservice`
 
 ### Connection Error
-- Verify microservice is running: `curl http://localhost:8080/api/v1/health`
-- Ensure Gateway URL does NOT include `/api/v1`
-- Check port 8080 is accessible
+1. Verify microservice is running:
+   ```bash
+   curl http://localhost:8080/api/v1/health
+   # Expected: {"status":"ok"}
+   ```
+2. Ensure **Gateway URL** does NOT include `/api/v1` suffix
+3. Check port 8080 is accessible from n8n container/instance
+4. Verify network connectivity (Docker networks, firewalls)
 
 ### Authentication Error
-- Verify channel exists in `config.yaml` (when using channel mode)
-- Verify bot token and chat ID are correct (when using inline auth)
-- Check bot has permissions to post in the channel
+
+**Using Channel Mode:**
+- Verify channel name exists in microservice `config.yaml`
+- Check channel is enabled: `enabled: true`
+- Ensure environment variables are properly substituted
+
+**Using Inline Auth:**
+- Verify bot token format: `123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11`
+- Verify chat ID format: `@channelname` or `-100123456789`
+- Check bot has admin permissions in the channel
+- Ensure bot is added to the channel
 
 ### Publishing Error
-- Review error message and code
-- Check platform-specific limits (e.g., Telegram message length)
-- Verify media URLs are accessible
-- Ensure media formats are supported by the platform
+1. Review error message and code in node output
+2. Check platform-specific limits:
+   - Telegram text: 4096 characters
+   - Telegram caption: 1024 characters
+   - Telegram album: 2-10 items
+   - Telegram file size: 50 MB (via URL)
+3. Verify media URLs are publicly accessible
+4. Ensure media formats are supported (JPEG, PNG, MP4, etc.)
+5. Check body format matches content (HTML tags in HTML mode, etc.)
+
+### Preview Validation Fails
+- Review `errors` array in response
+- Check all required fields are provided
+- Verify media URLs are valid (format, not necessarily accessible)
+- Ensure `type: auto` doesn't have conflicting media fields
 
 ## Development
 
@@ -297,12 +361,33 @@ pnpm lint:fix
 pnpm publish:npm
 ```
 
+## Microservice Configuration
+
+The microservice uses `config.yaml` for channel configuration. Example:
+
+```yaml
+channels:
+  my_channel:
+    provider: telegram
+    enabled: true
+    auth:
+      botToken: ${TELEGRAM_BOT_TOKEN}
+      chatId: "@my_channel"
+    parseMode: HTML
+    convertBody: true
+    bodyFormat: html
+```
+
+Environment variables are substituted using `${VAR_NAME}` syntax.
+
 ## Resources
 
-- [Social Media Posting Microservice](https://github.com/bozonx/social-media-posting-microservice)
-- [API Documentation](https://github.com/bozonx/social-media-posting-microservice/blob/main/docs/api.md)
-- [n8n Community Nodes](https://docs.n8n.io/integrations/community-nodes/)
+- [Social Media Posting Microservice Repository](https://github.com/bozonx/social-media-posting-microservice)
+- [Microservice API Documentation](https://github.com/bozonx/social-media-posting-microservice/blob/main/docs/api.md)
+- [Microservice Development Guide](https://github.com/bozonx/social-media-posting-microservice/blob/main/docs/dev.md)
+- [n8n Community Nodes Documentation](https://docs.n8n.io/integrations/community-nodes/)
 - [n8n Community Forum](https://community.n8n.io/)
+- [Telegram Bot API](https://core.telegram.org/bots/api)
 
 ## License
 

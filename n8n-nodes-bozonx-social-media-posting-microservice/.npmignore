@@ -8,6 +8,10 @@ scripts/
 dev_docs/
 docs/
 
+# Include documentation in package
+!CHANGELOG.md
+!EXAMPLES.md
+
 # Do not publish sources (we publish compiled files from dist)
 src/
 nodes/

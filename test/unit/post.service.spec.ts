@@ -81,6 +81,7 @@ const createMockTelegramProvider = () => ({
 
 const createMockIdempotencyService = () => ({
   buildKey: jest.fn().mockReturnValue(null),
+  acquireLock: jest.fn(),
   getRecord: jest.fn(),
   setProcessing: jest.fn(),
   setCompleted: jest.fn(),
@@ -293,16 +294,17 @@ describe('PostService', () => {
         };
 
         idempotencyService.buildKey.mockReturnValue('idem-key');
-        idempotencyService.getRecord.mockResolvedValue({
+        idempotencyService.acquireLock.mockReturnValue({
+          acquired: false,
           status: 'completed',
           response: cachedResponse,
-        });
+        } as any);
 
         const result = await service.publish(idempotentRequest);
 
         expect(result).toEqual(cachedResponse);
+        expect(idempotencyService.acquireLock).toHaveBeenCalledWith('idem-key');
         expect(mockTelegramProvider.publish).not.toHaveBeenCalled();
-        expect(idempotencyService.setProcessing).not.toHaveBeenCalled();
         expect(idempotencyService.setCompleted).not.toHaveBeenCalled();
       });
 
@@ -310,27 +312,33 @@ describe('PostService', () => {
         const providerResult = createProviderResult();
 
         idempotencyService.buildKey.mockReturnValue('idem-key');
-        idempotencyService.getRecord.mockResolvedValue(undefined);
+        idempotencyService.acquireLock.mockReturnValue({
+          acquired: true,
+          status: 'processing',
+        } as any);
         mockTelegramProvider.publish.mockResolvedValue(providerResult);
 
         const result = await service.publish(idempotentRequest);
 
         expect(result.success).toBe(true);
-        expect(idempotencyService.setProcessing).toHaveBeenCalledWith('idem-key');
+        expect(idempotencyService.acquireLock).toHaveBeenCalledWith('idem-key');
         expect(idempotencyService.setCompleted).toHaveBeenCalledWith('idem-key', result);
         expect(mockTelegramProvider.publish).toHaveBeenCalledTimes(1);
       });
 
       it('should throw ConflictException when record is processing', async () => {
         idempotencyService.buildKey.mockReturnValue('idem-key');
-        idempotencyService.getRecord.mockResolvedValue({ status: 'processing' });
+        idempotencyService.acquireLock.mockReturnValue({
+          acquired: false,
+          status: 'processing',
+        } as any);
 
         await expect(service.publish(idempotentRequest)).rejects.toThrow(
           'Request with the same idempotencyKey is already being processed',
         );
 
+        expect(idempotencyService.acquireLock).toHaveBeenCalledWith('idem-key');
         expect(mockTelegramProvider.publish).not.toHaveBeenCalled();
-        expect(idempotencyService.setProcessing).not.toHaveBeenCalled();
         expect(idempotencyService.setCompleted).not.toHaveBeenCalled();
       });
     });

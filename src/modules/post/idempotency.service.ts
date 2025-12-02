@@ -13,15 +13,68 @@ interface IdempotencyRecord {
   response?: PostResponseDto | ErrorResponseDto;
 }
 
+interface IdempotencyRecordInternal extends IdempotencyRecord {
+  /** Timestamp in milliseconds when record should be considered expired */
+  expiresAt: number;
+}
+
 @Injectable()
 export class IdempotencyService {
   /** Default TTL for idempotency records in cache (10 minutes) */
   private static readonly DEFAULT_IDEMPOTENCY_TTL_MINUTES = 10;
 
+  /** In-memory map used for atomic idempotency lock management within a single process */
+  private readonly records = new Map<string, IdempotencyRecordInternal>();
+
   constructor(
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
     private readonly appConfig: AppConfigService,
   ) {}
+
+  /**
+   * Try to acquire processing lock for the given key or return existing record state.
+   * This method is fully in-memory and synchronous, so it is safe from race conditions
+   * inside a single Node.js process.
+   *
+   * @param key - Idempotency cache key
+   * @returns
+   *  - { acquired: true, status: 'processing' } when current request becomes the owner
+   *  - { acquired: false, status: 'processing' } when another request is already processing
+   *  - { acquired: false, status: 'completed', response } when a completed response is cached
+   */
+  acquireLock(
+    key: string,
+  ):
+    | { acquired: true; status: 'processing' }
+    | { acquired: false; status: 'processing' }
+    | { acquired: false; status: 'completed'; response: PostResponseDto | ErrorResponseDto } {
+    const now = Date.now();
+    const ttlMs = this.getTtlMs();
+
+    const existing = this.records.get(key);
+    if (existing) {
+      if (existing.expiresAt <= now) {
+        this.records.delete(key);
+      } else if (existing.status === 'processing') {
+        return { acquired: false, status: 'processing' };
+      } else if (existing.status === 'completed' && existing.response) {
+        return {
+          acquired: false,
+          status: 'completed',
+          response: existing.response,
+        };
+      }
+    }
+
+    const record: IdempotencyRecordInternal = {
+      status: 'processing',
+      expiresAt: now + ttlMs,
+    };
+
+    this.records.set(key, record);
+
+    return { acquired: true, status: 'processing' };
+  }
 
   /**
    * Build idempotency cache key from request
@@ -71,8 +124,15 @@ export class IdempotencyService {
    * @param key - Idempotency cache key
    */
   async setProcessing(key: string): Promise<void> {
-    const record: IdempotencyRecord = { status: 'processing' };
-    await this.cache.set(key, record, this.getTtlMs());
+    const ttlMs = this.getTtlMs();
+    const record: IdempotencyRecordInternal = {
+      status: 'processing',
+      expiresAt: Date.now() + ttlMs,
+    };
+
+    this.records.set(key, record);
+
+    await this.cache.set(key, { status: 'processing' }, ttlMs);
   }
 
   /**
@@ -81,8 +141,16 @@ export class IdempotencyService {
    * @param response - Response to cache (success or error)
    */
   async setCompleted(key: string, response: PostResponseDto | ErrorResponseDto): Promise<void> {
-    const record: IdempotencyRecord = { status: 'completed', response };
-    await this.cache.set(key, record, this.getTtlMs());
+    const ttlMs = this.getTtlMs();
+    const record: IdempotencyRecordInternal = {
+      status: 'completed',
+      response,
+      expiresAt: Date.now() + ttlMs,
+    };
+
+    this.records.set(key, record);
+
+    await this.cache.set(key, { status: 'completed', response }, ttlMs);
   }
 
   /**

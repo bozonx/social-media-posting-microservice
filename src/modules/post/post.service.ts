@@ -36,21 +36,21 @@ export class PostService extends BasePostService {
     let idempotencyLocked = false;
 
     if (idempotencyKey) {
-      const existing = await this.idempotencyService.getRecord(idempotencyKey);
-      if (existing) {
-        if (existing.status === 'processing') {
+      const lock = this.idempotencyService.acquireLock(idempotencyKey);
+
+      if (!lock.acquired) {
+        if (lock.status === 'processing') {
           throw new ConflictException(
             'Request with the same idempotencyKey is already being processed',
           );
         }
 
-        if (existing.status === 'completed' && existing.response) {
-          return existing.response;
+        if (lock.status === 'completed' && lock.response) {
+          return lock.response;
         }
       }
 
-      await this.idempotencyService.setProcessing(idempotencyKey);
-      idempotencyLocked = true;
+      idempotencyLocked = lock.acquired;
     }
 
     const requestId = randomUUID();

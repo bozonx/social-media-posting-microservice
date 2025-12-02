@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { YAML_CONFIG_NAMESPACE } from '@config/yaml.config';
-import type { AppConfig, ChannelConfig } from './interfaces/app-config.interface';
+import { YAML_CONFIG_NAMESPACE } from '@config/yaml.config.js';
+import type { AppConfig, ChannelConfig } from './interfaces/app-config.interface.js';
 
 @Injectable()
 export class AppConfigService {

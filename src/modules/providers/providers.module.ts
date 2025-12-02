@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { TelegramProvider } from './telegram/telegram.provider';
-import { ConverterModule } from '../converter/converter.module';
-import { MediaModule } from '../media/media.module';
-import { TelegramTypeDetector } from './telegram/telegram-type-detector.service';
+import { TelegramProvider } from './telegram/telegram.provider.js';
+import { ConverterModule } from '../converter/converter.module.js';
+import { MediaModule } from '../media/media.module.js';
+import { TelegramTypeDetector } from './telegram/telegram-type-detector.service.js';
 
 @Module({
   imports: [ConverterModule, MediaModule],

@@ -1,1 +1,1 @@
-export * from './media-input.type';
+export type { MediaInput, MediaInputObject } from './media-input.type.js';

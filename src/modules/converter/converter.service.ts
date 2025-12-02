@@ -2,8 +2,8 @@ import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import TurndownService from 'turndown';
 import { convert as htmlToText } from 'html-to-text';
 import sanitizeHtml from 'sanitize-html';
-import { BodyFormat } from '../../common/enums';
-import { AppConfigService } from '../app-config/app-config.service';
+import { BodyFormat } from '../../common/enums/index.js';
+import { AppConfigService } from '../app-config/app-config.service.js';
 
 @Injectable()
 export class ConverterService implements OnModuleInit {

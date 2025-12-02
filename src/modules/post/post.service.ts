@@ -1,11 +1,11 @@
 import { Injectable, BadRequestException, ConflictException, Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import { PostRequestDto, PostResponseDto, ErrorResponseDto } from './dto';
-import { PostType, ErrorCode } from '../../common/enums';
-import { AppConfigService } from '../app-config/app-config.service';
-import { TelegramProvider } from '../providers/telegram/telegram.provider';
-import { IdempotencyService } from './idempotency.service';
-import { IProvider } from '../providers/base/provider.interface';
+import { PostRequestDto, PostResponseDto, ErrorResponseDto } from './dto/index.js';
+import { PostType, ErrorCode } from '../../common/enums/index.js';
+import { AppConfigService } from '../app-config/app-config.service.js';
+import { TelegramProvider } from '../providers/telegram/telegram.provider.js';
+import { IdempotencyService } from './idempotency.service.js';
+import { IProvider } from '../providers/base/provider.interface.js';
 
 @Injectable()
 export class PostService {

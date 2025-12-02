@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConverterService } from './converter.service';
-import { AppConfigModule } from '../app-config/app-config.module';
+import { ConverterService } from './converter.service.js';
+import { AppConfigModule } from '../app-config/app-config.module.js';
 
 @Module({
   imports: [AppConfigModule],

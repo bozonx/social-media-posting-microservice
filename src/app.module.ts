@@ -3,14 +3,14 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
-import { HealthModule } from '@modules/health/health.module';
-import { AllExceptionsFilter } from '@common/filters/all-exceptions.filter';
-import appConfig from '@config/app.config';
-import type { AppConfig } from '@config/app.config';
-import yamlConfig from '@config/yaml.config';
-import pkg from '../package.json';
-import { PostModule } from '@modules/post/post.module';
-import { AppConfigModule } from '@modules/app-config/app-config.module';
+import { HealthModule } from '@modules/health/health.module.js';
+import { AllExceptionsFilter } from '@common/filters/all-exceptions.filter.js';
+import appConfig from '@config/app.config.js';
+import type { AppConfig } from '@config/app.config.js';
+import yamlConfig from '@config/yaml.config.js';
+import pkg from '../package.json' with { type: 'json' };
+import { PostModule } from '@modules/post/post.module.js';
+import { AppConfigModule } from '@modules/app-config/app-config.module.js';
 
 @Module({
   imports: [
@@ -39,15 +39,15 @@ import { AppConfigModule } from '@modules/app-config/app-config.module';
             },
             transport: isDev
               ? {
-                target: 'pino-pretty',
-                options: {
-                  colorize: true,
-                  singleLine: false,
-                  translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
-                  ignore: 'pid,hostname',
-                  messageFormat: '[{context}] {msg}',
-                },
-              }
+                  target: 'pino-pretty',
+                  options: {
+                    colorize: true,
+                    singleLine: false,
+                    translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
+                    ignore: 'pid,hostname',
+                    messageFormat: '[{context}] {msg}',
+                  },
+                }
               : undefined,
             serializers: {
               req: req => ({
@@ -107,4 +107,4 @@ import { AppConfigModule } from '@modules/app-config/app-config.module';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

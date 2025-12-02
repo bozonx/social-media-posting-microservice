@@ -1,9 +1,10 @@
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
-import { PreviewService } from '@/modules/post/preview.service';
-import { AppConfigService } from '@/modules/app-config/app-config.service';
-import { TelegramProvider } from '@/modules/providers/telegram/telegram.provider';
-import type { PostRequestDto, PreviewResponseDto } from '@/modules/post/dto';
+import { PreviewService } from '@/modules/post/preview.service.js';
+import { AppConfigService } from '@/modules/app-config/app-config.service.js';
+import { TelegramProvider } from '@/modules/providers/telegram/telegram.provider.js';
+import type { PostRequestDto, PreviewResponseDto } from '@/modules/post/dto/index.js';
 
 describe('PreviewService', () => {
   let service: PreviewService;

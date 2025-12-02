@@ -1,4 +1,5 @@
-import { MediaInputHelper } from '@/common/helpers/media-input.helper';
+import { describe, it, expect } from '@jest/globals';
+import { MediaInputHelper } from '@/common/helpers/media-input.helper.js';
 
 describe('MediaInputHelper', () => {
   describe('isString', () => {

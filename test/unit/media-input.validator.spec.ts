@@ -1,7 +1,8 @@
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import {
   IsMediaInputConstraint,
   IsMediaInputArrayConstraint,
-} from '@/common/validators/media-input.validator';
+} from '@/common/validators/media-input.validator.js';
 import type { ValidationArguments } from 'class-validator';
 
 describe('IsMediaInputConstraint', () => {

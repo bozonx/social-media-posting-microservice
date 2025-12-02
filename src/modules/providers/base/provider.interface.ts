@@ -1,5 +1,9 @@
-import type { PostType } from '../../../common/enums';
-import type { PostRequestDto, PreviewResponseDto, PreviewErrorResponseDto } from '../../post/dto';
+import type { PostType } from '../../../common/enums/index.js';
+import type {
+  PostRequestDto,
+  PreviewResponseDto,
+  PreviewErrorResponseDto,
+} from '../../post/dto/index.js';
 
 /**
  * Response from provider after successful publication

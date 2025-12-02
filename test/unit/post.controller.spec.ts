@@ -1,15 +1,16 @@
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { Test, type TestingModule } from '@nestjs/testing';
-import { PostController } from '@/modules/post/post.controller';
-import { PostService } from '@/modules/post/post.service';
-import { PreviewService } from '@/modules/post/preview.service';
+import { PostController } from '@/modules/post/post.controller.js';
+import { PostService } from '@/modules/post/post.service.js';
+import { PreviewService } from '@/modules/post/preview.service.js';
 import type {
   PostRequestDto,
   PostResponseDto,
   ErrorResponseDto,
   PreviewResponseDto,
   PreviewErrorResponseDto,
-} from '@/modules/post/dto';
-import { PostType, BodyFormat } from '@/common/enums';
+} from '@/modules/post/dto/index.js';
+import { PostType, BodyFormat } from '@/common/enums/index.js';
 
 describe('PostController', () => {
   let controller: PostController;

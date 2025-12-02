@@ -1,4 +1,4 @@
-import type { PostType } from '../../../common/enums';
+import type { PostType } from '../../../common/enums/index.js';
 
 /**
  * Successful post publication response

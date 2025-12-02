@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PostRequestDto } from '../../post/dto';
-import { PostType } from '../../../common/enums';
-import { MediaInputHelper } from '../../../common/helpers/media-input.helper';
+import { PostRequestDto } from '../../post/dto/index.js';
+import { PostType } from '../../../common/enums/index.js';
+import { MediaInputHelper } from '../../../common/helpers/media-input.helper.js';
 
 /**
  * Service for determining message type for Telegram

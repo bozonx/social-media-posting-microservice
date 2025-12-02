@@ -1,8 +1,9 @@
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
-import { ConverterService } from '@/modules/converter/converter.service';
-import { AppConfigService } from '@/modules/app-config/app-config.service';
-import { BodyFormat } from '@/common/enums';
+import { ConverterService } from '@/modules/converter/converter.service.js';
+import { AppConfigService } from '@/modules/app-config/app-config.service.js';
+import { BodyFormat } from '@/common/enums/index.js';
 
 describe('ConverterService', () => {
   let service: ConverterService;

@@ -1,11 +1,12 @@
+import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import { Test } from '@nestjs/testing';
 import { ValidationPipe } from '@nestjs/common';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
-import { AppModule } from '@/app.module';
-import { TelegramProvider } from '@/modules/providers/telegram/telegram.provider';
-import { AppConfigService } from '@/modules/app-config/app-config.service';
-import { IdempotencyService } from '@/modules/post/idempotency.service';
-import { PostType } from '@/common/enums';
+import { AppModule } from '@/app.module.js';
+import { TelegramProvider } from '@/modules/providers/telegram/telegram.provider.js';
+import { AppConfigService } from '@/modules/app-config/app-config.service.js';
+import { IdempotencyService } from '@/modules/post/idempotency.service.js';
+import { PostType } from '@/common/enums/index.js';
 
 describe('PostController (e2e)', () => {
   let app: NestFastifyApplication;

@@ -1,4 +1,4 @@
-import type { PostType, BodyFormat } from '../../../common/enums';
+import type { PostType, BodyFormat } from '../../../common/enums/index.js';
 
 /**
  * Successful preview response

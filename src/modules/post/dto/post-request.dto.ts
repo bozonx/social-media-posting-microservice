@@ -1,7 +1,10 @@
 import { IsString, IsOptional, IsEnum, IsBoolean, IsObject, IsArray } from 'class-validator';
-import { PostType, BodyFormat } from '../../../common/enums';
-import { MediaInput } from '../../../common/types';
-import { IsMediaInput, IsMediaInputArray } from '../../../common/validators/media-input.validator';
+import { PostType, BodyFormat } from '../../../common/enums/index.js';
+import type { MediaInput } from '../../../common/types/index.js';
+import {
+  IsMediaInput,
+  IsMediaInputArray,
+} from '../../../common/validators/media-input.validator.js';
 
 /**
  * Post request DTO

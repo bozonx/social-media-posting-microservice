@@ -1,16 +1,10 @@
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
-import {
-  TelegramProvider,
-  type TelegramChannelConfig,
-} from '@/modules/providers/telegram/telegram.provider';
-import { ConverterService } from '@/modules/converter/converter.service';
-import { MediaService } from '@/modules/media/media.service';
-import { TelegramTypeDetector } from '@/modules/providers/telegram/telegram-type-detector.service';
-import type { PostRequestDto } from '@/modules/post/dto';
-import { PostType, BodyFormat } from '@/common/enums';
-import { Bot } from 'grammy';
+import type { PostRequestDto } from '@/modules/post/dto/index.js';
+import { PostType, BodyFormat } from '@/common/enums/index.js';
 
+// Create mock API before mocking grammy
 const mockApi = {
   sendMessage: jest.fn(),
   sendPhoto: jest.fn(),
@@ -20,15 +14,22 @@ const mockApi = {
   sendDocument: jest.fn(),
 };
 
-// Мокируем grammy
-jest.mock('grammy', () => {
-  return {
-    Bot: jest.fn().mockImplementation(() => ({
-      api: mockApi,
-    })),
-    InputFile: jest.fn(),
-  };
-});
+// Mock grammy before importing modules that use it
+jest.unstable_mockModule('grammy', () => ({
+  Bot: jest.fn().mockImplementation(() => ({
+    api: mockApi,
+  })),
+  InputFile: jest.fn(),
+}));
+
+// Dynamic imports after mocking
+const { TelegramProvider } = await import('@/modules/providers/telegram/telegram.provider.js');
+type TelegramChannelConfig =
+  import('@/modules/providers/telegram/telegram.provider.js').TelegramChannelConfig;
+const { ConverterService } = await import('@/modules/converter/converter.service.js');
+const { MediaService } = await import('@/modules/media/media.service.js');
+const { TelegramTypeDetector } =
+  await import('@/modules/providers/telegram/telegram-type-detector.service.js');
 
 describe('TelegramProvider', () => {
   let provider: TelegramProvider;

@@ -1,5 +1,6 @@
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { Test, type TestingModule } from '@nestjs/testing';
-import { HealthController } from '@/modules/health/health.controller';
+import { HealthController } from '@/modules/health/health.controller.js';
 
 describe('HealthController (unit)', () => {
   let controller: HealthController;

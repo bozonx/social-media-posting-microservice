@@ -1,15 +1,15 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { PostRequestDto, PreviewResponseDto, PreviewErrorResponseDto } from './dto';
-import { AppConfigService } from '../app-config/app-config.service';
-import { TelegramProvider } from '../providers/telegram/telegram.provider';
-import { IProvider } from '../providers/base/provider.interface';
+import { PostRequestDto, PreviewResponseDto, PreviewErrorResponseDto } from './dto/index.js';
+import { AppConfigService } from '../app-config/app-config.service.js';
+import { TelegramProvider } from '../providers/telegram/telegram.provider.js';
+import { IProvider } from '../providers/base/provider.interface.js';
 
 @Injectable()
 export class PreviewService {
   constructor(
     private readonly appConfig: AppConfigService,
     private readonly telegramProvider: TelegramProvider,
-  ) { }
+  ) {}
 
   /**
    * Preview a post without actually publishing it

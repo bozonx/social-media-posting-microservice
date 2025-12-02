@@ -1,11 +1,12 @@
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { BadRequestException, Logger } from '@nestjs/common';
-import { PostService } from '@/modules/post/post.service';
-import { AppConfigService } from '@/modules/app-config/app-config.service';
-import { TelegramProvider } from '@/modules/providers/telegram/telegram.provider';
-import { IdempotencyService } from '@/modules/post/idempotency.service';
-import type { PostRequestDto, PostResponseDto } from '@/modules/post/dto';
-import { PostType } from '@/common/enums';
+import { PostService } from '@/modules/post/post.service.js';
+import { AppConfigService } from '@/modules/app-config/app-config.service.js';
+import { TelegramProvider } from '@/modules/providers/telegram/telegram.provider.js';
+import { IdempotencyService } from '@/modules/post/idempotency.service.js';
+import type { PostRequestDto, PostResponseDto } from '@/modules/post/dto/index.js';
+import { PostType } from '@/common/enums/index.js';
 
 // =============================================================================
 // Mock Factories

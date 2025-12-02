@@ -1,8 +1,9 @@
+import { jest } from '@jest/globals';
 import { Test } from '@nestjs/testing';
 import { ValidationPipe } from '@nestjs/common';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
-import { AppModule } from '@/app.module';
-import { AppConfigService } from '@/modules/app-config/app-config.service';
+import { AppModule } from '@/app.module.js';
+import { AppConfigService } from '@/modules/app-config/app-config.service.js';
 
 export async function createTestApp(): Promise<NestFastifyApplication> {
   // Ensure defaults the same as in main.ts

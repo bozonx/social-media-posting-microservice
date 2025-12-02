@@ -1,13 +1,13 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
-import { PostService } from './post.service';
-import { PreviewService } from './preview.service';
+import { PostService } from './post.service.js';
+import { PreviewService } from './preview.service.js';
 import {
   PostRequestDto,
   PostResponseDto,
   ErrorResponseDto,
   PreviewResponseDto,
   PreviewErrorResponseDto,
-} from './dto';
+} from './dto/index.js';
 
 @Controller()
 export class PostController {

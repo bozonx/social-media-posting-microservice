@@ -1,6 +1,7 @@
-import { TelegramTypeDetector } from '@/modules/providers/telegram/telegram-type-detector.service';
-import type { PostRequestDto } from '@/modules/post/dto';
-import { PostType } from '@/common/enums';
+import { describe, it, expect, beforeEach } from '@jest/globals';
+import { TelegramTypeDetector } from '@/modules/providers/telegram/telegram-type-detector.service.js';
+import type { PostRequestDto } from '@/modules/post/dto/index.js';
+import { PostType } from '@/common/enums/index.js';
 
 describe('TelegramTypeDetector', () => {
   let detector: TelegramTypeDetector;

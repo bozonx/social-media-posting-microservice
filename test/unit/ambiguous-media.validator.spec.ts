@@ -1,6 +1,7 @@
-import { AmbiguousMediaValidator } from '@/common/validators/ambiguous-media.validator';
-import type { PostRequestDto } from '@/modules/post/dto';
-import { PostType } from '@/common/enums';
+import { describe, it, expect } from '@jest/globals';
+import { AmbiguousMediaValidator } from '@/common/validators/ambiguous-media.validator.js';
+import type { PostRequestDto } from '@/modules/post/dto/index.js';
+import { PostType } from '@/common/enums/index.js';
 
 describe('AmbiguousMediaValidator', () => {
   const baseRequest: PostRequestDto = {

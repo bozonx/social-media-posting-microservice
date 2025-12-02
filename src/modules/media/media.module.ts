@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { MediaService } from './media.service';
+import { MediaService } from './media.service.js';
 
 @Module({
   providers: [MediaService],

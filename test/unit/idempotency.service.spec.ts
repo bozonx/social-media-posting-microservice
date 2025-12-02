@@ -1,8 +1,13 @@
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { IdempotencyService } from '@/modules/post/idempotency.service';
-import { AppConfigService } from '@/modules/app-config/app-config.service';
-import type { PostRequestDto, PostResponseDto, ErrorResponseDto } from '@/modules/post/dto';
+import { IdempotencyService } from '@/modules/post/idempotency.service.js';
+import { AppConfigService } from '@/modules/app-config/app-config.service.js';
+import type {
+  PostRequestDto,
+  PostResponseDto,
+  ErrorResponseDto,
+} from '@/modules/post/dto/index.js';
 
 describe('IdempotencyService', () => {
   let service: IdempotencyService;

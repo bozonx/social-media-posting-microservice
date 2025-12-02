@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { PostController } from './post.controller';
-import { PostService } from './post.service';
-import { PreviewService } from './preview.service';
-import { IdempotencyService } from './idempotency.service';
-import { AppConfigModule } from '../app-config/app-config.module';
-import { ProvidersModule } from '../providers/providers.module';
+import { PostController } from './post.controller.js';
+import { PostService } from './post.service.js';
+import { PreviewService } from './preview.service.js';
+import { IdempotencyService } from './idempotency.service.js';
+import { AppConfigModule } from '../app-config/app-config.module.js';
+import { ProvidersModule } from '../providers/providers.module.js';
 
 @Module({
   imports: [AppConfigModule, ProvidersModule],

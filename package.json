@@ -2,7 +2,11 @@
   "name": "social-media-posting-microservice",
   "version": "0.1.0",
   "description": "Social media posting microservice with multi-platform support",
+  "type": "module",
   "main": "dist/src/main.js",
+  "exports": {
+    ".": "./dist/src/main.js"
+  },
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

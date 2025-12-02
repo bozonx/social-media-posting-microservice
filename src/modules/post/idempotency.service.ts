@@ -1,8 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { createHash } from 'crypto';
-import { AppConfigService } from '../app-config/app-config.service';
-import { PostRequestDto, PostResponseDto, ErrorResponseDto } from './dto';
+import { AppConfigService } from '../app-config/app-config.service.js';
+import { PostRequestDto, PostResponseDto, ErrorResponseDto } from './dto/index.js';
 
 /**
  * Idempotency record stored in cache
@@ -21,7 +21,7 @@ export class IdempotencyService {
   constructor(
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
     private readonly appConfig: AppConfigService,
-  ) { }
+  ) {}
 
   /**
    * Build idempotency cache key from request

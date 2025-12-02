@@ -1,6 +1,7 @@
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
-import { MediaService } from '@/modules/media/media.service';
+import { MediaService } from '@/modules/media/media.service.js';
 
 describe('MediaService', () => {
   let service: MediaService;

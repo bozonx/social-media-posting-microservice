@@ -1,5 +1,6 @@
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { createTestApp } from './test-app.factory';
+import { createTestApp } from './test-app.factory.js';
 
 describe('Health (e2e)', () => {
   let app: NestFastifyApplication;

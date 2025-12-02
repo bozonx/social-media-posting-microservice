@@ -1,7 +1,8 @@
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { AppConfigService } from '@/modules/app-config/app-config.service';
-import { YAML_CONFIG_NAMESPACE } from '@config/yaml.config';
+import { AppConfigService } from '@/modules/app-config/app-config.service.js';
+import { YAML_CONFIG_NAMESPACE } from '@config/yaml.config.js';
 
 describe('AppConfigService', () => {
   let service: AppConfigService;

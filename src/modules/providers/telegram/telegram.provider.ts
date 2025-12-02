@@ -1,14 +1,18 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { Bot, InputFile } from 'grammy';
-import { IProvider, ProviderPublishResponse } from '../base/provider.interface';
-import { PostType, BodyFormat } from '../../../common/enums';
-import { PostRequestDto, PreviewResponseDto, PreviewErrorResponseDto } from '../../post/dto';
-import { ConverterService } from '../../converter/converter.service';
-import { MediaService } from '../../media/media.service';
-import { MediaInputHelper } from '../../../common/helpers/media-input.helper';
-import { AmbiguousMediaValidator } from '../../../common/validators/ambiguous-media.validator';
-import { TelegramTypeDetector } from './telegram-type-detector.service';
-import type { ChannelConfig } from '../../app-config/interfaces/app-config.interface';
+import { IProvider, ProviderPublishResponse } from '../base/provider.interface.js';
+import { PostType, BodyFormat } from '../../../common/enums/index.js';
+import {
+  PostRequestDto,
+  PreviewResponseDto,
+  PreviewErrorResponseDto,
+} from '../../post/dto/index.js';
+import { ConverterService } from '../../converter/converter.service.js';
+import { MediaService } from '../../media/media.service.js';
+import { MediaInputHelper } from '../../../common/helpers/media-input.helper.js';
+import { AmbiguousMediaValidator } from '../../../common/validators/ambiguous-media.validator.js';
+import { TelegramTypeDetector } from './telegram-type-detector.service.js';
+import type { ChannelConfig } from '../../app-config/interfaces/app-config.interface.js';
 
 export interface TelegramChannelConfig extends ChannelConfig {
   parseMode?: 'HTML' | 'Markdown' | 'MarkdownV2';

@@ -1,6 +1,6 @@
 {
     "name": "n8n-nodes-bozonx-social-media-posting-microservice",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "n8n node for social media posting via Social Media Posting microservice (Telegram, VK, Instagram)",
     "license": "MIT",
     "homepage": "https://github.com/bozonx/social-media-posting-microservice/tree/main/n8n-nodes-bozonx-social-media-posting-microservice#readme",

@@ -118,6 +118,11 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				default: '',
 				description: 'Cover image URL or MediaInput object (JSON)',
+				displayOptions: {
+					show: {
+						type: ['auto', 'post', 'image', 'article'],
+					},
+				},
 			},
 
 			// Video
@@ -127,6 +132,11 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				default: '',
 				description: 'Video URL or MediaInput object (JSON)',
+				displayOptions: {
+					show: {
+						type: ['auto', 'video', 'short', 'story'],
+					},
+				},
 			},
 
 			// Audio
@@ -136,6 +146,11 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				default: '',
 				description: 'Audio URL or MediaInput object (JSON)',
+				displayOptions: {
+					show: {
+						type: ['auto', 'audio'],
+					},
+				},
 			},
 
 			// Document
@@ -145,6 +160,11 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				default: '',
 				description: 'Document URL or MediaInput object (JSON)',
+				displayOptions: {
+					show: {
+						type: ['auto', 'document'],
+					},
+				},
 			},
 
 			// Media Array
@@ -155,6 +175,11 @@ export class BozonxPost implements INodeType {
 				typeOptions: { rows: 3 },
 				default: '',
 				description: 'JSON array of media URLs or MediaInput objects for albums (2-10 items)',
+				displayOptions: {
+					show: {
+						type: ['auto', 'album'],
+					},
+				},
 			},
 
 			// Idempotency Key
@@ -309,12 +334,6 @@ export class BozonxPost implements INodeType {
 				const body = this.getNodeParameter('body', i) as string;
 				const type = this.getNodeParameter('type', i, 'auto') as string;
 				const bodyFormat = this.getNodeParameter('bodyFormat', i, 'html') as string;
-				const cover = this.getNodeParameter('cover', i, '') as string;
-				const video = this.getNodeParameter('video', i, '') as string;
-				const audio = this.getNodeParameter('audio', i, '') as string;
-				const document = this.getNodeParameter('document', i, '') as string;
-				const media = this.getNodeParameter('media', i, '') as string;
-				const idempotencyKey = this.getNodeParameter('idempotencyKey', i, '') as string;
 				const authentication = this.getNodeParameter('authentication', i, {}) as {
 					channel?: { channelName: string };
 					telegram?: { botToken: string; chatId: string };
@@ -333,24 +352,21 @@ export class BozonxPost implements INodeType {
 				// Add main fields
 				if (type) requestBody.type = type;
 				if (bodyFormat) requestBody.bodyFormat = bodyFormat;
-				if (idempotencyKey) requestBody.idempotencyKey = idempotencyKey;
 
-				// Add media fields
-				if (cover) {
-					requestBody.cover = parseMediaField(cover);
-				}
-				if (video) {
-					requestBody.video = parseMediaField(video);
-				}
-				if (audio) {
-					requestBody.audio = parseMediaField(audio);
-				}
-				if (document) {
-					requestBody.document = parseMediaField(document);
-				}
-				if (media) {
-					requestBody.media = parseMediaField(media);
-				}
+				// Add optional top-level fields
+				const cover = this.getNodeParameter('cover', i, '') as string;
+				const video = this.getNodeParameter('video', i, '') as string;
+				const audio = this.getNodeParameter('audio', i, '') as string;
+				const document = this.getNodeParameter('document', i, '') as string;
+				const media = this.getNodeParameter('media', i, '') as string;
+				const idempotencyKey = this.getNodeParameter('idempotencyKey', i, '') as string;
+
+				if (cover) requestBody.cover = parseMediaField(cover);
+				if (video) requestBody.video = parseMediaField(video);
+				if (audio) requestBody.audio = parseMediaField(audio);
+				if (document) requestBody.document = parseMediaField(document);
+				if (media) requestBody.media = parseMediaField(media);
+				if (idempotencyKey) requestBody.idempotencyKey = idempotencyKey;
 
 				// Add authentication if provided
 				if (authentication.channel?.channelName) {

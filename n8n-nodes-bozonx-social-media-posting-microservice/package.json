@@ -47,8 +47,12 @@
             "dist/credentials/BozonxMicroservicesApi.credentials.js"
         ]
     },
+    "dependencies": {
+        "js-yaml": "^4.1.0"
+    },
     "devDependencies": {
         "@n8n/node-cli": "^0.16.0",
+        "@types/js-yaml": "^4.0.9",
         "eslint": "9.39.1",
         "prettier": "3.6.2",
         "release-it": "^19.0.6",

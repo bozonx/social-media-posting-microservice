@@ -6,6 +6,26 @@ import type {
 	IDataObject,
 } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
+import * as yaml from 'js-yaml';
+
+function parsePlatformOptions(value: string): Record<string, unknown> {
+	if (!value) return {};
+	let result: unknown;
+	try {
+		result = JSON.parse(value);
+	} catch {
+		try {
+			result = yaml.load(value);
+		} catch {
+			throw new Error('Platform Options must be valid JSON or YAML');
+		}
+	}
+
+	if (typeof result === 'object' && result !== null && !Array.isArray(result)) {
+		return result as Record<string, unknown>;
+	}
+	throw new Error('Platform Options must be an object');
+}
 
 function parseMediaField(value: string): string | Record<string, unknown> | unknown[] {
 	if (!value) return value;
@@ -281,7 +301,7 @@ export class BozonxPost implements INodeType {
 						type: 'string',
 						typeOptions: { rows: 3 },
 						default: '',
-						description: 'Platform-specific options as JSON object',
+						description: 'Platform-specific options as JSON or YAML object',
 					},
 					{
 						displayName: 'Post Language',
@@ -379,7 +399,18 @@ export class BozonxPost implements INodeType {
 					if (value !== '' && value !== undefined && value !== null) {
 						// Parse JSON fields
 						if (key === 'options') {
-							requestBody[key] = parseMediaField(value as string);
+							try {
+								requestBody[key] = parsePlatformOptions(value as string);
+							} catch (error) {
+								if (this.continueOnFail()) {
+									throw error; // Let the outer try/catch handle it or return error item
+								}
+								throw new NodeOperationError(
+									this.getNode(),
+									`Invalid Platform Options: ${(error as Error).message}`,
+									{ itemIndex: i },
+								);
+							}
 						} else if (key === 'tags' && typeof value === 'string') {
 							// Convert comma-separated string to array
 							requestBody[key] = value.split(',').map((tag) => tag.trim());

@@ -7,7 +7,7 @@
 common:
   # Connection timeout with provider (seconds)
   # Maximum time to wait for establishing a connection to the platform API
-  providerTimeoutSecs: 45
+  # providerTimeoutSecs: 30
   
   # Request timeout (seconds)
   # Maximum time to wait for a complete API request/response cycle

@@ -4,7 +4,7 @@
 export interface AppConfig {
   /** Common settings for all providers */
   common: {
-    providerTimeoutSecs: number;
+    providerTimeoutSecs?: number;
     incomingRequestTimeoutSecs: number;
     convertBody: boolean;
     retryAttempts: number;

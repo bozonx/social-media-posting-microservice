@@ -60,6 +60,8 @@ export class PostService extends BasePostService {
     try {
       const { provider, channelConfig } = this.validateRequest(request);
       const commonConfig = this.appConfig.getCommonConfig();
+      const providerTimeoutMs = this.getProviderTimeoutMs(commonConfig?.providerTimeoutSecs);
+      const requestTimeoutMs = this.getRequestTimeoutMs(commonConfig?.incomingRequestTimeoutSecs);
 
       // Check if explicit type is supported
       const postType = request.type || PostType.AUTO;
@@ -79,16 +81,18 @@ export class PostService extends BasePostService {
         },
       });
 
-      const timeoutMs = this.getRequestTimeoutMs(commonConfig?.incomingRequestTimeoutSecs);
-
       const result = await this.executeWithRequestTimeout(
         () =>
           this.retryWithJitter(
-            () => provider.publish(request, channelConfig),
+            () =>
+              this.maybeExecuteWithTimeout(
+                () => provider.publish(request, channelConfig),
+                providerTimeoutMs,
+              ),
             commonConfig.retryAttempts,
             commonConfig.retryDelayMs,
           ),
-        timeoutMs,
+        requestTimeoutMs,
       );
 
       const response: PostResponseDto = {
@@ -184,6 +188,31 @@ export class PostService extends BasePostService {
     }
 
     return normalizedSecs * 1000;
+  }
+
+  private getProviderTimeoutMs(providerTimeoutSecs: number | undefined): number | undefined {
+    const maxSecs = PostService.MAX_REQUEST_TIMEOUT_SECS;
+
+    if (typeof providerTimeoutSecs !== 'number' || providerTimeoutSecs <= 0) {
+      return undefined;
+    }
+
+    if (providerTimeoutSecs > maxSecs) {
+      throw new Error(`providerTimeoutSecs must not exceed ${maxSecs} seconds`);
+    }
+
+    return providerTimeoutSecs * 1000;
+  }
+
+  private maybeExecuteWithTimeout<T>(
+    fn: () => Promise<T>,
+    timeoutMs: number | undefined,
+  ): Promise<T> {
+    if (!timeoutMs) {
+      return fn();
+    }
+
+    return this.executeWithRequestTimeout(fn, timeoutMs);
   }
 
   private async executeWithRequestTimeout<T>(fn: () => Promise<T>, timeoutMs: number): Promise<T> {

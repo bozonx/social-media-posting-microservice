@@ -317,6 +317,46 @@ describe('PostService', () => {
         expect(result.success).toBe(false);
         expect(result.error?.code).toBe('PLATFORM_ERROR');
       });
+
+      it('should apply provider timeout per attempt when configured', async () => {
+        const request = createPostRequest();
+
+        appConfigService.getCommonConfig.mockReturnValue({
+          ...commonConfig,
+          retryAttempts: 3,
+          retryDelayMs: 100,
+          incomingRequestTimeoutSecs: 10,
+          providerTimeoutSecs: 1,
+        } as any);
+
+        jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined);
+
+        const executeWithRequestTimeoutSpy = jest
+          .spyOn(service as any, 'executeWithRequestTimeout')
+          .mockImplementation((fn: () => Promise<unknown>, timeoutMs: number) => {
+            if (timeoutMs === 1000) {
+              const error: any = new Error('Provider timeout');
+              error.code = 'ETIMEDOUT';
+              return Promise.reject(error);
+            }
+
+            return fn();
+          });
+
+        const result = await service.publish(request);
+
+        const providerTimeoutCalls = executeWithRequestTimeoutSpy.mock.calls.filter(
+          (call: [unknown, number]) => call[1] === 1000,
+        ).length;
+        const globalTimeoutCalls = executeWithRequestTimeoutSpy.mock.calls.filter(
+          (call: [unknown, number]) => call[1] === 10000,
+        ).length;
+
+        expect(result.success).toBe(false);
+        expect(result.error?.code).toBe('TIMEOUT_ERROR');
+        expect(globalTimeoutCalls).toBe(1);
+        expect(providerTimeoutCalls).toBe(3);
+      });
     });
 
     describe('idempotency', () => {

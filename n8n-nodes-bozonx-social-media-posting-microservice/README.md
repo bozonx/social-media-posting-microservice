@@ -1,14 +1,18 @@
-# n8n-nodes-bozonx-translate-gateway-microservice
+# n8n-nodes-bozonx-social-media-posting-microservice
 
-An n8n community node for text translation via the [Translate Gateway microservice](https://github.com/bozonx/translate-gateway-microservice).
+An n8n community node for publishing content to social media platforms via the [Social Media Posting microservice](https://github.com/bozonx/social-media-posting-microservice).
 
 ## Features
 
-- **Multiple Providers**: Google Translate, DeepL, DeepSeek LLM, OpenRouter LLM, Yandex Translate, AnyLang, LibreTranslate
-- **Auto Language Detection**: Automatically detect source language
-- **HTML Support**: Preserves HTML tags during translation
-- **Text Chunking**: Automatically splits large texts with configurable strategies
+- **Multiple Platforms**: Telegram (VK, Instagram coming soon)
+- **Multiple Post Types**: Text, image, video, audio, album, document, article, story, poll
+- **Flexible Authentication**: Use pre-configured channels or inline credentials
+- **MediaInput Support**: Upload by URL, reuse uploaded files with `fileId`, add spoiler effects
+- **Content Conversion**: Auto-convert between HTML, Markdown, and plain text
+- **Platform Options**: Customize with platform-specific options (inline keyboards, parse mode, etc.)
+- **Idempotency**: Prevent duplicate posts with idempotency keys
 - **Error Handling**: Built-in retry logic and continue-on-fail support
+- **Preview Mode**: Validate and preview posts without publishing
 
 ## Installation
 
@@ -16,19 +20,19 @@ An n8n community node for text translation via the [Translate Gateway microservi
 
 1. Go to **Settings** > **Community Nodes** in n8n
 2. Click **Install**
-3. Enter `n8n-nodes-bozonx-translate-gateway-microservice`
+3. Enter `n8n-nodes-bozonx-social-media-posting-microservice`
 4. Install and restart n8n
 
 ### Manual Installation
 
 ```bash
-npm install n8n-nodes-bozonx-translate-gateway-microservice
+npm install n8n-nodes-bozonx-social-media-posting-microservice
 ```
 
 For Docker:
 
 ```dockerfile
-RUN npm install -g n8n-nodes-bozonx-translate-gateway-microservice
+RUN npm install -g n8n-nodes-bozonx-social-media-posting-microservice
 ```
 
 ## Quick Start
@@ -37,11 +41,10 @@ RUN npm install -g n8n-nodes-bozonx-translate-gateway-microservice
 
 ```bash
 docker run -d \
-  --name translate-gateway \
+  --name social-media-posting \
   -p 8080:8080 \
-  -e GOOGLE_APPLICATION_CREDENTIALS=/secrets/gcp-service-account.json \
-  -v /path/to/gcp-credentials.json:/secrets/gcp-service-account.json \
-  bozonx/translate-gateway-microservice:latest
+  -v /path/to/config.yaml:/app/config.yaml \
+  bozonx/social-media-posting-microservice:latest
 ```
 
 Test the service:
@@ -59,126 +62,168 @@ curl http://localhost:8080/api/v1/health
 
 ### 3. Use the Node
 
-Add the **Translate Gateway** node to your workflow and configure:
+Add the **Social Media Post** node to your workflow and configure:
 
-- **Text**: `Hello, world!`
-- **Target Language**: `ru`
+#### Using Pre-configured Channel:
 
-Result:
+- **Operation**: `Publish Post`
+- **Platform**: `Telegram`
+- **Authentication Mode**: `Use Channel from Config`
+- **Channel Name**: `my_channel`
+- **Post Content**: `Hello, world!`
 
-```json
-{
-  "translatedText": "Привет, мир!",
-  "provider": "google"
-}
-```
+#### Using Inline Authentication:
+
+- **Operation**: `Publish Post`
+- **Platform**: `Telegram`
+- **Authentication Mode**: `Use Inline Auth`
+- **Bot Token**: `123456:ABC...`
+- **Chat ID**: `@mychannel`
+- **Post Content**: `Hello, world!`
 
 ## Configuration
 
 ### Required Parameters
 
-- **Text**: Source text to translate (plain text or HTML)
-- **Target Language**: ISO 639-1 language code (e.g., `en`, `ru`, `es`, `fr`, `de`)
+- **Operation**: `Publish Post` or `Preview Post`
+- **Platform**: Social media platform (`telegram`)
+- **Post Content**: Main content of the post
+- **Authentication**: Either channel name or inline credentials
 
-### Optional Parameters
+### Additional Options
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| **Source Language** | ISO 639-1 source language code | Auto-detect |
-| **Provider** | Translation provider | Service default |
-| **Model** | Model name (for LLM providers) | Provider default |
-| **Max Chunk Length** | Maximum characters per chunk | Provider default |
-| **Splitter** | Text splitting strategy | `sentence` |
+| **Post Type** | Type of post (auto, post, image, video, audio, album, document, article, short, story, poll) | `auto` |
+| **Body Format** | Format of post content (html, md, text) | `html` |
+| **Convert Body** | Convert body to platform-specific format | `true` |
+| **Title** | Post title (platform-specific) | - |
+| **Description** | Post description (platform-specific) | - |
+| **Cover Image** | Cover image URL or MediaInput object | - |
+| **Video** | Video URL or MediaInput object | - |
+| **Audio** | Audio URL or MediaInput object | - |
+| **Document** | Document URL or MediaInput object | - |
+| **Media Array** | JSON array of media for albums (2-10 items) | - |
+| **Platform Options** | Platform-specific options as JSON object | - |
+| **Tags** | Comma-separated tags/hashtags | - |
+| **Post Language** | Content language code (e.g., en, ru) | - |
+| **Mode** | Publishing mode (publish, draft) | `publish` |
+| **Scheduled At** | Scheduled time (ISO 8601 format) | - |
+| **Idempotency Key** | Key to prevent duplicate posts | - |
 
-### Providers
+### MediaInput Format
 
-| Provider | Type | Environment Variable |
-|----------|------|---------------------|
-| Google | Translation API | `GOOGLE_APPLICATION_CREDENTIALS` |
-| DeepL | Translation API | `DEEPL_AUTH_KEY` |
-| DeepSeek | LLM | `DEEPSEEK_API_KEY` |
-| OpenRouter | LLM | `OPENROUTER_API_KEY` |
-| Yandex | Translation API | `YANDEX_API_KEY`, `YANDEX_FOLDER_ID` |
-| AnyLang | Open Source | None (uses [translate-tools/core](https://github.com/translate-tools/core)) |
-| LibreTranslate | Open Source | `LIBRETRANSLATE_URL` |
+Media fields accept either a string URL or a JSON object:
 
-Configure providers via microservice environment variables. See [microservice documentation](https://github.com/bozonx/translate-gateway-microservice) for details.
+```javascript
+// String URL
+"https://example.com/image.jpg"
 
-### Text Splitting Strategies
+// JSON object with options
+{
+  "url": "https://example.com/image.jpg",
+  "fileId": "AgACAgIAAxkBAAIC...",
+  "hasSpoiler": true
+}
+```
 
-| Strategy | Description | Use Case |
-|----------|-------------|----------|
-| `sentence` | Split by sentences | General text (default) |
-| `paragraph` | Split by paragraphs | Long-form content |
-| `markdown` | Split by markdown sections | Markdown documents |
-| `off` | No splitting (error if exceeds limit) | HTML or structured content |
+### Platform Options (Telegram)
 
-**Note**: HTML content is automatically detected and never chunked. If HTML exceeds provider limits, an error is returned.
+```javascript
+{
+  "parseMode": "HTML",
+  "disableNotification": true,
+  "disableWebPagePreview": false,
+  "protectContent": false,
+  "replyToMessageId": 123456,
+  "inlineKeyboard": [[{"text": "Visit", "url": "https://example.com"}]]
+}
+```
 
 ## Usage Examples
 
-### Basic Translation
+### Text Post
 
 ```
-Text: "Привет, мир!"
-Target Language: en
+Operation: Publish Post
+Platform: Telegram
+Authentication Mode: Use Channel from Config
+Channel Name: my_channel
+Post Content: <b>Hello!</b> Test post
+Body Format: html
+```
+
+### Image Post
+
+```
+Operation: Publish Post
+Platform: Telegram
+Channel Name: my_channel
+Post Content: Check out this image!
+Cover Image: https://example.com/image.jpg
+```
+
+### Album
+
+```
+Operation: Publish Post
+Platform: Telegram
+Channel Name: my_channel
+Post Content: Photo gallery
+Media Array: ["https://example.com/photo1.jpg", "https://example.com/photo2.jpg"]
+```
+
+### Image with Spoiler
+
+```
+Operation: Publish Post
+Platform: Telegram
+Channel Name: my_channel
+Post Content: Sensitive content
+Cover Image: {"url": "https://example.com/image.jpg", "hasSpoiler": true}
+```
+
+### Using file_id
+
+```
+Operation: Publish Post
+Platform: Telegram
+Channel Name: my_channel
+Post Content: Reposting video
+Video: {"fileId": "BAACAgIAAxkBAAIC4mF9..."}
+```
+
+### With Inline Keyboard
+
+```
+Operation: Publish Post
+Platform: Telegram
+Channel Name: my_channel
+Post Content: Check our website!
+Platform Options: {"inlineKeyboard": [[{"text": "Visit", "url": "https://example.com"}]]}
+```
+
+### Preview Mode
+
+```
+Operation: Preview Post
+Platform: Telegram
+Channel Name: my_channel
+Post Content: # Hello\n\nThis is **bold**
+Body Format: md
 ```
 
 Output:
-
 ```json
 {
-  "translatedText": "Hello, world!",
-  "provider": "google"
+  "valid": true,
+  "detectedType": "post",
+  "convertedBody": "<b>Hello</b>\n\nThis is <b>bold</b>",
+  "targetFormat": "html",
+  "convertedBodyLength": 41,
+  "warnings": []
 }
 ```
-
-### HTML Translation
-
-```
-Text: "<p>Bonjour, <b>monde</b>!</p>"
-Target Language: en
-Provider: deepl
-```
-
-Output:
-
-```json
-{
-  "translatedText": "<p>Hello, <b>world</b>!</p>",
-  "provider": "deepl"
-}
-```
-
-### LLM Translation
-
-```
-Text: "Hello, world!"
-Target Language: ru
-Provider: deepseek
-Model: deepseek-chat
-```
-
-Output:
-
-```json
-{
-  "translatedText": "Привет, мир!",
-  "provider": "deepseek",
-  "model": "deepseek-chat"
-}
-```
-
-### Large Text with Chunking
-
-```
-Text: "Very long text... (5000+ characters)"
-Target Language: es
-Max Chunk Length: 1000
-Splitter: paragraph
-```
-
-The text is automatically split into chunks, translated separately, and reassembled.
 
 ## Error Handling
 
@@ -186,7 +231,9 @@ Enable **Continue On Fail** to handle errors gracefully. Errors are returned as:
 
 ```json
 {
-  "error": "Error message"
+  "error": "Error message",
+  "code": "ERROR_CODE",
+  "details": {}
 }
 ```
 
@@ -194,11 +241,12 @@ Enable **Continue On Fail** to handle errors gracefully. Errors are returned as:
 
 | Code | Description |
 |------|-------------|
-| `400` | Invalid request (missing required fields) |
-| `404` | Unknown provider |
-| `413` | Text exceeds maximum length |
-| `422` | Provider error (quota exceeded, unsupported language) |
-| `503` | Provider unavailable or timeout |
+| `VALIDATION_ERROR` | Invalid request parameters |
+| `AUTH_ERROR` | Authentication failed |
+| `PLATFORM_ERROR` | Platform API error |
+| `TIMEOUT_ERROR` | Request timeout |
+| `RATE_LIMIT_ERROR` | Rate limit exceeded |
+| `INTERNAL_ERROR` | Internal server error |
 
 ## Troubleshooting
 
@@ -211,14 +259,16 @@ Enable **Continue On Fail** to handle errors gracefully. Errors are returned as:
 - Ensure Gateway URL does NOT include `/api/v1`
 - Check port 8080 is accessible
 
-### Translation Error (422)
-- Provider API key not configured in microservice
-- Unsupported language code
-- Provider quota exceeded
+### Authentication Error
+- Verify channel exists in `config.yaml` (when using channel mode)
+- Verify bot token and chat ID are correct (when using inline auth)
+- Check bot has permissions to post in the channel
 
-### Timeout Error (503)
-- Provider is slow or unavailable
-- Increase `REQUEST_TIMEOUT_SEC` in microservice environment variables
+### Publishing Error
+- Review error message and code
+- Check platform-specific limits (e.g., Telegram message length)
+- Verify media URLs are accessible
+- Ensure media formats are supported by the platform
 
 ## Development
 
@@ -249,8 +299,8 @@ pnpm publish:npm
 
 ## Resources
 
-- [Translate Gateway Microservice](https://github.com/bozonx/translate-gateway-microservice)
-- [API Documentation](https://github.com/bozonx/translate-gateway-microservice/blob/main/docs/api.md)
+- [Social Media Posting Microservice](https://github.com/bozonx/social-media-posting-microservice)
+- [API Documentation](https://github.com/bozonx/social-media-posting-microservice/blob/main/docs/api.md)
 - [n8n Community Nodes](https://docs.n8n.io/integrations/community-nodes/)
 - [n8n Community Forum](https://community.n8n.io/)
 

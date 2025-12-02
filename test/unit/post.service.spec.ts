@@ -206,14 +206,14 @@ describe('PostService', () => {
         expect(result.error?.message).toContain('Either "channel" or "auth" must be provided');
       });
 
-      it('should fail when platform does not match channel provider', async () => {
+      it('should fail when platform is not supported', async () => {
         const request = createPostRequest({ platform: 'vk' });
 
         const result = await service.publish(request);
 
         expect(result.success).toBe(false);
         expect(result.error?.code).toBe('VALIDATION_ERROR');
-        expect(result.error?.message).toContain('does not match requested platform');
+        expect(result.error?.message).toContain('Provider "vk" is not supported');
       });
 
       it('should fail when post type is not supported', async () => {

@@ -1,11 +1,13 @@
-import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
 import { Test } from '@nestjs/testing';
-import { ValidationPipe } from '@nestjs/common';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { AppModule } from '@/app.module.js';
 import { TelegramProvider } from '@/modules/providers/telegram/telegram.provider.js';
 import { AppConfigService } from '@/modules/app-config/app-config.service.js';
 import { IdempotencyService } from '@/modules/post/idempotency.service.js';
+import { ProviderRegistry } from '@/modules/providers/base/provider-registry.service.js';
+import { AuthValidatorRegistry } from '@/modules/providers/base/auth-validator-registry.service.js';
 import { PostType } from '@/common/enums/index.js';
 
 describe('PostController (e2e)', () => {
@@ -27,6 +29,24 @@ describe('PostController (e2e)', () => {
     getPostStatus: jest.fn(),
   };
 
+  const mockProviderRegistry = {
+    get: jest.fn().mockImplementation((platform: string) => {
+      if (platform.toLowerCase() === 'telegram') {
+        return mockTelegramProvider;
+      }
+      throw new BadRequestException(`Provider "${platform}" is not supported`);
+    }),
+    has: jest.fn().mockImplementation((platform: string) => platform.toLowerCase() === 'telegram'),
+    register: jest.fn(),
+    getRegisteredProviders: jest.fn().mockReturnValue(['telegram']),
+  };
+
+  const mockAuthValidatorRegistry = {
+    validate: jest.fn(),
+    register: jest.fn(),
+    has: jest.fn().mockReturnValue(true),
+  };
+
   const mockAppConfigService = {
     onModuleInit: jest.fn(),
     get: jest.fn(),
@@ -37,7 +57,7 @@ describe('PostController (e2e)', () => {
           provider: 'telegram',
           enabled: true,
           auth: {
-            botToken: 'channel-token',
+            botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
             chatId: 'channel-chat-id',
           },
         };
@@ -73,6 +93,10 @@ describe('PostController (e2e)', () => {
     })
       .overrideProvider(TelegramProvider)
       .useValue(mockTelegramProvider)
+      .overrideProvider(ProviderRegistry)
+      .useValue(mockProviderRegistry)
+      .overrideProvider(AuthValidatorRegistry)
+      .useValue(mockAuthValidatorRegistry)
       .overrideProvider(AppConfigService)
       .useValue(mockAppConfigService)
       .overrideProvider(IdempotencyService)
@@ -254,9 +278,10 @@ describe('PostController (e2e)', () => {
         expect.objectContaining({
           provider: 'telegram',
           auth: {
-            botToken: 'channel-token',
+            botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
             chatId: 'channel-chat-id',
           },
+          source: 'channel',
         }),
       );
     });

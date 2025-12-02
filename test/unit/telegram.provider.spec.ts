@@ -30,6 +30,8 @@ const { ConverterService } = await import('@/modules/converter/converter.service
 const { MediaService } = await import('@/modules/media/media.service.js');
 const { TelegramTypeDetector } =
   await import('@/modules/providers/telegram/telegram-type-detector.service.js');
+const { TelegramBotCache } =
+  await import('@/modules/providers/telegram/telegram-bot-cache.service.js');
 
 describe('TelegramProvider', () => {
   let provider: TelegramProvider;
@@ -47,6 +49,14 @@ describe('TelegramProvider', () => {
     disableNotification: false,
     convertBody: true,
     bodyFormat: 'html',
+  };
+
+  const mockBotCache = {
+    getOrCreate: jest.fn().mockImplementation(() => ({
+      api: mockApi,
+    })),
+    remove: jest.fn(),
+    clear: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -73,6 +83,10 @@ describe('TelegramProvider', () => {
             detectType: jest.fn((request: PostRequestDto) => request.type ?? PostType.POST),
           },
         },
+        {
+          provide: TelegramBotCache,
+          useValue: mockBotCache,
+        },
       ],
     }).compile();
 
@@ -80,10 +94,10 @@ describe('TelegramProvider', () => {
     converterService = module.get<ConverterService>(ConverterService);
     mediaService = module.get<MediaService>(MediaService);
 
-    // Сбрасываем моки перед каждым тестом
+    // Reset mocks before each test
     jest.clearAllMocks();
 
-    // Подавляем логи
+    // Suppress logs
     jest.spyOn(Logger.prototype, 'log').mockImplementation();
   });
 

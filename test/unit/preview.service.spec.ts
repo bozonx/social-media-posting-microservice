@@ -120,7 +120,7 @@ describe('PreviewService', () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.data.errors).toContain("Either 'channel' or 'auth' must be provided");
+        expect(result.data.errors).toContain('Either "channel" or "auth" must be provided');
       }
     });
 
@@ -139,7 +139,7 @@ describe('PreviewService', () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.data.errors).toContain("Channel 'non-existent' not found in configuration");
+        expect(result.data.errors).toContain('Channel not found');
       }
     });
 
@@ -153,6 +153,7 @@ describe('PreviewService', () => {
       (appConfigService.getChannel as jest.Mock).mockReturnValue({
         provider: 'vk',
         enabled: true,
+        auth: { botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11', chatId: 'test' },
       });
 
       const result = await service.preview(request);
@@ -160,7 +161,7 @@ describe('PreviewService', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.data.errors).toContain(
-          "Channel provider 'vk' does not match requested platform 'telegram'",
+          'Channel provider "vk" does not match requested platform "telegram"',
         );
       }
     });

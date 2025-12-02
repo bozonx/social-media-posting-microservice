@@ -7,13 +7,13 @@
     "keywords": [
         "n8n-community-node-package",
         "n8n-nodes",
-        "translation",
-        "translate",
-        "google-translate",
-        "deepl",
-        "deepseek",
-        "openrouter",
-        "llm",
+        "social-media",
+        "telegram",
+        "vk",
+        "instagram",
+        "posting",
+        "publishing",
+        "microservice",
         "bozonx"
     ],
     "author": {

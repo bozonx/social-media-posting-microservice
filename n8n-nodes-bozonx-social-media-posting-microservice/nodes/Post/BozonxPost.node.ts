@@ -120,7 +120,7 @@ export class BozonxPost implements INodeType {
 				description: 'Cover image URL or MediaInput object (JSON)',
 				displayOptions: {
 					show: {
-						type: ['auto', 'post', 'image', 'article'],
+						type: ['auto', 'post', 'image', 'article', 'story'],
 					},
 				},
 			},

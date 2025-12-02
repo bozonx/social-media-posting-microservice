@@ -41,6 +41,14 @@ export class PostRequestDto {
   @IsEnum(BodyFormat)
   bodyFormat?: BodyFormat = BodyFormat.TEXT;
 
+  /** 
+   * Whether to convert body to platform's preferred format 
+   * @note Currently not used for Telegram (body is sent as-is)
+   */
+  @IsOptional()
+  @IsBoolean()
+  convertBody?: boolean;
+
 
 
   /** Post title (used by platforms that support it) */

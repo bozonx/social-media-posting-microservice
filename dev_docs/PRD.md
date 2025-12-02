@@ -92,6 +92,14 @@ interface PostRequest {
   bodyFormat?: BodyFormat;
   
   /**
+   * Флаг автоматической конвертации контента
+   * @note В текущей версии для Telegram игнорируется (контент отправляется as-is)
+   * Используется для будущих провайдеров
+   * @default true
+   */
+  convertBody?: boolean;
+  
+  /**
    * Заголовок публикации (для платформ, требующих отдельный заголовок)
    * Примеры: Medium, Telegraph, YouTube видео
    */
@@ -486,6 +494,10 @@ common:
   
   # Таймаут входящего запроса к микросервису (сек)
   incomingRequestTimeoutSecs: 60
+
+  # Автоматическая конвертация body (по умолчанию)
+  # Примечание: для Telegram игнорируется
+  convertBody: true
   
   # Количество попыток при ошибке
   retryAttempts: 3

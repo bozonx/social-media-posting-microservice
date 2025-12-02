@@ -30,6 +30,7 @@ Publish content to a social media platform.
 | `auth` | object | No* | Inline authentication credentials |
 | `type` | string | No | Post type (default: `auto`) |
 | `bodyFormat` | string | No | Body format: `text`, `html`, `md` (default: `text`) |
+| `convertBody` | boolean | No | **Reserved.** Not used for Telegram (body is sent as-is) |
 | `title` | string | No | Post title (platform-specific) |
 | `description` | string | No | Post description (platform-specific) |
 | `cover` | MediaInput | No | Cover image |

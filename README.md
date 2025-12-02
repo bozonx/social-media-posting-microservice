@@ -162,6 +162,7 @@ common:
   retryAttempts: 3
   retryDelayMs: 1000
   idempotencyTtlMinutes: 10
+  convertBody: true # Not used for Telegram
 
 conversion:
   preserveLinks: true

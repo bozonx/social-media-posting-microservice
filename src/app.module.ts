@@ -3,14 +3,14 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
-import { HealthModule } from '@modules/health/health.module.js';
-import { AllExceptionsFilter } from '@common/filters/all-exceptions.filter.js';
-import appConfig from '@config/app.config.js';
-import type { AppConfig } from '@config/app.config.js';
-import yamlConfig from '@config/yaml.config.js';
+import { HealthModule } from './modules/health/health.module.js';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
+import appConfig from './config/app.config.js';
+import type { AppConfig } from './config/app.config.js';
+import yamlConfig from './config/yaml.config.js';
 import pkg from '../package.json' with { type: 'json' };
-import { PostModule } from '@modules/post/post.module.js';
-import { AppConfigModule } from '@modules/app-config/app-config.module.js';
+import { PostModule } from './modules/post/post.module.js';
+import { AppConfigModule } from './modules/app-config/app-config.module.js';
 
 @Module({
   imports: [

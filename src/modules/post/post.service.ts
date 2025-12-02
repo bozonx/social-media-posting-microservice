@@ -60,8 +60,11 @@ export class PostService extends BasePostService {
     try {
       const { provider, channelConfig } = this.validateRequest(request);
       const commonConfig = this.appConfig.getCommonConfig();
-      const providerTimeoutMs = this.getProviderTimeoutMs(commonConfig?.providerTimeoutSecs);
       const requestTimeoutMs = this.getRequestTimeoutMs(commonConfig?.incomingRequestTimeoutSecs);
+      const providerTimeoutMs = this.getProviderTimeoutMs(
+        commonConfig?.providerTimeoutSecs,
+        requestTimeoutMs,
+      );
 
       // Check if explicit type is supported
       const postType = request.type || PostType.AUTO;
@@ -190,18 +193,24 @@ export class PostService extends BasePostService {
     return normalizedSecs * 1000;
   }
 
-  private getProviderTimeoutMs(providerTimeoutSecs: number | undefined): number | undefined {
-    const maxSecs = PostService.MAX_REQUEST_TIMEOUT_SECS;
-
+  private getProviderTimeoutMs(
+    providerTimeoutSecs: number | undefined,
+    requestTimeoutMs: number,
+  ): number | undefined {
     if (typeof providerTimeoutSecs !== 'number' || providerTimeoutSecs <= 0) {
       return undefined;
     }
 
-    if (providerTimeoutSecs > maxSecs) {
-      throw new Error(`providerTimeoutSecs must not exceed ${maxSecs} seconds`);
+    const providerTimeoutMs = providerTimeoutSecs * 1000;
+
+    if (providerTimeoutMs > requestTimeoutMs) {
+      const effectiveRequestSecs = requestTimeoutMs / 1000;
+      throw new Error(
+        `providerTimeoutSecs must not exceed incomingRequestTimeoutSecs (effective ${effectiveRequestSecs} seconds)`,
+      );
     }
 
-    return providerTimeoutSecs * 1000;
+    return providerTimeoutMs;
   }
 
   private maybeExecuteWithTimeout<T>(

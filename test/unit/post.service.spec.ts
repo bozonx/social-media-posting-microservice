@@ -22,6 +22,7 @@ interface ChannelConfig {
 interface CommonConfig {
   retryAttempts: number;
   retryDelayMs: number;
+  requestTimeoutSecs?: number;
 }
 
 interface ProviderResult {
@@ -273,6 +274,48 @@ describe('PostService', () => {
 
         expect(result.success).toBe(false);
         expect(mockTelegramProvider.publish).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('timeout behavior', () => {
+      it('should respect global request timeout from config', async () => {
+        jest.useFakeTimers();
+
+        const request = createPostRequest();
+        mockTelegramProvider.publish.mockImplementation(
+          () => new Promise<ProviderResult>(() => {}),
+        );
+        appConfigService.getCommonConfig.mockReturnValue({
+          ...commonConfig,
+          requestTimeoutSecs: 1,
+        } as any);
+
+        const publishPromise = service.publish(request);
+
+        jest.advanceTimersByTime(1000);
+
+        const result = await publishPromise;
+
+        jest.useRealTimers();
+
+        expect(result.success).toBe(false);
+        expect(result.error?.code).toBe('TIMEOUT_ERROR');
+      });
+
+      it('should fail when request timeout exceeds maximum allowed value', async () => {
+        const request = createPostRequest();
+        mockTelegramProvider.publish.mockImplementation(
+          () => new Promise<ProviderResult>(() => {}),
+        );
+        appConfigService.getCommonConfig.mockReturnValue({
+          ...commonConfig,
+          requestTimeoutSecs: 1000,
+        } as any);
+
+        const result = await service.publish(request);
+
+        expect(result.success).toBe(false);
+        expect(result.error?.code).toBe('PLATFORM_ERROR');
       });
     });
 

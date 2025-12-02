@@ -15,6 +15,8 @@ export class PostService extends BasePostService {
   private static readonly MIN_JITTER_FACTOR = 0.8;
   /** Maximum jitter factor for retry delay randomization (120%) */
   private static readonly MAX_JITTER_FACTOR = 1.2;
+  private static readonly DEFAULT_REQUEST_TIMEOUT_SECS = 60;
+  private static readonly MAX_REQUEST_TIMEOUT_SECS = 600;
 
   constructor(
     appConfig: AppConfigService,
@@ -57,6 +59,7 @@ export class PostService extends BasePostService {
 
     try {
       const { provider, channelConfig } = this.validateRequest(request);
+      const commonConfig = this.appConfig.getCommonConfig();
 
       // Check if explicit type is supported
       const postType = request.type || PostType.AUTO;
@@ -76,10 +79,16 @@ export class PostService extends BasePostService {
         },
       });
 
-      const result = await this.retryWithJitter(
-        () => provider.publish(request, channelConfig),
-        this.appConfig.getCommonConfig().retryAttempts,
-        this.appConfig.getCommonConfig().retryDelayMs,
+      const timeoutMs = this.getRequestTimeoutMs(commonConfig?.requestTimeoutSecs);
+
+      const result = await this.executeWithRequestTimeout(
+        () =>
+          this.retryWithJitter(
+            () => provider.publish(request, channelConfig),
+            commonConfig.retryAttempts,
+            commonConfig.retryDelayMs,
+          ),
+        timeoutMs,
       );
 
       const response: PostResponseDto = {
@@ -159,6 +168,43 @@ export class PostService extends BasePostService {
       return ErrorCode.AUTH_ERROR;
     }
     return ErrorCode.PLATFORM_ERROR;
+  }
+
+  private getRequestTimeoutMs(requestTimeoutSecs: number | undefined): number {
+    const defaultSecs = PostService.DEFAULT_REQUEST_TIMEOUT_SECS;
+    const maxSecs = PostService.MAX_REQUEST_TIMEOUT_SECS;
+
+    const normalizedSecs =
+      typeof requestTimeoutSecs === 'number' && requestTimeoutSecs > 0
+        ? requestTimeoutSecs
+        : defaultSecs;
+
+    if (normalizedSecs > maxSecs) {
+      throw new Error(`requestTimeoutSecs must not exceed ${maxSecs} seconds`);
+    }
+
+    return normalizedSecs * 1000;
+  }
+
+  private async executeWithRequestTimeout<T>(fn: () => Promise<T>, timeoutMs: number): Promise<T> {
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+
+    try {
+      return await Promise.race<T>([
+        fn(),
+        new Promise<T>((_, reject) => {
+          timeoutHandle = setTimeout(() => {
+            const error: any = new Error(`Request timed out after ${timeoutMs}ms`);
+            error.code = 'ETIMEDOUT';
+            reject(error);
+          }, timeoutMs);
+        }),
+      ]);
+    } finally {
+      if (timeoutHandle) {
+        clearTimeout(timeoutHandle);
+      }
+    }
   }
 
   /**

@@ -48,7 +48,7 @@ export class TelegramProvider implements IProvider {
     private readonly mediaService: MediaService,
     private readonly typeDetector: TelegramTypeDetector,
     private readonly botCache: TelegramBotCache,
-  ) { }
+  ) {}
 
   async publish(
     request: PostRequestDto,
@@ -168,7 +168,7 @@ export class TelegramProvider implements IProvider {
     return {
       postId: String(result.message_id || result[0]?.message_id),
       url: this.buildPostUrl(chatId, result.message_id || result[0]?.message_id),
-      raw: result,
+      raw: { ok: true, result },
     };
   }
 

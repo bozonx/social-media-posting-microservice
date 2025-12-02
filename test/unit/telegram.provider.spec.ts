@@ -141,7 +141,13 @@ describe('TelegramProvider', () => {
       expect(result).toEqual({
         postId: '12345',
         url: undefined,
-        raw: expect.any(Object),
+        raw: {
+          ok: true,
+          result: {
+            message_id: 12345,
+            chat: { id: 'test-chat-id' },
+          },
+        },
       });
 
       expect(mockApi.sendMessage).toHaveBeenCalledWith('test-chat-id', 'Test message', {

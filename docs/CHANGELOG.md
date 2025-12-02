@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Media fields (`cover`, `video`, `media[]`) now accept `MediaInput` type instead of plain strings
 - `TelegramProvider.supportedTypes` now includes `AUTO` and `AUDIO`
 - Telegram-specific limits (text length, album size) are now delegated to the Telegram API instead of being validated by the microservice
+- **Response format for `raw` field**: Now returns `{ok: true, result: {...}}` format to match standard Telegram Bot API and n8n Telegram node behavior (previously returned only the `result` content)
 
 ### Fixed
 

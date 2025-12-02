@@ -100,11 +100,29 @@ Either `url` or `fileId` must be provided. If both present, `fileId` takes prior
     "platform": "telegram",
     "type": "post",
     "publishedAt": "2025-11-30T20:00:00.000Z",
-    "raw": {},
+    "raw": {
+      "ok": true,
+      "result": {
+        "message_id": 123456,
+        "chat": { "id": -1001234567890 },
+        "date": 1701369600,
+        "text": "Post content"
+      }
+    },
     "requestId": "uuid-v4"
   }
 }
 ```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `postId` | string | Platform-specific post ID |
+| `url` | string | Public URL to the post (if available) |
+| `platform` | string | Platform name |
+| `type` | string | Actual post type used |
+| `publishedAt` | string | Publication timestamp (ISO 8601) |
+| `raw` | object | Raw response from platform API in format `{ok: true, result: {...}}` (matches Telegram Bot API structure) |
+| `requestId` | string | Unique request identifier for tracking |
 
 ### Error Response
 

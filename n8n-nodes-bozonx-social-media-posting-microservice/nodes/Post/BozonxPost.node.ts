@@ -97,20 +97,6 @@ export class BozonxPost implements INodeType {
 				description: 'Type of post to create',
 			},
 
-			// Body Format
-			{
-				displayName: 'Body Format',
-				name: 'bodyFormat',
-				type: 'options',
-				options: [
-					{ name: 'HTML', value: 'html' },
-					{ name: 'Markdown', value: 'md' },
-					{ name: 'Plain Text', value: 'text' },
-				],
-				default: 'html',
-				description: 'Format of the post content',
-			},
-
 			// Cover Image
 			{
 				displayName: 'Cover Image',
@@ -252,6 +238,18 @@ export class BozonxPost implements INodeType {
 				default: {},
 				options: [
 					{
+						displayName: 'Body Format',
+						name: 'bodyFormat',
+						type: 'options',
+						options: [
+							{ name: 'Plain Text', value: 'text' },
+							{ name: 'HTML', value: 'html' },
+							{ name: 'Markdown', value: 'md' },
+						],
+						default: 'text',
+						description: 'Format of the post content',
+					},
+					{
 						displayName: 'Convert Body',
 						name: 'convertBody',
 						type: 'boolean',
@@ -333,7 +331,6 @@ export class BozonxPost implements INodeType {
 				const platform = this.getNodeParameter('platform', i) as string;
 				const body = this.getNodeParameter('body', i) as string;
 				const type = this.getNodeParameter('type', i, 'auto') as string;
-				const bodyFormat = this.getNodeParameter('bodyFormat', i, 'html') as string;
 				const authentication = this.getNodeParameter('authentication', i, {}) as {
 					channel?: { channelName: string };
 					telegram?: { botToken: string; chatId: string };
@@ -351,7 +348,6 @@ export class BozonxPost implements INodeType {
 
 				// Add main fields
 				if (type) requestBody.type = type;
-				if (bodyFormat) requestBody.bodyFormat = bodyFormat;
 
 				// Add optional top-level fields
 				const cover = this.getNodeParameter('cover', i, '') as string;

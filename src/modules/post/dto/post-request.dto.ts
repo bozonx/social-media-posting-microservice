@@ -39,7 +39,7 @@ export class PostRequestDto {
   /** Format of the body content (html, markdown, or text) */
   @IsOptional()
   @IsEnum(BodyFormat)
-  bodyFormat?: BodyFormat;
+  bodyFormat?: BodyFormat = BodyFormat.TEXT;
 
   /** Whether to convert body to platform's preferred format */
   @IsOptional()

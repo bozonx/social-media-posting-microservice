@@ -623,9 +623,9 @@ describe('TelegramProvider', () => {
       expect(format).toBe(BodyFormat.MARKDOWN);
     });
 
-    it('should return HTML by default', () => {
+    it('should return TEXT by default', () => {
       const format = (provider as any).getTargetBodyFormat(undefined);
-      expect(format).toBe(BodyFormat.HTML);
+      expect(format).toBe(BodyFormat.TEXT);
     });
   });
 

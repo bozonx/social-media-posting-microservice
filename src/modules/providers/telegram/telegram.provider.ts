@@ -555,7 +555,7 @@ export class TelegramProvider implements IProvider {
       case 'MarkdownV2':
         return BodyFormat.MARKDOWN;
       default:
-        return BodyFormat.HTML;
+        return BodyFormat.TEXT;
     }
   }
 

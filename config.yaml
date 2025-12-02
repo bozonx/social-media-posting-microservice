@@ -84,7 +84,7 @@ channels:
       # Telegram bot token from @BotFather
       botToken: your_bot_token_here
       # Chat ID or channel username (with @ prefix for public channels)
-      chatId: @your_channel_username
+      chatId: '@your_channel_username'
 
     # Parse mode for Telegram
     # Options: HTML, Markdown, MarkdownV2

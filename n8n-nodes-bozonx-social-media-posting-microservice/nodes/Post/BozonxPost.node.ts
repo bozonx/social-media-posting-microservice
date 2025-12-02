@@ -7,6 +7,22 @@ import type {
 } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
+function parseMediaField(value: string): string | Record<string, unknown> | unknown[] {
+	if (!value) return value;
+	try {
+		// Try to parse as JSON, if fails - treat as string
+		if (
+			typeof value === 'string' &&
+			(value.trim().startsWith('{') || value.trim().startsWith('['))
+		) {
+			return JSON.parse(value);
+		}
+		return value;
+	} catch {
+		return value;
+	}
+}
+
 export class BozonxPost implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Social Media Post',
@@ -14,7 +30,7 @@ export class BozonxPost implements INodeType {
 		icon: 'file:post.svg',
 		group: ['transform'],
 		version: 1.2,
-		subtitle: '={{$parameter["operation"] + ": " + $parameter["platform"]}}',
+		subtitle: '={{$parameter["platform"]}}',
 		description:
 			'Publish content to social media platforms (Telegram, VK, Instagram) via Social Media Posting microservice',
 		defaults: {
@@ -30,28 +46,6 @@ export class BozonxPost implements INodeType {
 		],
 		usableAsTool: true,
 		properties: [
-			{
-				displayName: 'Operation',
-				name: 'operation',
-				type: 'options',
-				noDataExpression: true,
-				options: [
-					{
-						name: 'Publish Post',
-						value: 'publish',
-						description: 'Publish content to a platform',
-						action: 'Publish content to a platform',
-					},
-					{
-						name: 'Preview Post',
-						value: 'preview',
-						description: 'Validate and preview without publishing',
-						action: 'Preview post without publishing',
-					},
-				],
-				default: 'publish',
-			},
-
 			// Platform
 			{
 				displayName: 'Platform',
@@ -81,62 +75,126 @@ export class BozonxPost implements INodeType {
 				description: 'Main content of the post',
 			},
 
-			// Authentication Mode
+			// Post Type
 			{
-				displayName: 'Authentication Mode',
-				name: 'authMode',
+				displayName: 'Post Type',
+				name: 'type',
 				type: 'options',
 				options: [
-					{
-						name: 'Use Channel From Config',
-						value: 'channel',
-						description: 'Use pre-configured channel from microservice config.yaml',
-					},
-					{
-						name: 'Use Inline Auth',
-						value: 'inline',
-						description: 'Provide authentication credentials directly',
-					},
+					{ name: 'Auto Detect', value: 'auto' },
+					{ name: 'Text Post', value: 'post' },
+					{ name: 'Image', value: 'image' },
+					{ name: 'Video', value: 'video' },
+					{ name: 'Album', value: 'album' },
+					{ name: 'Audio', value: 'audio' },
+					{ name: 'Document', value: 'document' },
+					{ name: 'Article', value: 'article' },
+					{ name: 'Poll', value: 'poll' },
+					{ name: 'Short Video', value: 'short' },
+					{ name: 'Story', value: 'story' },
 				],
-				default: 'channel',
-				required: true,
+				default: 'auto',
+				description: 'Type of post to create',
 			},
 
-			// Channel (when using channel mode)
+			// Body Format
 			{
-				displayName: 'Channel Name',
-				name: 'channel',
+				displayName: 'Body Format',
+				name: 'bodyFormat',
+				type: 'options',
+				options: [
+					{ name: 'HTML', value: 'html' },
+					{ name: 'Markdown', value: 'md' },
+					{ name: 'Plain Text', value: 'text' },
+				],
+				default: 'html',
+				description: 'Format of the post content',
+			},
+
+			// Cover Image
+			{
+				displayName: 'Cover Image',
+				name: 'cover',
 				type: 'string',
 				default: '',
-				required: true,
-				displayOptions: {
-					show: {
-						authMode: ['channel'],
-					},
-				},
-				description: 'Channel name from microservice config.yaml',
+				description: 'Cover image URL or MediaInput object (JSON)',
 			},
 
-			// Inline Auth (when using inline mode)
+			// Video
 			{
-				displayName: 'Inline Authentication',
-				name: 'auth',
+				displayName: 'Video',
+				name: 'video',
+				type: 'string',
+				default: '',
+				description: 'Video URL or MediaInput object (JSON)',
+			},
+
+			// Audio
+			{
+				displayName: 'Audio',
+				name: 'audio',
+				type: 'string',
+				default: '',
+				description: 'Audio URL or MediaInput object (JSON)',
+			},
+
+			// Document
+			{
+				displayName: 'Document',
+				name: 'document',
+				type: 'string',
+				default: '',
+				description: 'Document URL or MediaInput object (JSON)',
+			},
+
+			// Media Array
+			{
+				displayName: 'Media Array',
+				name: 'media',
+				type: 'string',
+				typeOptions: { rows: 3 },
+				default: '',
+				description: 'JSON array of media URLs or MediaInput objects for albums (2-10 items)',
+			},
+
+			// Idempotency Key
+			{
+				displayName: 'Idempotency Key',
+				name: 'idempotencyKey',
+				type: 'string',
+				default: '',
+				description: 'Key to prevent duplicate posts',
+			},
+
+			// Authentication (optional)
+			{
+				displayName: 'Authentication',
+				name: 'authentication',
 				type: 'fixedCollection',
 				typeOptions: {
 					multipleValues: false,
 				},
 				placeholder: 'Add Authentication',
 				default: {},
-				displayOptions: {
-					show: {
-						authMode: ['inline'],
-						platform: ['telegram'],
-					},
-				},
+				description: 'Optional authentication. If not provided, uses config from microservice',
 				options: [
 					{
+						name: 'channel',
+						displayName: 'Channel',
+						values: [
+							{
+								displayName: 'Channel Name',
+								name: 'channelName',
+								type: 'string',
+								default: '',
+								required: true,
+								description: 'Channel name from microservice config.yaml',
+							},
+						],
+					},
+					{
 						name: 'telegram',
-						displayName: 'Telegram Auth',
+						displayName: 'Telegram',
 						values: [
 							{
 								displayName: 'Bot Token',
@@ -169,37 +227,11 @@ export class BozonxPost implements INodeType {
 				default: {},
 				options: [
 					{
-						displayName: 'Audio',
-						name: 'audio',
-						type: 'string',
-						default: '',
-						description: 'Audio URL or MediaInput object (JSON)',
-					},
-					{
-						displayName: 'Body Format',
-						name: 'bodyFormat',
-						type: 'options',
-						options: [
-							{ name: 'HTML', value: 'html' },
-							{ name: 'Markdown', value: 'md' },
-							{ name: 'Plain Text', value: 'text' },
-						],
-						default: 'html',
-						description: 'Format of the post content',
-					},
-					{
 						displayName: 'Convert Body',
 						name: 'convertBody',
 						type: 'boolean',
 						default: true,
 						description: 'Whether to convert body to platform-specific format',
-					},
-					{
-						displayName: 'Cover Image',
-						name: 'cover',
-						type: 'string',
-						default: '',
-						description: 'Cover image URL or MediaInput object (JSON)',
 					},
 					{
 						displayName: 'Description',
@@ -208,28 +240,6 @@ export class BozonxPost implements INodeType {
 						typeOptions: { rows: 2 },
 						default: '',
 						description: 'Post description (platform-specific)',
-					},
-					{
-						displayName: 'Document',
-						name: 'document',
-						type: 'string',
-						default: '',
-						description: 'Document URL or MediaInput object (JSON)',
-					},
-					{
-						displayName: 'Idempotency Key',
-						name: 'idempotencyKey',
-						type: 'string',
-						default: '',
-						description: 'Key to prevent duplicate posts',
-					},
-					{
-						displayName: 'Media Array',
-						name: 'media',
-						type: 'string',
-						typeOptions: { rows: 3 },
-						default: '',
-						description: 'JSON array of media URLs or MediaInput objects for albums (2-10 items)',
 					},
 					{
 						displayName: 'Mode',
@@ -258,26 +268,6 @@ export class BozonxPost implements INodeType {
 						description: 'Content language code (e.g., en, ru)',
 					},
 					{
-						displayName: 'Post Type',
-						name: 'type',
-						type: 'options',
-						options: [
-							{ name: 'Album', value: 'album' },
-							{ name: 'Article', value: 'article' },
-							{ name: 'Audio', value: 'audio' },
-							{ name: 'Auto Detect', value: 'auto' },
-							{ name: 'Document', value: 'document' },
-							{ name: 'Image', value: 'image' },
-							{ name: 'Poll', value: 'poll' },
-							{ name: 'Short Video', value: 'short' },
-							{ name: 'Story', value: 'story' },
-							{ name: 'Text Post', value: 'post' },
-							{ name: 'Video', value: 'video' },
-						],
-						default: 'auto',
-						description: 'Type of post to create',
-					},
-					{
 						displayName: 'Scheduled At',
 						name: 'scheduledAt',
 						type: 'string',
@@ -298,13 +288,6 @@ export class BozonxPost implements INodeType {
 						default: '',
 						description: 'Post title (platform-specific)',
 					},
-					{
-						displayName: 'Video',
-						name: 'video',
-						type: 'string',
-						default: '',
-						description: 'Video URL or MediaInput object (JSON)',
-					},
 				],
 			},
 		],
@@ -318,14 +301,24 @@ export class BozonxPost implements INodeType {
 		const gatewayUrl = (credentials.gatewayUrl as string).replace(/\/$/, '');
 		const apiToken = credentials.apiToken as string | undefined;
 
-		const operation = this.getNodeParameter('operation', 0) as string;
-		const endpoint = operation === 'publish' ? '/api/v1/post' : '/api/v1/preview';
+		const endpoint = '/api/v1/post';
 
 		for (let i = 0; i < items.length; i++) {
 			try {
 				const platform = this.getNodeParameter('platform', i) as string;
 				const body = this.getNodeParameter('body', i) as string;
-				const authMode = this.getNodeParameter('authMode', i) as string;
+				const type = this.getNodeParameter('type', i, 'auto') as string;
+				const bodyFormat = this.getNodeParameter('bodyFormat', i, 'html') as string;
+				const cover = this.getNodeParameter('cover', i, '') as string;
+				const video = this.getNodeParameter('video', i, '') as string;
+				const audio = this.getNodeParameter('audio', i, '') as string;
+				const document = this.getNodeParameter('document', i, '') as string;
+				const media = this.getNodeParameter('media', i, '') as string;
+				const idempotencyKey = this.getNodeParameter('idempotencyKey', i, '') as string;
+				const authentication = this.getNodeParameter('authentication', i, {}) as {
+					channel?: { channelName: string };
+					telegram?: { botToken: string; chatId: string };
+				};
 				const additionalOptions = this.getNodeParameter('additionalOptions', i, {}) as Record<
 					string,
 					string | boolean | number
@@ -337,39 +330,44 @@ export class BozonxPost implements INodeType {
 					body,
 				};
 
-				// Add authentication
-				if (authMode === 'channel') {
-					requestBody.channel = this.getNodeParameter('channel', i) as string;
-				} else if (authMode === 'inline') {
-					const authData = this.getNodeParameter('auth', i) as {
-						telegram?: { botToken: string; chatId: string };
+				// Add main fields
+				if (type) requestBody.type = type;
+				if (bodyFormat) requestBody.bodyFormat = bodyFormat;
+				if (idempotencyKey) requestBody.idempotencyKey = idempotencyKey;
+
+				// Add media fields
+				if (cover) {
+					requestBody.cover = parseMediaField(cover);
+				}
+				if (video) {
+					requestBody.video = parseMediaField(video);
+				}
+				if (audio) {
+					requestBody.audio = parseMediaField(audio);
+				}
+				if (document) {
+					requestBody.document = parseMediaField(document);
+				}
+				if (media) {
+					requestBody.media = parseMediaField(media);
+				}
+
+				// Add authentication if provided
+				if (authentication.channel?.channelName) {
+					requestBody.channel = authentication.channel.channelName;
+				} else if (authentication.telegram) {
+					requestBody.auth = {
+						botToken: authentication.telegram.botToken,
+						chatId: authentication.telegram.chatId,
 					};
-					if (authData?.telegram) {
-						requestBody.auth = {
-							botToken: authData.telegram.botToken,
-							chatId: authData.telegram.chatId,
-						};
-					}
 				}
 
 				// Add additional options
 				for (const [key, value] of Object.entries(additionalOptions)) {
 					if (value !== '' && value !== undefined && value !== null) {
 						// Parse JSON fields
-						if (['cover', 'video', 'audio', 'document', 'media', 'options'].includes(key)) {
-							try {
-								// Try to parse as JSON, if fails - treat as string
-								if (
-									typeof value === 'string' &&
-									(value.trim().startsWith('{') || value.trim().startsWith('['))
-								) {
-									requestBody[key] = JSON.parse(value);
-								} else {
-									requestBody[key] = value;
-								}
-							} catch {
-								requestBody[key] = value;
-							}
+						if (key === 'options') {
+							requestBody[key] = parseMediaField(value as string);
 						} else if (key === 'tags' && typeof value === 'string') {
 							// Convert comma-separated string to array
 							requestBody[key] = value.split(',').map((tag) => tag.trim());
@@ -415,61 +413,30 @@ export class BozonxPost implements INodeType {
 					}
 				}
 
-				// Handle response based on operation
-				if (operation === 'preview') {
-					// Preview operation returns data directly or error in data.errors
-					if (response.success === false || response.data?.valid === false) {
-						if (this.continueOnFail()) {
-							returnData.push({
-								json: {
-									valid: false,
-									errors: (response.data?.errors as string[]) || [
-										(response.error?.message as string) || 'Unknown error',
-									],
-									warnings: (response.data?.warnings as string[]) || [],
-									code: response.error?.code as string,
-								},
-								pairedItem: { item: i },
-							});
-						} else {
-							const errorMsg =
-								((response.data?.errors as string[])?.[0] as string) ||
-								(response.error?.message as string) ||
-								'Preview validation failed';
-							throw new NodeOperationError(this.getNode(), errorMsg, { itemIndex: i });
-						}
-					} else {
+				// Handle response
+				if (response.success === false) {
+					if (this.continueOnFail()) {
 						returnData.push({
-							json: (response.data || response) as IDataObject,
+							json: {
+								error: (response.error?.message as string) || 'Unknown error',
+								code: response.error?.code as string,
+								details: response.error?.details as Record<string, unknown>,
+								requestId: response.error?.requestId as string,
+							},
 							pairedItem: { item: i },
 						});
+					} else {
+						throw new NodeOperationError(
+							this.getNode(),
+							`[${(response.error?.code as string) || 'ERROR'}] ${(response.error?.message as string) || 'Request failed'}`,
+							{ itemIndex: i },
+						);
 					}
 				} else {
-					// Publish operation
-					if (response.success === false) {
-						if (this.continueOnFail()) {
-							returnData.push({
-								json: {
-									error: (response.error?.message as string) || 'Unknown error',
-									code: response.error?.code as string,
-									details: response.error?.details as Record<string, unknown>,
-									requestId: response.error?.requestId as string,
-								},
-								pairedItem: { item: i },
-							});
-						} else {
-							throw new NodeOperationError(
-								this.getNode(),
-								`[${(response.error?.code as string) || 'ERROR'}] ${(response.error?.message as string) || 'Request failed'}`,
-								{ itemIndex: i },
-							);
-						}
-					} else {
-						returnData.push({
-							json: (response.data || response) as IDataObject,
-							pairedItem: { item: i },
-						});
-					}
+					returnData.push({
+						json: (response.data || response) as IDataObject,
+						pairedItem: { item: i },
+					});
 				}
 			} catch (error: unknown) {
 				const err = error as { message?: string };

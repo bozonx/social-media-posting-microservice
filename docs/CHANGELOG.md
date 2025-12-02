@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Import paths in `TelegramTypeDetector` service
 - DI registration for `TelegramTypeDetector` in `ProvidersModule`
+- **TypeError in `buildPostUrl`**: Fixed `chatId.startsWith is not a function` error when `chatId` is passed as a number instead of string (e.g., from n8n or YAML config)
 
 ---
 

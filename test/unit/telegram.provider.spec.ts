@@ -644,6 +644,18 @@ describe('TelegramProvider', () => {
       const url = (provider as any).buildPostUrl('-100123456789', 12345);
       expect(url).toBeUndefined();
     });
+
+    it('should handle numeric chatId', () => {
+      const url = (provider as any).buildPostUrl(123456789, 12345);
+      expect(url).toBeUndefined();
+    });
+
+    it('should handle numeric chatId for public channels', () => {
+      // This is an edge case - numeric chatId won't start with '@'
+      // but we ensure it doesn't throw an error
+      const url = (provider as any).buildPostUrl(456361709, 12345);
+      expect(url).toBeUndefined();
+    });
   });
 
   describe('preview', () => {

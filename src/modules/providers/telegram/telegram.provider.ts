@@ -574,9 +574,10 @@ export class TelegramProvider implements IProvider {
     return { maxLength: channelConfig?.maxTextLength ?? this.MAX_TEXT_LENGTH };
   }
 
-  private buildPostUrl(chatId: string, messageId: number): string | undefined {
-    if (chatId.startsWith('@')) {
-      const channelName = chatId.substring(1);
+  private buildPostUrl(chatId: string | number, messageId: number): string | undefined {
+    const chatIdStr = String(chatId);
+    if (chatIdStr.startsWith('@')) {
+      const channelName = chatIdStr.substring(1);
       return `https://t.me/${channelName}/${messageId}`;
     }
     return undefined;

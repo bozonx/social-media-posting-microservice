@@ -55,7 +55,14 @@ export class TelegramProvider implements IProvider {
     }
 
     if (warnings.length > 0) {
-      this.logger.warn(`Warnings during publish: ${warnings.join('; ')}`);
+      this.logger.warn({
+        message: 'Warnings during publish',
+        metadata: {
+          platform: request.platform,
+          type: actualType,
+          warnings,
+        },
+      });
     }
 
     const { botToken, chatId } = channelConfig.auth;
@@ -143,7 +150,14 @@ export class TelegramProvider implements IProvider {
         throw new BadRequestException(`Unsupported post type: ${actualType}`);
     }
 
-    this.logger.log(`Published to Telegram chat ${chatId}, type: ${actualType}`);
+    this.logger.log({
+      message: `Published to Telegram`,
+      metadata: {
+        platform: request.platform,
+        chatId,
+        type: actualType,
+      },
+    });
 
     return {
       postId: String(result.message_id || result[0]?.message_id),

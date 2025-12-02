@@ -19,7 +19,7 @@ export class PostService {
     private readonly appConfig: AppConfigService,
     private readonly telegramProvider: TelegramProvider,
     private readonly idempotencyService: IdempotencyService,
-  ) { }
+  ) {}
 
   /**
    * Publish a post to a social media platform
@@ -68,9 +68,15 @@ export class PostService {
         );
       }
 
-      this.logger.log(
-        `Publishing to ${request.platform} via ${request.channel || 'inline auth'}, type: ${postType}`,
-      );
+      this.logger.log({
+        message: `Publishing to ${request.platform} via ${request.channel || 'inline auth'}, type: ${postType}`,
+        metadata: {
+          requestId,
+          platform: request.platform,
+          channel: request.channel,
+          type: postType,
+        },
+      });
 
       const result = await this.retryWithJitter(
         () => provider.publish(request, channelConfig),
@@ -97,7 +103,16 @@ export class PostService {
 
       return response;
     } catch (error: any) {
-      this.logger.error(`Failed to publish to ${request.platform}: ${error.message}`, error.stack);
+      this.logger.error({
+        message: `Failed to publish to ${request.platform}: ${error?.message ?? 'Unknown error'}`,
+        metadata: {
+          requestId,
+          platform: request.platform,
+          channel: request.channel,
+          type: request.type,
+          error: error?.stack,
+        },
+      });
 
       const errorResponse: ErrorResponseDto = {
         success: false,
@@ -221,9 +236,15 @@ export class PostService {
         const jitter = PostService.MIN_JITTER_FACTOR + Math.random() * jitterRange; // random(0.8, 1.2)
         const delay = Math.floor(baseDelayMs * jitter * attempt);
 
-        this.logger.warn(
-          `Attempt ${attempt}/${maxAttempts} failed, retrying in ${delay}ms: ${error.message}`,
-        );
+        this.logger.warn({
+          message: `Attempt ${attempt}/${maxAttempts} failed, retrying in ${delay}ms: ${error?.message ?? 'Unknown error'}`,
+          metadata: {
+            attempt,
+            maxAttempts,
+            delay,
+            error: error?.stack,
+          },
+        });
 
         await this.sleep(delay);
       }

@@ -35,14 +35,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const message = this.extractMessage(exception);
     const errorResponse = this.buildErrorResponse(exception);
 
+    const logContext = {
+      status,
+      method: request.method,
+      url: request.url,
+      requestId: (request as any).id,
+      err: exception as any,
+    };
+
     // Log error for internal tracking
     if (status >= 500) {
-      this.logger.error(
-        `${request.method} ${request.url} - ${status} - ${message}`,
-        exception instanceof Error ? exception.stack : undefined,
-      );
+      this.logger.error(logContext, message);
     } else {
-      this.logger.warn(`${request.method} ${request.url} - ${status} - ${message}`);
+      this.logger.warn(logContext, message);
     }
 
     void response.status(status).send({

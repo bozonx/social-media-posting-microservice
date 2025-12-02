@@ -84,7 +84,7 @@ export class PreviewService {
 
     if (request.auth) {
       return {
-        provider: request.platform,
+        provider: request.platform?.toLowerCase(),
         enabled: true,
         auth: request.auth,
       };

@@ -52,7 +52,7 @@ export class PostService {
     try {
       const channelConfig = this.getChannelConfig(request);
 
-      if (channelConfig.provider !== request.platform) {
+      if (String(channelConfig.provider).toLowerCase() !== request.platform.toLowerCase()) {
         throw new BadRequestException(
           `Channel provider "${channelConfig.provider}" does not match requested platform "${request.platform}"`,
         );
@@ -146,7 +146,7 @@ export class PostService {
     }
     if (request.auth) {
       return {
-        provider: request.platform,
+        provider: request.platform.toLowerCase(),
         enabled: true,
         auth: request.auth,
       };

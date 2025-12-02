@@ -114,8 +114,29 @@ export class IdempotencyService {
    * @returns Cached record or undefined if not found
    */
   async getRecord(key: string): Promise<IdempotencyRecord | undefined> {
-    const record = await this.cache.get<IdempotencyRecord>(key);
-    return record ?? undefined;
+    try {
+      const record = await this.cache.get<IdempotencyRecord>(key);
+      if (record !== undefined && record !== null) {
+        return record;
+      }
+    } catch {
+      // Swallow cache errors and fall back to in-memory records
+    }
+
+    const internal = this.records.get(key);
+    if (!internal) {
+      return undefined;
+    }
+
+    if (internal.expiresAt <= Date.now()) {
+      this.records.delete(key);
+      return undefined;
+    }
+
+    return {
+      status: internal.status,
+      response: internal.response,
+    };
   }
 
   /**
@@ -132,7 +153,11 @@ export class IdempotencyService {
 
     this.records.set(key, record);
 
-    await this.cache.set(key, { status: 'processing' }, ttlMs);
+    try {
+      await this.cache.set(key, { status: 'processing' }, ttlMs);
+    } catch {
+      // Best-effort idempotency: ignore cache backend errors
+    }
   }
 
   /**
@@ -150,7 +175,11 @@ export class IdempotencyService {
 
     this.records.set(key, record);
 
-    await this.cache.set(key, { status: 'completed', response }, ttlMs);
+    try {
+      await this.cache.set(key, { status: 'completed', response }, ttlMs);
+    } catch {
+      // Best-effort idempotency: ignore cache backend errors
+    }
   }
 
   /**

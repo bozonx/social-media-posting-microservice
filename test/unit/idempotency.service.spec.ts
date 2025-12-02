@@ -141,5 +141,24 @@ describe('IdempotencyService', () => {
 
       expect(cache.set).toHaveBeenCalledWith('default-key', { status: 'processing' }, 10 * 60_000);
     });
+
+    it('should not throw when cache.set fails in setCompleted', async () => {
+      const response: PostResponseDto | ErrorResponseDto = {
+        success: true,
+        data: {
+          postId: '1',
+          url: 'url',
+          platform: 'telegram',
+          type: undefined as any,
+          publishedAt: 'now',
+          requestId: 'req',
+          raw: {},
+        },
+      } as any;
+
+      cache.set.mockRejectedValue(new Error('store.set is not a function'));
+
+      await expect(service.setCompleted('key', response)).resolves.toBeUndefined();
+    });
   });
 });

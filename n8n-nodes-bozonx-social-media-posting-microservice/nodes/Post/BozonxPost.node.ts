@@ -66,6 +66,14 @@ export class BozonxPost implements INodeType {
 		],
 		usableAsTool: true,
 		properties: [
+			{
+				displayName: 'Base Path',
+				name: 'basePath',
+				type: 'string',
+				default: 'post/api/v1',
+				description:
+					'API base path appended to the Gateway URL. Default: post/api/v1. Leading and trailing slashes are automatically handled.',
+			},
 			// Platform
 			{
 				displayName: 'Platform',
@@ -344,10 +352,13 @@ export class BozonxPost implements INodeType {
 		const gatewayUrl = (credentials.gatewayUrl as string).replace(/\/$/, '');
 		const apiToken = credentials.apiToken as string | undefined;
 
-		const endpoint = '/api/v1/post';
-
 		for (let i = 0; i < items.length; i++) {
 			try {
+				const basePath = (this.getNodeParameter('basePath', i, 'post/api/v1') as string)
+					.replace(/^\/+/, '')
+					.replace(/\/+$/, '');
+				const endpoint = `/${basePath}/post`;
+
 				const platform = this.getNodeParameter('platform', i) as string;
 				const body = this.getNodeParameter('body', i) as string;
 				const type = this.getNodeParameter('type', i, 'auto') as string;

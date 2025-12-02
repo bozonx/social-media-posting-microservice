@@ -174,8 +174,6 @@ channels:
     auth:
       botToken: ${MY_TELEGRAM_TOKEN}
       chatId: "@my_channel"
-    parseMode: HTML
-    convertBody: true
 ```
 
 ## Docker

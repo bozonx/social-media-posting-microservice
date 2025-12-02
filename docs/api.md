@@ -29,8 +29,7 @@ Publish content to a social media platform.
 | `channel` | string | No* | Channel name from `config.yaml` |
 | `auth` | object | No* | Inline authentication credentials |
 | `type` | string | No | Post type (default: `auto`) |
-| `bodyFormat` | string | No | Body format: `html`, `md`, `text` |
-| `convertBody` | boolean | No | Convert body to platform format (default: `true`) |
+| `bodyFormat` | string | No | Body format: `text`, `html`, `md` (default: `text`) |
 | `title` | string | No | Post title (platform-specific) |
 | `description` | string | No | Post description (platform-specific) |
 | `cover` | MediaInput | No | Cover image |
@@ -239,6 +238,53 @@ When `type` is `auto` (default), the type is detected by priority:
 
 **Note:** With `type: auto`, only one media field should be provided. Multiple conflicting fields return a validation error.
 
+### Body Format Handling
+
+The `bodyFormat` field specifies the format of the `body` content. For Telegram, the body is **sent as-is** without any conversion. The `bodyFormat` value is mapped directly to Telegram's `parse_mode` parameter:
+
+| `bodyFormat` | Telegram `parse_mode` | Description |
+|--------------|----------------------|-------------|
+| `text` | *(not set)* | Plain text, no formatting |
+| `html` | `HTML` | HTML formatting |
+| `md` | `Markdown` | Markdown formatting |
+
+**Important Notes:**
+
+- **No conversion is performed** - the body content you provide must already be in the format specified by `bodyFormat`
+- **MarkdownV2 support** - To use Telegram's `MarkdownV2` format, set `bodyFormat: "md"` and add `parse_mode: "MarkdownV2"` in the `options` field (see example below)
+- **Options override** - If you specify `parse_mode` in the `options` field, it will override the automatic mapping from `bodyFormat`
+
+**Examples:**
+
+```json
+// Plain text (no formatting)
+{
+  "body": "Hello world",
+  "bodyFormat": "text"
+}
+
+// HTML formatting
+{
+  "body": "<b>Hello</b> <i>world</i>",
+  "bodyFormat": "html"
+}
+
+// Markdown formatting
+{
+  "body": "**Hello** _world_",
+  "bodyFormat": "md"
+}
+
+// MarkdownV2 formatting (advanced)
+{
+  "body": "*Hello* _world_\\!",
+  "bodyFormat": "md",
+  "options": {
+    "parse_mode": "MarkdownV2"
+  }
+}
+```
+
 ### Platform Options
 
 The `options` field accepts platform-specific parameters that are passed directly to the Telegram Bot API without transformation. Use the exact field names from the [Telegram Bot API documentation](https://core.telegram.org/bots/api).
@@ -271,7 +317,7 @@ Common options:
 }
 ```
 
-**Note:** Fields like `parse_mode` and `disable_notification` can also be set in the channel configuration. If specified in `options`, they will override the channel config values.
+**Note:** If `parse_mode` or `disable_notification` are specified in `options`, they will override the values derived from `bodyFormat` or channel configuration.
 
 
 ### Telegram Limits
@@ -462,12 +508,12 @@ When `idempotencyKey` is provided:
 
 ## Content Conversion
 
-Supported conversions:
+The microservice supports content format conversion between:
 
 - HTML → Markdown, Plain Text
 - Markdown → HTML, Plain Text
 
-When `convertBody: true` (default), body is converted to platform's preferred format.
+**Note:** For Telegram, body content is **not converted** - it is sent as-is to the Telegram API. The `bodyFormat` field simply maps to the appropriate `parse_mode` parameter. Content conversion may be used by other platform providers in the future.
 
 ---
 
@@ -501,9 +547,6 @@ channels:
     auth:
       botToken: ${MY_TELEGRAM_TOKEN}
       chatId: "@my_channel"
-    parseMode: HTML
-    convertBody: true
-    bodyFormat: html
 ```
 
 Environment variables are substituted using `${VAR_NAME}` syntax.

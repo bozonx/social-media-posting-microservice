@@ -82,16 +82,14 @@ interface PostRequest {
   
   /**
    * Формат исходного контента в поле body
+   * Для Telegram: body отправляется как есть, bodyFormat маппится в parse_mode
+   * - text → без parse_mode (обычный текст)
+   * - html → parse_mode: HTML
+   * - md → parse_mode: Markdown
    * @default "text"
-   * @example "html" | "md" | "text"
+   * @example "text" | "html" | "md"
    */
   bodyFormat?: BodyFormat;
-  
-  /**
-   * Автоматически конвертировать body в формат, требуемый соц. сетью
-   * @default true
-   */
-  convertBody?: boolean;
   
   /**
    * Заголовок публикации (для платформ, требующих отдельный заголовок)
@@ -488,9 +486,6 @@ common:
   
   # Таймаут входящего запроса к микросервису (сек)
   incomingRequestTimeoutSecs: 60
-
-  # Автоматическая конвертация body (по умолчанию)
-  convertBody: true
   
   # Количество попыток при ошибке
   retryAttempts: 3
@@ -529,10 +524,7 @@ channels:
       botToken: your_bot_token_here
       chatId: @your_channel_username
     options:
-      parseMode: HTML
       disableNotification: false
-      convertBody: true
-      bodyFormat: html
     limits:
       maxTextLength: 4096
       maxCaptionLength: 1024
@@ -624,9 +616,7 @@ interface TelegramAdditional {
   "channel": "company_telegram",
   "body": "<b>Привет!</b> Это тестовый пост с <a href='https://example.com'>ссылкой</a>",
   "bodyFormat": "html",
-  "convertBody": false,
   "options": {
-    "parseMode": "HTML",
     "disableNotification": false,
     "inlineKeyboard": [
       [
@@ -661,12 +651,19 @@ interface TelegramAdditional {
 
 ### 6.3. Логика конвертации
 
-1. Если `convertBody = false`, контент передается как есть
-2. Если `convertBody = true`:
-   - Определяется требуемый формат для платформы
-   - Выполняется конвертация из `bodyType` в требуемый формат
-   - Применяются ограничения платформы (длина текста)
-   - Применяется санитизация (если требуется)
+**Для Telegram:**
+- Body контент **не конвертируется** и отправляется как есть
+- Поле `bodyFormat` напрямую маппится в параметр `parse_mode` Telegram API:
+  - `text` → без `parse_mode` (обычный текст)
+  - `html` → `parse_mode: "HTML"`
+  - `md` → `parse_mode: "Markdown"`
+- Для использования `MarkdownV2` пользователь должен указать `bodyFormat: "md"` и добавить `parse_mode: "MarkdownV2"` в поле `options`
+- Если `parse_mode` указан в `options`, он переопределяет автоматический маппинг из `bodyFormat`
+
+**Для других платформ (будущие версии):**
+- Возможна реализация автоматической конвертации между форматами
+- Применение ограничений платформы (длина текста)
+- Санитизация контента (если требуется)
 
 ---
 

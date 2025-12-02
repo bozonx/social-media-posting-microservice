@@ -7,7 +7,7 @@ import {
   PreviewResponseDto,
   PreviewErrorResponseDto,
 } from '../../post/dto/index.js';
-import { ConverterService } from '../../converter/converter.service.js';
+
 import { MediaService } from '../../media/media.service.js';
 import { MediaInputHelper } from '../../../common/helpers/media-input.helper.js';
 import { AmbiguousMediaValidator } from '../../../common/validators/ambiguous-media.validator.js';
@@ -16,10 +16,7 @@ import { TelegramBotCache } from './telegram-bot-cache.service.js';
 import type { ChannelConfig } from '../../app-config/interfaces/app-config.interface.js';
 
 export interface TelegramChannelConfig extends ChannelConfig {
-  parseMode?: 'HTML' | 'Markdown' | 'MarkdownV2';
   disableNotification?: boolean;
-  convertBody?: boolean;
-  bodyFormat?: string;
   maxTextLength?: number;
   maxCaptionLength?: number;
 }
@@ -38,17 +35,15 @@ export class TelegramProvider implements IProvider {
   ];
 
   private readonly logger = new Logger(TelegramProvider.name);
-  private readonly DEFAULT_PARSE_MODE = 'HTML';
   private readonly MAX_CAPTION_LENGTH = 1024;
   private readonly MAX_TEXT_LENGTH = 4096;
   private readonly MAX_MEDIA_GROUP_SIZE = 10;
 
   constructor(
-    private readonly converterService: ConverterService,
     private readonly mediaService: MediaService,
     private readonly typeDetector: TelegramTypeDetector,
     private readonly botCache: TelegramBotCache,
-  ) {}
+  ) { }
 
   async publish(
     request: PostRequestDto,
@@ -242,39 +237,47 @@ export class TelegramProvider implements IProvider {
     return { errors, warnings, actualType };
   }
 
+  /**
+   * Prepares message data for sending to Telegram.
+   * Maps bodyFormat to parse_mode without converting the body content.
+   * Body is sent as-is to Telegram API.
+   */
   private prepareMessageData(request: PostRequestDto, channelConfig: TelegramChannelConfig) {
-    const shouldConvert = request.convertBody ?? channelConfig.convertBody ?? true;
-    const targetFormat = this.getTargetBodyFormat(channelConfig.parseMode);
-    const sourceFormat = request.bodyFormat || BodyFormat.TEXT;
+    const processedBody = request.body;
 
-    let processedBody = request.body;
-    if (shouldConvert && sourceFormat !== targetFormat) {
-      processedBody = this.converterService.convert(request.body, sourceFormat, targetFormat);
+    // Map bodyFormat to Telegram parse_mode
+    // text → no parse_mode (plain text)
+    // html → parse_mode: HTML
+    // md → parse_mode: Markdown
+    let parseMode: string | undefined;
+    const bodyFormat = request.bodyFormat || BodyFormat.TEXT;
+
+    if (bodyFormat === BodyFormat.HTML) {
+      parseMode = 'HTML';
+    } else if (bodyFormat === BodyFormat.MARKDOWN) {
+      parseMode = 'Markdown';
     }
+    // For TEXT or any other format, parseMode remains undefined (plain text)
 
-    if (channelConfig.parseMode === 'HTML' && targetFormat === BodyFormat.HTML) {
-      processedBody = this.converterService.sanitizeHtml(processedBody);
-    }
-
-    const options = request.options || {};
-    // parseMode and disableNotification can be in options or in channel config
-    // If in options, they will override the values we pass separately
-    const parseMode = channelConfig.parseMode || this.DEFAULT_PARSE_MODE;
     const disableNotification = channelConfig.disableNotification ?? false;
 
-    return { processedBody, targetFormat, parseMode, disableNotification, options };
+    // Options are passed directly to Telegram API
+    // If parse_mode is specified in options, it will override our mapping
+    const options = request.options || {};
+
+    return { processedBody, targetFormat: bodyFormat, parseMode, disableNotification, options };
   }
 
   private async sendMessage(
     bot: Bot,
     chatId: string,
     text: string,
-    parseMode: string,
+    parseMode: string | undefined,
     disableNotification: boolean,
     options: any,
   ) {
     return await bot.api.sendMessage(chatId, text, {
-      parse_mode: parseMode as any,
+      ...(parseMode && { parse_mode: parseMode as any }),
       disable_notification: disableNotification,
       ...options,
     });
@@ -285,7 +288,7 @@ export class TelegramProvider implements IProvider {
     chatId: string,
     cover: any,
     caption: string,
-    parseMode: string,
+    parseMode: string | undefined,
     disableNotification: boolean,
     options: any,
   ) {
@@ -294,7 +297,7 @@ export class TelegramProvider implements IProvider {
 
     return await bot.api.sendPhoto(chatId, photo, {
       caption,
-      parse_mode: parseMode as any,
+      ...(parseMode && { parse_mode: parseMode as any }),
       disable_notification: disableNotification,
       has_spoiler: hasSpoiler,
       ...options,
@@ -306,7 +309,7 @@ export class TelegramProvider implements IProvider {
     chatId: string,
     video: any,
     caption: string,
-    parseMode: string,
+    parseMode: string | undefined,
     disableNotification: boolean,
     options: any,
   ) {
@@ -315,7 +318,7 @@ export class TelegramProvider implements IProvider {
 
     return await bot.api.sendVideo(chatId, videoInput, {
       caption,
-      parse_mode: parseMode as any,
+      ...(parseMode && { parse_mode: parseMode as any }),
       disable_notification: disableNotification,
       has_spoiler: hasSpoiler,
       ...options,
@@ -327,7 +330,7 @@ export class TelegramProvider implements IProvider {
     chatId: string,
     audio: any,
     caption: string,
-    parseMode: string,
+    parseMode: string | undefined,
     disableNotification: boolean,
     options: any,
   ) {
@@ -335,7 +338,7 @@ export class TelegramProvider implements IProvider {
 
     return await bot.api.sendAudio(chatId, audioInput, {
       caption,
-      parse_mode: parseMode as any,
+      ...(parseMode && { parse_mode: parseMode as any }),
       disable_notification: disableNotification,
       ...options,
     });
@@ -346,7 +349,7 @@ export class TelegramProvider implements IProvider {
     chatId: string,
     document: any,
     caption: string,
-    parseMode: string,
+    parseMode: string | undefined,
     disableNotification: boolean,
     options: any,
   ) {
@@ -354,7 +357,7 @@ export class TelegramProvider implements IProvider {
 
     return await bot.api.sendDocument(chatId, documentInput, {
       caption,
-      parse_mode: parseMode as any,
+      ...(parseMode && { parse_mode: parseMode as any }),
       disable_notification: disableNotification,
       ...options,
     });
@@ -365,7 +368,7 @@ export class TelegramProvider implements IProvider {
     chatId: string,
     media: any[],
     caption: string,
-    parseMode: string,
+    parseMode: string | undefined,
     disableNotification: boolean,
   ) {
     const mediaGroup = media.slice(0, this.MAX_MEDIA_GROUP_SIZE).map((item, index) => {
@@ -386,7 +389,7 @@ export class TelegramProvider implements IProvider {
         type: isVideo ? 'video' : 'photo',
         media: mediaInput,
         caption: index === 0 ? caption : undefined,
-        parse_mode: index === 0 ? (parseMode as any) : undefined,
+        ...(parseMode && index === 0 && { parse_mode: parseMode as any }),
         has_spoiler: hasSpoiler,
       } as any;
     });
@@ -538,18 +541,6 @@ export class TelegramProvider implements IProvider {
       warnings.push(`Fields ${ignoredFields.join(', ')} will be ignored for type '${type}'`);
     }
     return warnings;
-  }
-
-  private getTargetBodyFormat(parseMode?: string): BodyFormat {
-    switch (parseMode) {
-      case 'HTML':
-        return BodyFormat.HTML;
-      case 'Markdown':
-      case 'MarkdownV2':
-        return BodyFormat.MARKDOWN;
-      default:
-        return BodyFormat.TEXT;
-    }
   }
 
   private getLimits(type: PostType, channelConfig?: any): { maxLength: number } {

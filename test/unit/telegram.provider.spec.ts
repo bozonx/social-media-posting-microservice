@@ -26,7 +26,7 @@ jest.unstable_mockModule('grammy', () => ({
 const { TelegramProvider } = await import('@/modules/providers/telegram/telegram.provider.js');
 type TelegramChannelConfig =
   import('@/modules/providers/telegram/telegram.provider.js').TelegramChannelConfig;
-const { ConverterService } = await import('@/modules/converter/converter.service.js');
+
 const { MediaService } = await import('@/modules/media/media.service.js');
 const { TelegramTypeDetector } =
   await import('@/modules/providers/telegram/telegram-type-detector.service.js');
@@ -35,7 +35,7 @@ const { TelegramBotCache } =
 
 describe('TelegramProvider', () => {
   let provider: TelegramProvider;
-  let converterService: ConverterService;
+
   let mediaService: MediaService;
 
   const mockChannelConfig: TelegramChannelConfig = {
@@ -45,10 +45,7 @@ describe('TelegramProvider', () => {
       botToken: 'test-token',
       chatId: 'test-chat-id',
     },
-    parseMode: 'HTML' as const,
     disableNotification: false,
-    convertBody: true,
-    bodyFormat: 'html',
   };
 
   const mockBotCache = {
@@ -63,13 +60,7 @@ describe('TelegramProvider', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TelegramProvider,
-        {
-          provide: ConverterService,
-          useValue: {
-            convert: jest.fn(content => content),
-            sanitizeHtml: jest.fn(content => content),
-          },
-        },
+
         {
           provide: MediaService,
           useValue: {
@@ -91,7 +82,7 @@ describe('TelegramProvider', () => {
     }).compile();
 
     provider = module.get<TelegramProvider>(TelegramProvider);
-    converterService = module.get<ConverterService>(ConverterService);
+
     mediaService = module.get<MediaService>(MediaService);
 
     // Reset mocks before each test
@@ -151,7 +142,6 @@ describe('TelegramProvider', () => {
       });
 
       expect(mockApi.sendMessage).toHaveBeenCalledWith('test-chat-id', 'Test message', {
-        parse_mode: 'HTML',
         disable_notification: false,
       });
     });
@@ -172,37 +162,38 @@ describe('TelegramProvider', () => {
       expect(mockApi.sendMessage).toHaveBeenCalledWith(
         'test-chat-id',
         longBody,
-        expect.objectContaining({ parse_mode: 'HTML' }),
+        expect.objectContaining({ disable_notification: false }),
       );
     });
 
-    it('should convert body format when requested', async () => {
+    it('should send body as-is without conversion and map bodyFormat to parse_mode', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',
-        body: '# Markdown header',
+        body: '**Markdown** text',
         bodyFormat: BodyFormat.MARKDOWN,
         type: PostType.POST,
       };
 
       mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
 
-      (converterService.convert as jest.Mock).mockReturnValue('<h1>Markdown header</h1>');
-
       await provider.publish(request, mockChannelConfig);
 
-      expect(converterService.convert).toHaveBeenCalledWith(
-        '# Markdown header',
-        BodyFormat.MARKDOWN,
-        BodyFormat.HTML,
+      // Body should not be converted
+
+
+      // parse_mode should be Markdown
+      expect(mockApi.sendMessage).toHaveBeenCalledWith(
+        'test-chat-id',
+        '**Markdown** text',
+        expect.objectContaining({ parse_mode: 'Markdown' }),
       );
-      expect(converterService.sanitizeHtml).toHaveBeenCalled();
     });
 
-    it('should not convert body when convertBody is false', async () => {
+    it('should send HTML body as-is and set parse_mode to HTML', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',
-        body: 'Test message',
-        convertBody: false,
+        body: '<b>HTML</b> text',
+        bodyFormat: BodyFormat.HTML,
         type: PostType.POST,
       };
 
@@ -210,7 +201,14 @@ describe('TelegramProvider', () => {
 
       await provider.publish(request, mockChannelConfig);
 
-      expect(converterService.convert).not.toHaveBeenCalled();
+
+
+
+      expect(mockApi.sendMessage).toHaveBeenCalledWith(
+        'test-chat-id',
+        '<b>HTML</b> text',
+        expect.objectContaining({ parse_mode: 'HTML' }),
+      );
     });
 
     it('should use platform-specific parameters', async () => {
@@ -235,9 +233,8 @@ describe('TelegramProvider', () => {
       await provider.publish(request, mockChannelConfig);
 
       expect(mockApi.sendMessage).toHaveBeenCalledWith('test-chat-id', 'Test message', {
-        parse_mode: 'HTML', // from channel config
-        disable_notification: false, // from channel config
-        // All options from request.options are spread here
+        disable_notification: false,
+        // All options from request.options are spread here and override defaults
         ...request.options,
       });
     });
@@ -271,6 +268,7 @@ describe('TelegramProvider', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Image caption',
+        bodyFormat: BodyFormat.HTML,
         cover: 'https://example.com/image.jpg',
         type: PostType.IMAGE,
       };
@@ -311,6 +309,7 @@ describe('TelegramProvider', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Video caption',
+        bodyFormat: BodyFormat.HTML,
         video: 'https://example.com/video.mp4',
         type: PostType.VIDEO,
       };
@@ -351,6 +350,7 @@ describe('TelegramProvider', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Album caption',
+        bodyFormat: BodyFormat.HTML,
         media: [
           'https://example.com/image1.jpg',
           'https://example.com/image2.jpg',
@@ -386,14 +386,12 @@ describe('TelegramProvider', () => {
             type: 'photo',
             media: 'https://example.com/image2.jpg',
             caption: undefined,
-            parse_mode: undefined,
             has_spoiler: false,
           },
           {
             type: 'video',
             media: 'https://example.com/video.mp4',
             caption: undefined,
-            parse_mode: undefined,
             has_spoiler: false,
           },
         ],
@@ -420,6 +418,7 @@ describe('TelegramProvider', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Document caption',
+        bodyFormat: BodyFormat.HTML,
         document: 'https://example.com/document.pdf',
         type: PostType.DOCUMENT,
       };
@@ -461,6 +460,7 @@ describe('TelegramProvider', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Audio caption',
+        bodyFormat: BodyFormat.HTML,
         audio: 'https://example.com/audio.mp3',
         type: PostType.AUDIO,
       };
@@ -606,27 +606,7 @@ describe('TelegramProvider', () => {
     });
   });
 
-  describe('getTargetBodyFormat', () => {
-    it('should return HTML for HTML parse mode', () => {
-      const format = (provider as any).getTargetBodyFormat('HTML');
-      expect(format).toBe(BodyFormat.HTML);
-    });
 
-    it('should return MARKDOWN for Markdown parse mode', () => {
-      const format = (provider as any).getTargetBodyFormat('Markdown');
-      expect(format).toBe(BodyFormat.MARKDOWN);
-    });
-
-    it('should return MARKDOWN for MarkdownV2 parse mode', () => {
-      const format = (provider as any).getTargetBodyFormat('MarkdownV2');
-      expect(format).toBe(BodyFormat.MARKDOWN);
-    });
-
-    it('should return TEXT by default', () => {
-      const format = (provider as any).getTargetBodyFormat(undefined);
-      expect(format).toBe(BodyFormat.TEXT);
-    });
-  });
 
   describe('buildPostUrl', () => {
     it('should build URL for public channels', () => {

@@ -41,10 +41,7 @@ export class PostRequestDto {
   @IsEnum(BodyFormat)
   bodyFormat?: BodyFormat = BodyFormat.TEXT;
 
-  /** Whether to convert body to platform's preferred format */
-  @IsOptional()
-  @IsBoolean()
-  convertBody?: boolean;
+
 
   /** Post title (used by platforms that support it) */
   @IsOptional()

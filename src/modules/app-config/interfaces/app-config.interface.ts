@@ -6,7 +6,7 @@ export interface AppConfig {
   common: {
     providerTimeoutSecs?: number;
     incomingRequestTimeoutSecs: number;
-    convertBody: boolean;
+
     retryAttempts: number;
     retryDelayMs: number;
     idempotencyTtlMinutes: number;

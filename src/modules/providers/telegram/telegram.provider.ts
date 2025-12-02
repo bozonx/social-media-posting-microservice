@@ -48,7 +48,7 @@ export class TelegramProvider implements IProvider {
     private readonly mediaService: MediaService,
     private readonly typeDetector: TelegramTypeDetector,
     private readonly botCache: TelegramBotCache,
-  ) {}
+  ) { }
 
   async publish(
     request: PostRequestDto,
@@ -257,9 +257,10 @@ export class TelegramProvider implements IProvider {
     }
 
     const options = request.options || {};
-    const parseMode = options.parseMode || channelConfig.parseMode || this.DEFAULT_PARSE_MODE;
-    const disableNotification =
-      options.disableNotification ?? channelConfig.disableNotification ?? false;
+    // parseMode and disableNotification can be in options or in channel config
+    // If in options, they will override the values we pass separately
+    const parseMode = channelConfig.parseMode || this.DEFAULT_PARSE_MODE;
+    const disableNotification = channelConfig.disableNotification ?? false;
 
     return { processedBody, targetFormat, parseMode, disableNotification, options };
   }
@@ -275,12 +276,7 @@ export class TelegramProvider implements IProvider {
     return await bot.api.sendMessage(chatId, text, {
       parse_mode: parseMode as any,
       disable_notification: disableNotification,
-      reply_markup: options.inlineKeyboard
-        ? { inline_keyboard: options.inlineKeyboard }
-        : undefined,
-      link_preview_options: options.disableWebPagePreview ? { is_disabled: true } : undefined,
-      reply_to_message_id: options.replyToMessageId,
-      protect_content: options.protectContent,
+      ...options,
     });
   }
 
@@ -301,10 +297,7 @@ export class TelegramProvider implements IProvider {
       parse_mode: parseMode as any,
       disable_notification: disableNotification,
       has_spoiler: hasSpoiler,
-      reply_markup: options.inlineKeyboard
-        ? { inline_keyboard: options.inlineKeyboard }
-        : undefined,
-      protect_content: options.protectContent,
+      ...options,
     });
   }
 
@@ -325,7 +318,7 @@ export class TelegramProvider implements IProvider {
       parse_mode: parseMode as any,
       disable_notification: disableNotification,
       has_spoiler: hasSpoiler,
-      protect_content: options.protectContent,
+      ...options,
     });
   }
 
@@ -344,7 +337,7 @@ export class TelegramProvider implements IProvider {
       caption,
       parse_mode: parseMode as any,
       disable_notification: disableNotification,
-      protect_content: options.protectContent,
+      ...options,
     });
   }
 
@@ -363,7 +356,7 @@ export class TelegramProvider implements IProvider {
       caption,
       parse_mode: parseMode as any,
       disable_notification: disableNotification,
-      protect_content: options.protectContent,
+      ...options,
     });
   }
 

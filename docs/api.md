@@ -38,7 +38,7 @@ Publish content to a social media platform.
 | `audio` | MediaInput | No | Audio file |
 | `document` | MediaInput | No | Document file |
 | `media` | MediaInput[] | No | Media array for albums (2-10 items) |
-| `options` | object | No | Platform-specific options |
+| `options` | object | No | Platform-specific options (passed directly to provider API) |
 | `tags` | string[] | No | Tags/hashtags |
 | `scheduledAt` | string | No | Scheduled time (ISO 8601) |
 | `postLanguage` | string | No | Content language code |
@@ -223,16 +223,38 @@ When `type` is `auto` (default), the type is detected by priority:
 
 ### Platform Options
 
+The `options` field accepts platform-specific parameters that are passed directly to the Telegram Bot API without transformation. Use the exact field names from the [Telegram Bot API documentation](https://core.telegram.org/bots/api).
+
+Common options:
+
 ```typescript
 {
-  "parseMode": "HTML" | "Markdown" | "MarkdownV2",
-  "disableNotification": boolean,
-  "disableWebPagePreview": boolean,
-  "protectContent": boolean,
-  "replyToMessageId": number,
-  "inlineKeyboard": InlineKeyboardButton[][]
+  "parse_mode": "HTML" | "Markdown" | "MarkdownV2",
+  "disable_notification": boolean,
+  "disable_web_page_preview": boolean,  // deprecated, use link_preview_options
+  "link_preview_options": {
+    "is_disabled": boolean,
+    "url": string,
+    "prefer_small_media": boolean,
+    "prefer_large_media": boolean,
+    "show_above_text": boolean
+  },
+  "protect_content": boolean,
+  "reply_to_message_id": number,
+  "reply_markup": {
+    "inline_keyboard": [[{
+      "text": string,
+      "url"?: string,
+      "callback_data"?: string,
+      "web_app"?: { "url": string },
+      // ... other button types
+    }]]
+  }
 }
 ```
+
+**Note:** Fields like `parse_mode` and `disable_notification` can also be set in the channel configuration. If specified in `options`, they will override the channel config values.
+
 
 ### Telegram Limits
 
@@ -362,7 +384,12 @@ curl -X POST http://localhost:8080/api/v1/post \
     "channel": "my_channel",
     "body": "Check our website!",
     "options": {
-      "inlineKeyboard": [[{"text": "Visit", "url": "https://example.com"}]]
+      "reply_markup": {
+        "inline_keyboard": [
+          [{"text": "Visit", "url": "https://example.com"}],
+          [{"text": "Contact", "callback_data": "contact"}]
+        ]
+      }
     }
   }'
 ```

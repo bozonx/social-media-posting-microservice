@@ -147,10 +147,6 @@ describe('TelegramProvider', () => {
       expect(mockApi.sendMessage).toHaveBeenCalledWith('test-chat-id', 'Test message', {
         parse_mode: 'HTML',
         disable_notification: false,
-        reply_markup: undefined,
-        link_preview_options: undefined,
-        reply_to_message_id: undefined,
-        protect_content: undefined,
       });
     });
 
@@ -217,12 +213,14 @@ describe('TelegramProvider', () => {
         body: 'Test message',
         type: PostType.POST,
         options: {
-          parseMode: 'Markdown',
-          disableNotification: true,
-          disableWebPagePreview: true,
-          replyToMessageId: 999,
-          protectContent: true,
-          inlineKeyboard: [[{ text: 'Button', url: 'https://example.com' }]],
+          parse_mode: 'Markdown',
+          disable_notification: true,
+          link_preview_options: { is_disabled: true },
+          reply_to_message_id: 999,
+          protect_content: true,
+          reply_markup: {
+            inline_keyboard: [[{ text: 'Button', url: 'https://example.com' }]],
+          },
         },
       };
 
@@ -231,14 +229,10 @@ describe('TelegramProvider', () => {
       await provider.publish(request, mockChannelConfig);
 
       expect(mockApi.sendMessage).toHaveBeenCalledWith('test-chat-id', 'Test message', {
-        parse_mode: 'Markdown',
-        disable_notification: true,
-        link_preview_options: { is_disabled: true },
-        reply_to_message_id: 999,
-        protect_content: true,
-        reply_markup: {
-          inline_keyboard: [[{ text: 'Button', url: 'https://example.com' }]],
-        },
+        parse_mode: 'HTML', // from channel config
+        disable_notification: false, // from channel config
+        // All options from request.options are spread here
+        ...request.options,
       });
     });
 
@@ -288,7 +282,6 @@ describe('TelegramProvider', () => {
           caption: 'Image caption',
           parse_mode: 'HTML',
           disable_notification: false,
-          reply_markup: undefined,
           has_spoiler: false,
         }),
       );

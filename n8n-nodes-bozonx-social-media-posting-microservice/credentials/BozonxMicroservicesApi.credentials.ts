@@ -36,4 +36,11 @@ export class BozonxMicroservicesApi implements ICredentialType {
 			},
 		},
 	};
+
+	test: ICredentialType['test'] = {
+		request: {
+			baseURL: '={{$credentials.gatewayUrl}}',
+			url: '/api/v1/health',
+		},
+	};
 }

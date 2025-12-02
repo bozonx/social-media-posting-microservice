@@ -332,7 +332,7 @@ export class BozonxPost implements INodeType {
 				>;
 
 				// Build request body
-				const requestBody: Record<string, any> = {
+				const requestBody: IDataObject = {
 					platform,
 					body,
 				};
@@ -440,7 +440,7 @@ export class BozonxPost implements INodeType {
 						}
 					} else {
 						returnData.push({
-							json: response.data || response,
+							json: (response.data || response) as IDataObject,
 							pairedItem: { item: i },
 						});
 					}
@@ -466,7 +466,7 @@ export class BozonxPost implements INodeType {
 						}
 					} else {
 						returnData.push({
-							json: (response.data || response) as Record<string, unknown>,
+							json: (response.data || response) as IDataObject,
 							pairedItem: { item: i },
 						});
 					}

@@ -60,7 +60,7 @@ export class BozonxPost implements INodeType {
 		outputs: ['main'],
 		credentials: [
 			{
-				name: 'bozonxMicroservicesApi',
+				name: 'bozonxSocialMediaPostingApi',
 				required: true,
 			},
 		],
@@ -340,7 +340,7 @@ export class BozonxPost implements INodeType {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
 
-		const credentials = await this.getCredentials('bozonxMicroservicesApi');
+		const credentials = await this.getCredentials('bozonxSocialMediaPostingApi');
 		const baseUrl = (credentials.baseUrl as string).replace(/\/$/, '');
 
 		for (let i = 0; i < items.length; i++) {
@@ -432,7 +432,7 @@ export class BozonxPost implements INodeType {
 				try {
 					response = await this.helpers.httpRequestWithAuthentication.call(
 						this,
-						'bozonxMicroservicesApi',
+						'bozonxSocialMediaPostingApi',
 						{
 							method: 'POST',
 							url: `${baseUrl}${endpoint}`,

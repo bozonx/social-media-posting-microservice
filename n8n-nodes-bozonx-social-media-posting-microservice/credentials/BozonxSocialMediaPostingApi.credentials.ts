@@ -1,7 +1,7 @@
 import type { ICredentialType, INodeProperties, Icon } from 'n8n-workflow';
 
-export class BozonxMicroservicesApi implements ICredentialType {
-	name = 'bozonxMicroservicesApi';
+export class BozonxSocialMediaPostingApi implements ICredentialType {
+	name = 'bozonxSocialMediaPostingApi';
 	displayName = 'Social Media Posting API';
 
 	documentationUrl =

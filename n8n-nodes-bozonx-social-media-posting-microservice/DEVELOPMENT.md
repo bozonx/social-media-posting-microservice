@@ -18,7 +18,7 @@ pnpm build
 │   ├── BozonxPost.node.ts    # Main node implementation
 │   └── post.svg               # Node icon
 ├── credentials/
-│   └── BozonxMicroservicesApi.credentials.ts
+│   └── BozonxSocialMediaPostingApi.credentials.ts
 ├── dist/                      # Build output
 ├── package.json
 ├── tsconfig.json

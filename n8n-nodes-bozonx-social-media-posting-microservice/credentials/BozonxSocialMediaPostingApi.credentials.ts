@@ -12,7 +12,7 @@ export class BozonxSocialMediaPostingApi implements ICredentialType {
 			displayName: 'Base URL',
 			name: 'baseUrl',
 			type: 'string',
-			default: 'https://social-media-posting.example.com/api/v1',
+			default: 'https://social-media-posting-microservice:8080/api/v1',
 			placeholder: 'https://social-media-posting.example.com/api/v1',
 			required: true,
 			description:

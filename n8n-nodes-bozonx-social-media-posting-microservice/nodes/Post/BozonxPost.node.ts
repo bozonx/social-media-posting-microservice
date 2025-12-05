@@ -5,7 +5,7 @@ import type {
 	INodeTypeDescription,
 	IDataObject,
 } from 'n8n-workflow';
-import { NodeOperationError } from 'n8n-workflow';
+import { ApplicationError, NodeOperationError } from 'n8n-workflow';
 import * as yaml from 'js-yaml';
 
 function parsePlatformOptions(value: string): Record<string, unknown> {
@@ -17,14 +17,14 @@ function parsePlatformOptions(value: string): Record<string, unknown> {
 		try {
 			result = yaml.load(value);
 		} catch {
-			throw new Error('Platform Options must be valid JSON or YAML');
+			throw new ApplicationError('Platform Options must be valid JSON or YAML');
 		}
 	}
 
 	if (typeof result === 'object' && result !== null && !Array.isArray(result)) {
 		return result as Record<string, unknown>;
 	}
-	throw new Error('Platform Options must be an object');
+	throw new ApplicationError('Platform Options must be an object');
 }
 
 function parseMediaField(value: string): string | Record<string, unknown> | unknown[] {
@@ -52,7 +52,7 @@ export class BozonxPost implements INodeType {
 		version: 1.2,
 		subtitle: '={{$parameter["platform"]}}',
 		description:
-			'Publish content to social media platforms (Telegram, VK, Instagram) via Social Media Posting microservice',
+			'Publish content to social media platforms (Telegram, VK, Instagram) via Social Media Posting microservice.',
 		defaults: {
 			name: 'Social Media Post',
 		},
@@ -66,14 +66,6 @@ export class BozonxPost implements INodeType {
 		],
 		usableAsTool: true,
 		properties: [
-			{
-				displayName: 'Base Path',
-				name: 'basePath',
-				type: 'string',
-				default: 'post/api/v1',
-				description:
-					'API base path appended to the Gateway URL. Default: post/api/v1. Leading and trailing slashes are automatically handled.',
-			},
 			// Platform
 			{
 				displayName: 'Platform',
@@ -109,17 +101,17 @@ export class BozonxPost implements INodeType {
 				name: 'type',
 				type: 'options',
 				options: [
-					{ name: 'Auto Detect', value: 'auto' },
-					{ name: 'Text Post', value: 'post' },
-					{ name: 'Image', value: 'image' },
-					{ name: 'Video', value: 'video' },
 					{ name: 'Album', value: 'album' },
-					{ name: 'Audio', value: 'audio' },
-					{ name: 'Document', value: 'document' },
 					{ name: 'Article', value: 'article' },
+					{ name: 'Audio', value: 'audio' },
+					{ name: 'Auto Detect', value: 'auto' },
+					{ name: 'Document', value: 'document' },
+					{ name: 'Image', value: 'image' },
 					{ name: 'Poll', value: 'poll' },
 					{ name: 'Short Video', value: 'short' },
 					{ name: 'Story', value: 'story' },
+					{ name: 'Text Post', value: 'post' },
+					{ name: 'Video', value: 'video' },
 				],
 				default: 'auto',
 				description: 'Type of post to create',
@@ -215,7 +207,7 @@ export class BozonxPost implements INodeType {
 				},
 				placeholder: 'Add Authentication',
 				default: {},
-				description: 'Optional authentication. If not provided, uses config from microservice',
+				description: 'Optional authentication. If not provided, uses config from microservice.',
 				options: [
 					{
 						name: 'channel',
@@ -349,15 +341,11 @@ export class BozonxPost implements INodeType {
 		const returnData: INodeExecutionData[] = [];
 
 		const credentials = await this.getCredentials('bozonxMicroservicesApi');
-		const gatewayUrl = (credentials.gatewayUrl as string).replace(/\/$/, '');
-		const apiToken = credentials.apiToken as string | undefined;
+		const baseUrl = (credentials.baseUrl as string).replace(/\/$/, '');
 
 		for (let i = 0; i < items.length; i++) {
 			try {
-				const basePath = (this.getNodeParameter('basePath', i, 'post/api/v1') as string)
-					.replace(/^\/+/, '')
-					.replace(/\/+$/, '');
-				const endpoint = `/${basePath}/post`;
+				const endpoint = '/post';
 
 				const platform = this.getNodeParameter('platform', i) as string;
 				const body = this.getNodeParameter('body', i) as string;
@@ -436,23 +424,23 @@ export class BozonxPost implements INodeType {
 					'Content-Type': 'application/json',
 				};
 
-				if (apiToken) {
-					headers['Authorization'] = `Bearer ${apiToken}`;
-				}
-
 				let response: {
 					success?: boolean;
 					data?: Record<string, unknown>;
 					error?: Record<string, unknown>;
 				};
 				try {
-					response = await this.helpers.httpRequest({
-						method: 'POST',
-						url: `${gatewayUrl}${endpoint}`,
-						headers,
-						body: requestBody,
-						json: true,
-					});
+					response = await this.helpers.httpRequestWithAuthentication.call(
+						this,
+						'bozonxMicroservicesApi',
+						{
+							method: 'POST',
+							url: `${baseUrl}${endpoint}`,
+							headers,
+							body: requestBody,
+							json: true,
+						},
+					);
 				} catch (error: unknown) {
 					// Handle HTTP errors
 					const err = error as { response?: { body?: Record<string, unknown> }; message?: string };

@@ -56,9 +56,12 @@ curl http://localhost:8080/api/v1/health
 
 ### 2. Configure n8n Credentials
 
-1. In n8n, create a new **Bozonx Microservices API** credential
-2. Set **Gateway URL**: `http://localhost:8080` (without `/api/v1` suffix)
-3. Set **API Token** (optional, only if your microservice requires authentication)
+1. In n8n, create a new **Social Media Posting API** credential
+2. Set **Base URL**: `http://localhost:8080/api/v1` (full URL including `/api/v1` path)
+3. Set **Authentication**:
+   - **None**: No authentication (default)
+   - **Basic Auth**: Username and password
+   - **Bearer Token**: API token for Authorization header
 
 ### 3. Use the Node
 
@@ -108,7 +111,7 @@ Add the **Social Media Post** node to your workflow and configure:
 | **Audio** | Audio URL or MediaInput object | - |
 | **Document** | Document URL or MediaInput object | - |
 | **Media Array** | JSON array of media for albums (2-10 items) | - |
-| **Platform Options** | Platform-specific options as JSON object | - |
+| **Platform Options** | Platform-specific options as JSON or YAML object | - |
 | **Tags** | Comma-separated tags/hashtags | - |
 | **Post Language** | Content language code (e.g., en, ru) | - |
 | **Mode** | Publishing mode (publish, draft) | `publish` |
@@ -300,9 +303,10 @@ Enable **Continue On Fail** in node settings to handle errors gracefully without
    curl http://localhost:8080/api/v1/health
    # Expected: {"status":"ok"}
    ```
-2. Ensure **Gateway URL** does NOT include `/api/v1` suffix
+2. Ensure **Base URL** includes the full path (e.g., `http://localhost:8080/api/v1`)
 3. Check port 8080 is accessible from n8n container/instance
 4. Verify network connectivity (Docker networks, firewalls)
+5. If using authentication, verify credentials are correct
 
 ### Authentication Error
 

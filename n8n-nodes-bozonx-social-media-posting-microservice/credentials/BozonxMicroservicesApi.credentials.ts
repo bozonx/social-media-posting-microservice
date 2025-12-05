@@ -3,6 +3,7 @@ import type { ICredentialType, INodeProperties, Icon } from 'n8n-workflow';
 export class BozonxMicroservicesApi implements ICredentialType {
 	name = 'bozonxMicroservicesApi';
 	displayName = 'Social Media Posting API';
+
 	documentationUrl =
 		'https://github.com/bozonx/social-media-posting-microservice/tree/main/n8n-nodes-bozonx-social-media-posting-microservice#readme';
 	icon = 'file:../nodes/Post/post.svg' as unknown as Icon;

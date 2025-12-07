@@ -12,7 +12,7 @@ import pkg from '../package.json' with { type: 'json' };
 import { PostModule } from './modules/post/post.module.js';
 import { AppConfigModule } from './modules/app-config/app-config.module.js';
 import { PlatformsModule } from './modules/platforms/platforms.module.js';
-import { ConverterModule } from './modules/converter/converter.module.js';
+
 import { MediaModule } from './modules/media/media.module.js';
 
 @Module({

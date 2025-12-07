@@ -12,23 +12,19 @@
 # Maximum time to wait for a complete API request/response cycle
 incomingRequestTimeoutSecs: 60
 
-
-
 # Number of retry attempts on error
 # How many times to retry a failed request before giving up
 retryAttempts: 3
 
 # Delay between retry attempts (milliseconds)
 # Base delay before retrying a failed request
+# Note: Jitter for retry (±20%) is hardcoded in the implementation
+# Actual delay will be: retryDelayMs * random(0.8, 1.2)
 retryDelayMs: 1000
 
 # Time-to-live for idempotency records in cache (minutes)
 # How long to keep idempotency keys in cache to prevent duplicate posts
 idempotencyTtlMinutes: 10
-  
-  # Note: Jitter for retry (±20%) is hardcoded in the implementation
-  # Actual delay will be: retryDelayMs * random(0.8, 1.2)
-
 
 
 # ============================================

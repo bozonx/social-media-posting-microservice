@@ -32,7 +32,8 @@ export class TelegramAuthValidator implements IAuthValidator {
     }
 
     // Validate channelId
-    if (typeof channelId !== 'string' && typeof channelId !== 'number') {
+    const channelId = auth.channelId;
+    if (channelId !== undefined && typeof channelId !== 'string' && typeof channelId !== 'number') {
       errors.push("Field 'channelId' must be a string or number");
     }
 

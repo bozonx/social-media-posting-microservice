@@ -49,7 +49,7 @@ export class BozonxPost implements INodeType {
 		name: 'bozonxPost',
 		icon: 'file:post.svg',
 		group: ['transform'],
-		version: 1.2,
+		version: 1.3,
 		subtitle: '={{$parameter["platform"]}}',
 		description:
 			'Publish content to social media platforms (Telegram, VK, Instagram) via Social Media Posting microservice.',
@@ -83,6 +83,8 @@ export class BozonxPost implements INodeType {
 				name: 'channel',
 				type: 'string',
 				default: '',
+				placeholder: 'e.g., my-telegram-channel',
+				hint: 'Leave empty to configure platform and auth manually',
 				description:
 					'Channel name from microservice config.yaml. If specified, platform and auth are taken from server config.',
 			},

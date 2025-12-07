@@ -298,7 +298,7 @@ export class TelegramPlatform implements IPlatform {
 
   private async sendMessage(
     bot: Bot,
-    chatId: string,
+    chatId: string | number,
     text: string,
     parseMode: string | undefined,
     disableNotification: boolean,
@@ -313,7 +313,7 @@ export class TelegramPlatform implements IPlatform {
 
   private async sendPhoto(
     bot: Bot,
-    chatId: string,
+    chatId: string | number,
     cover: any,
     caption: string,
     parseMode: string | undefined,
@@ -334,7 +334,7 @@ export class TelegramPlatform implements IPlatform {
 
   private async sendVideo(
     bot: Bot,
-    chatId: string,
+    chatId: string | number,
     video: any,
     caption: string,
     parseMode: string | undefined,
@@ -355,7 +355,7 @@ export class TelegramPlatform implements IPlatform {
 
   private async sendAudio(
     bot: Bot,
-    chatId: string,
+    chatId: string | number,
     audio: any,
     caption: string,
     parseMode: string | undefined,
@@ -374,7 +374,7 @@ export class TelegramPlatform implements IPlatform {
 
   private async sendDocument(
     bot: Bot,
-    chatId: string,
+    chatId: string | number,
     document: any,
     caption: string,
     parseMode: string | undefined,
@@ -393,7 +393,7 @@ export class TelegramPlatform implements IPlatform {
 
   private async sendMediaGroup(
     bot: Bot,
-    chatId: string,
+    chatId: string | number,
     media: any[],
     caption: string,
     parseMode: string | undefined,

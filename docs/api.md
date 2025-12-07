@@ -25,25 +25,26 @@ Publish content to a social media platform.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `platform` | string | Yes | Platform name (`telegram`) |
-| `body` | string | Yes | Post content |
+| `body` | string | Yes | Post content (max length determined by `maxBody` or config default) |
 | `channel` | string | No* | Channel name from `config.yaml` |
 | `auth` | object | No* | Inline authentication credentials. See [Auth Field](#auth-field) below |
 | `type` | string | No | Post type (default: `auto`). See below |
-| `bodyFormat` | string | No | Body format: `text`, `html`, `md`, or platform-specific (e.g., `MarkdownV2`) (default: `text`) |
-| `title` | string | No | Post title (platform-specific) |
-| `description` | string | No | Post description (platform-specific) |
-| `cover` | MediaInput | No | Cover image |
-| `video` | MediaInput | No | Video file |
-| `audio` | MediaInput | No | Audio file |
-| `document` | MediaInput | No | Document file |
-| `media` | MediaInput[] | No | Media array for albums (2-10 items) |
+| `bodyFormat` | string | No | Body format: `text`, `html`, `md`, or platform-specific (e.g., `MarkdownV2`) (default: `text`, max 50 characters) |
+| `title` | string | No | Post title (platform-specific, max 1000 characters) |
+| `description` | string | No | Post description (platform-specific, max 2000 characters) |
+| `cover` | MediaInput | No | Cover image (URL/fileId max 500 characters) |
+| `video` | MediaInput | No | Video file (URL/fileId max 500 characters) |
+| `audio` | MediaInput | No | Audio file (URL/fileId max 500 characters) |
+| `document` | MediaInput | No | Document file (URL/fileId max 500 characters) |
+| `media` | MediaInput[] | No | Media array for albums (2-10 items, each URL/fileId max 500 characters) |
 | `options` | object | No | Platform-specific options (passed directly to platform API) |
 | `disableNotification` | boolean | No | Send message silently (defaults to config value) |
-| `tags` | string[] | No | Tags without # symbol. Passed as-is to supported platforms |
-| `scheduledAt` | string | No | Scheduled time (ISO 8601) |
-| `postLanguage` | string | No | Content language code. Passed as-is to supported platforms |
+| `tags` | string[] | No | Tags without # symbol. Passed as-is to supported platforms (max 200 items, each max 300 characters) |
+| `scheduledAt` | string | No | Scheduled time (ISO 8601, max 50 characters) |
+| `postLanguage` | string | No | Content language code. Passed as-is to supported platforms (max 50 characters) |
 | `mode` | string | No | Mode: `publish`, `draft`. Only for supported platforms |
-| `idempotencyKey` | string | No | Key to prevent duplicates |
+| `idempotencyKey` | string | No | Key to prevent duplicates (max 1000 characters) |
+| `maxBody` | number | No | Override default max body length (max 500,000 characters) |
 
 **Note:** Either `channel` or `auth` must be provided.
 
@@ -151,14 +152,15 @@ Media fields accept:
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `url` | string | Media file URL |
-| `fileId` | string | Telegram file_id (reuse uploaded files) |
+| `url` | string | Media file URL (max 500 characters) |
+| `fileId` | string | Telegram file_id (reuse uploaded files, max 500 characters) |
 | `hasSpoiler` | boolean | Hide under spoiler |
 
 **Notes:**
 - Either `url` or `fileId` must be provided in object format
 - If both `url` and `fileId` are present, `fileId` takes priority
 - String values are automatically detected as URL or file_id based on format
+- URL and fileId strings have a maximum length of 500 characters
 
 ### Success Response
 
@@ -414,12 +416,16 @@ Common options:
 
 ### Telegram Limits
 
+Telegram API enforces the following limits:
+
 | Type | Limit |
 |------|-------|
 | Text message | 4096 characters |
 | Caption | 1024 characters |
 | Album items | 2-10 files |
 | File size (URL) | 50 MB |
+
+**Note:** The microservice validates body length based on `maxBody` parameter (or `maxBodyDefault` from config, default 500,000 characters). Telegram's specific limits (4096 for text, 1024 for captions) are enforced by Telegram API itself.
 
 ### Ignored Fields
 

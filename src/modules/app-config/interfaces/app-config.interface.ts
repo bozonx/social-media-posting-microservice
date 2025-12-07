@@ -12,6 +12,8 @@ export interface AppConfig {
   retryDelayMs: number;
   /** Time-to-live for idempotency records in cache (minutes) */
   idempotencyTtlMinutes: number;
+  /** Default maximum body length (characters) */
+  maxBodyDefault: number;
 
   /** Default platform configurations */
   platforms: Record<string, PlatformDefaultConfig>;

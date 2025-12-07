@@ -7,6 +7,9 @@ import {
 } from 'class-validator';
 import { MediaInput } from '../types/media-input.type.js';
 
+/** Maximum length for URL and fileId strings */
+const MAX_MEDIA_STRING_LENGTH = 500;
+
 /**
  * Validator constraint for MediaInput type
  * Validates that a value is either a valid URL string or an object with url/fileId
@@ -16,8 +19,8 @@ export class IsMediaInputConstraint implements ValidatorConstraintInterface {
   /**
    * Validates MediaInput value
    * Accepts:
-   * - A string (URL or Telegram file_id)
-   * - An object with url/fileId properties
+   * - A string (URL or Telegram file_id, max 500 characters)
+   * - An object with url/fileId properties (max 500 characters each)
    * @param value - Value to validate
    * @param args - Validation arguments
    * @returns True if valid, false otherwise
@@ -31,7 +34,8 @@ export class IsMediaInputConstraint implements ValidatorConstraintInterface {
     // If it's a string, accept both URLs and file_id
     // file_id is a non-empty string (e.g., "AgACAgIAAxkBAAIC...")
     if (typeof value === 'string') {
-      return value.trim().length > 0;
+      const trimmed = value.trim();
+      return trimmed.length > 0 && trimmed.length <= MAX_MEDIA_STRING_LENGTH;
     }
 
     // If it's an object, it should have either url or fileId
@@ -39,6 +43,14 @@ export class IsMediaInputConstraint implements ValidatorConstraintInterface {
       const hasUrl = typeof value.url === 'string';
       const hasFileId = typeof value.fileId === 'string';
       const hasSpoiler = value.hasSpoiler === undefined || typeof value.hasSpoiler === 'boolean';
+
+      // Validate string lengths
+      if (hasUrl && value.url.length > MAX_MEDIA_STRING_LENGTH) {
+        return false;
+      }
+      if (hasFileId && value.fileId.length > MAX_MEDIA_STRING_LENGTH) {
+        return false;
+      }
 
       // Must have at least url or fileId, and hasSpoiler must be boolean if present
       return (hasUrl || hasFileId) && hasSpoiler;
@@ -48,7 +60,7 @@ export class IsMediaInputConstraint implements ValidatorConstraintInterface {
   }
 
   defaultMessage(args: ValidationArguments) {
-    return 'MediaInput must be a string (URL or file_id) or an object with url/fileId and optional hasSpoiler boolean';
+    return `MediaInput must be a string (URL or file_id, max ${MAX_MEDIA_STRING_LENGTH} characters) or an object with url/fileId (max ${MAX_MEDIA_STRING_LENGTH} characters each) and optional hasSpoiler boolean`;
   }
 }
 
@@ -96,7 +108,7 @@ export class IsMediaInputArrayConstraint implements ValidatorConstraintInterface
   }
 
   defaultMessage(args: ValidationArguments) {
-    return 'Each item in media array must be a string (URL or file_id) or an object with url/fileId and optional hasSpoiler boolean';
+    return `Each item in media array must be a string (URL or file_id, max ${MAX_MEDIA_STRING_LENGTH} characters) or an object with url/fileId (max ${MAX_MEDIA_STRING_LENGTH} characters each) and optional hasSpoiler boolean`;
   }
 }
 

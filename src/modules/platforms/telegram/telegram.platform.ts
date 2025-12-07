@@ -17,8 +17,6 @@ import type { ChannelConfig } from '../../app-config/interfaces/app-config.inter
 
 export interface TelegramChannelConfig extends ChannelConfig {
   disableNotification?: boolean;
-  maxTextLength?: number;
-  maxCaptionLength?: number;
 }
 
 @Injectable()
@@ -186,13 +184,6 @@ export class TelegramPlatform implements IPlatform {
     }
 
     const { processedBody, targetFormat } = this.prepareMessageData(request, channelConfig);
-    const limits = this.getLimits(actualType, channelConfig);
-
-    if (processedBody.length > limits.maxLength) {
-      warnings.push(
-        `Body length (${processedBody.length}) exceeds platform limit (${limits.maxLength})`,
-      );
-    }
 
     return {
       success: true,
@@ -549,20 +540,6 @@ export class TelegramPlatform implements IPlatform {
     return warnings;
   }
 
-  private getLimits(type: PostType, channelConfig?: any): { maxLength: number } {
-    const isCaption =
-      type === PostType.IMAGE ||
-      type === PostType.VIDEO ||
-      type === PostType.AUDIO ||
-      type === PostType.DOCUMENT ||
-      type === PostType.ALBUM;
-
-    if (isCaption) {
-      return { maxLength: channelConfig?.maxCaptionLength ?? this.MAX_CAPTION_LENGTH };
-    }
-
-    return { maxLength: channelConfig?.maxTextLength ?? this.MAX_TEXT_LENGTH };
-  }
 
   private buildPostUrl(chatId: string | number, messageId: number): string | undefined {
     const chatIdStr = String(chatId);

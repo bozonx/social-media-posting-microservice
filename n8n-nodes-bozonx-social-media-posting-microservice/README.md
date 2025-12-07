@@ -1,43 +1,39 @@
 # n8n-nodes-bozonx-social-media-posting-microservice
 
-An n8n community node for publishing content to social media platforms via the [Social Media Posting microservice](https://github.com/bozonx/social-media-posting-microservice).
+N8N нода для публикации контента в социальные сети через микросервис [Social Media Posting](https://github.com/bozonx/social-media-posting-microservice).
 
-## Features
+## Возможности
 
-- **Multiple Platforms**: Telegram (VK, Instagram support coming soon)
-- **Multiple Post Types**: Text, image, video, audio, album, document, article, story, poll
-- **Flexible Authentication**: Use pre-configured channels from `config.yaml` or provide inline credentials
-- **MediaInput Support**: Upload by URL, reuse uploaded files with `fileId`, add spoiler effects
-- **Content Conversion**: Auto-convert between HTML, Markdown, and plain text formats
-- **Platform Options**: Customize with platform-specific options (inline keyboards, parse mode, notifications, etc.)
-- **Idempotency**: Prevent duplicate posts with idempotency keys (in-memory cache with configurable TTL)
-- **Error Handling**: Built-in retry logic for transient errors and continue-on-fail support
-- **Preview Mode**: Validate and preview posts without publishing to test content formatting
+- **Telegram** (VK, Instagram в разработке)
+- **Типы постов**: текст, изображение, видео, аудио, альбом, документ, статья, story, опрос
+- **Аутентификация**: через предконфигурированные каналы или inline-параметры
+- **Медиа**: загрузка по URL, повторное использование через `fileId`, спойлеры
+- **Форматы**: HTML, Markdown, plain text с автоконвертацией
+- **Идемпотентность**: предотвращение дубликатов через ключи
+- **Обработка ошибок**: автоповторы и continue-on-fail
 
-## Installation
+## Установка
 
-### Community Nodes (Recommended)
+### Community Nodes (рекомендуется)
 
-1. Go to **Settings** > **Community Nodes** in n8n
-2. Click **Install**
-3. Enter `n8n-nodes-bozonx-social-media-posting-microservice`
-4. Install and restart n8n
+1. **Settings** → **Community Nodes** → **Install**
+2. Введите: `n8n-nodes-bozonx-social-media-posting-microservice`
+3. Перезапустите n8n
 
-### Manual Installation
+### Вручную
 
 ```bash
 npm install n8n-nodes-bozonx-social-media-posting-microservice
 ```
 
-For Docker:
-
+Docker:
 ```dockerfile
 RUN npm install -g n8n-nodes-bozonx-social-media-posting-microservice
 ```
 
-## Quick Start
+## Быстрый старт
 
-### 1. Start the Microservice
+### 1. Запустите микросервис
 
 ```bash
 docker run -d \
@@ -47,88 +43,78 @@ docker run -d \
   bozonx/social-media-posting-microservice:latest
 ```
 
-Test the service:
-
+Проверьте:
 ```bash
 curl http://localhost:8080/api/v1/health
-# Expected: {"status":"ok"}
+# Ожидается: {"status":"ok"}
 ```
 
-### 2. Configure n8n Credentials
+### 2. Создайте credentials в n8n
 
-1. In n8n, create a new **Social Media Posting API** credential
-2. Set **Base URL**: `http://localhost:8080/api/v1` (full URL including `/api/v1` path)
-3. Set **Authentication**:
-   - **None**: No authentication (default)
-   - **Basic Auth**: Username and password
-   - **Bearer Token**: API token for Authorization header
+1. Создайте **Social Media Posting API** credential
+2. **Base URL**: `http://localhost:8080/api/v1` (полный путь с `/api/v1`)
+3. **Authentication**: None / Basic Auth / Bearer Token
 
-### 3. Use the Node
+### 3. Используйте ноду
 
-Add the **Social Media Post** node to your workflow and configure:
+#### С предконфигурированным каналом:
 
-#### Using Pre-configured Channel:
-
-- **Operation**: `Publish Post`
 - **Platform**: `Telegram`
-- **Authentication Mode**: `Use Channel from Config`
+- **Authentication**: `Use Channel from Config`
 - **Channel Name**: `my_channel`
 - **Post Content**: `Hello, world!`
 
-#### Using Inline Authentication:
+#### С inline-аутентификацией:
 
-- **Operation**: `Publish Post`
 - **Platform**: `Telegram`
-- **Authentication Mode**: `Use Inline Auth`
-- **Bot Token**: `123456:ABC...`
-- **Chat ID**: `@mychannel`
+- **Authentication**: `Use Inline Auth`
+  - **API Key**: `123456:ABC...` (bot token)
+  - **Chat ID**: `@mychannel`
 - **Post Content**: `Hello, world!`
 
-## Configuration
+## Параметры
 
-### Required Parameters
+### Основные
 
-| Parameter | Description | Values |
-|-----------|-------------|--------|
-| **Operation** | Action to perform | `Publish Post`, `Preview Post` |
-| **Platform** | Social media platform | `telegram` |
-| **Post Content** | Main content/body of the post | Any text (max 100,000 characters) |
-| **Authentication Mode** | How to authenticate | `Use Channel from Config`, `Use Inline Auth` |
+| Параметр | Описание | Значения |
+|----------|----------|----------|
+| **Platform** | Платформа | `telegram` |
+| **Post Content** | Текст поста | До 100,000 символов |
+| **Authentication** | Аутентификация | Channel / Inline Auth |
 
-**Note:** Either channel name (from microservice `config.yaml`) or inline credentials must be provided.
+### Дополнительные (Additional Options)
 
-### Additional Options
+| Параметр | Описание | По умолчанию |
+|----------|----------|--------------|
+| **Post Type** | Тип поста | `auto` |
+| **Body Format** | Формат текста | `text` |
+| **Disable Notification** | Без звука уведомления | `false` |
+| **Title** | Заголовок | - |
+| **Description** | Описание | - |
+| **Cover Image** | Обложка | - |
+| **Video** | Видео | - |
+| **Audio** | Аудио | - |
+| **Document** | Документ | - |
+| **Media Array** | Массив медиа для альбома | - |
+| **Platform Options** | Опции платформы (JSON/YAML) | - |
+| **Tags** | Теги через запятую | - |
+| **Post Language** | Код языка (en, ru) | - |
+| **Mode** | Режим публикации | `publish` |
+| **Scheduled At** | Время публикации (ISO 8601) | - |
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| **Post Type** | Type of post (auto, post, image, video, audio, album, document, article, short, story, poll) | `auto` |
-| **Body Format** | Format of post content (html, md, text) | `html` |
-| **Disable Notification** | Send message silently without notification sound | `false` |
-| **Convert Body Default** | Convert body to platform-specific format | `true` |
-| **Title** | Post title (platform-specific) | - |
-| **Description** | Post description (platform-specific) | - |
-| **Cover Image** | Cover image URL or MediaInput object | - |
-| **Video** | Video URL or MediaInput object | - |
-| **Audio** | Audio URL or MediaInput object | - |
-| **Document** | Document URL or MediaInput object | - |
-| **Media Array** | JSON array of media for albums (2-10 items) | - |
-| **Platform Options** | Platform-specific options as JSON or YAML object | - |
-| **Tags** | Comma-separated tags/hashtags | - |
-| **Post Language** | Content language code (e.g., en, ru) | - |
-| **Mode** | Publishing mode (publish, draft) | `publish` |
-| **Scheduled At** | Scheduled time (ISO 8601 format) | - |
-| **Idempotency Key** | Key to prevent duplicate posts | - |
+### Форматы медиа
 
-### MediaInput Format
-
-Media fields (`Cover Image`, `Video`, `Audio`, `Document`) accept either:
-
-**Simple URL string:**
+**URL строка:**
 ```
 https://example.com/image.jpg
 ```
 
-**JSON object with options:**
+**Telegram file_id строка:**
+```
+AgACAgIAAxkBAAIC...
+```
+
+**JSON объект:**
 ```json
 {
   "url": "https://example.com/image.jpg",
@@ -137,17 +123,27 @@ https://example.com/image.jpg
 }
 ```
 
-**Properties:**
-- `url` (string): Direct URL to media file
-- `fileId` (string): Telegram file_id to reuse previously uploaded files
-- `hasSpoiler` (boolean): Hide media under spoiler (Telegram only)
+**Свойства:**
+- `url`: URL медиафайла
+- `fileId`: Telegram file_id для повторного использования
+- `hasSpoiler`: Спойлер (только Telegram)
 
-**Note:** Either `url` or `fileId` must be provided. If both are present, `fileId` takes priority.
+**Media Array** (для альбомов, 2-10 элементов):
+```json
+["https://example.com/1.jpg", "https://example.com/2.jpg"]
+```
+
+или с объектами:
+```json
+[
+  {"url": "https://example.com/1.jpg"},
+  {"fileId": "AgACAgIAAxkBAAIC..."}
+]
+```
 
 ### Platform Options (Telegram)
 
-Provide as JSON object in the **Platform Options** field:
-
+JSON объект:
 ```json
 {
   "parseMode": "HTML",
@@ -155,245 +151,171 @@ Provide as JSON object in the **Platform Options** field:
   "disableWebPagePreview": false,
   "protectContent": false,
   "replyToMessageId": 123456,
-  "inlineKeyboard": [[{"text": "Visit", "url": "https://example.com"}]]
+  "inlineKeyboard": [[{"text": "Открыть", "url": "https://example.com"}]]
 }
 ```
 
-**Available options:**
-- `parseMode`: Text formatting mode (`HTML`, `Markdown`, `MarkdownV2`)
-- `disableNotification`: Send silently without notification
-- `disableWebPagePreview`: Disable link previews
-- `protectContent`: Restrict forwarding and saving
-- `replyToMessageId`: Reply to specific message
-- `inlineKeyboard`: Add inline buttons (array of button rows)
+**Опции:**
+- `parseMode`: `HTML`, `Markdown`, `MarkdownV2`
+- `disableNotification`: отправить без звука
+- `disableWebPagePreview`: отключить превью ссылок
+- `protectContent`: запретить пересылку
+- `replyToMessageId`: ответ на сообщение
+- `inlineKeyboard`: inline-кнопки
 
-## Usage Examples
+## Примеры
 
-### Text Post
+### Текстовый пост
 
 ```
-Operation: Publish Post
 Platform: Telegram
-Authentication Mode: Use Channel from Config
 Channel Name: my_channel
-Post Content: <b>Hello!</b> Test post
+Post Content: <b>Привет!</b> Тестовый пост
 Body Format: html
 ```
 
-### Image Post
+### Пост с изображением
 
 ```
-Operation: Publish Post
 Platform: Telegram
 Channel Name: my_channel
-Post Content: Check out this image!
+Post Content: Смотрите фото!
 Cover Image: https://example.com/image.jpg
 ```
 
-### Album
+### Альбом
 
 ```
-Operation: Publish Post
 Platform: Telegram
 Channel Name: my_channel
-Post Content: Photo gallery
-Media Array: ["https://example.com/photo1.jpg", "https://example.com/photo2.jpg"]
+Post Content: Фотогалерея
+Media Array: ["https://example.com/1.jpg", "https://example.com/2.jpg"]
 ```
 
-### Image with Spoiler
+### С file_id
 
 ```
-Operation: Publish Post
 Platform: Telegram
 Channel Name: my_channel
-Post Content: Sensitive content
-Cover Image: {"url": "https://example.com/image.jpg", "hasSpoiler": true}
+Post Content: Репост видео
+Video: BAACAgIAAxkBAAIC4mF9...
 ```
 
-### Using file_id
-
+или:
 ```
-Operation: Publish Post
-Platform: Telegram
-Channel Name: my_channel
-Post Content: Reposting video
 Video: {"fileId": "BAACAgIAAxkBAAIC4mF9..."}
 ```
 
-### With Inline Keyboard
+### С inline-кнопками
 
 ```
-Operation: Publish Post
 Platform: Telegram
 Channel Name: my_channel
-Post Content: Check our website!
-Platform Options: {"inlineKeyboard": [[{"text": "Visit", "url": "https://example.com"}]]}
+Post Content: Посетите наш сайт!
+Platform Options: {"inlineKeyboard": [[{"text": "Открыть", "url": "https://example.com"}]]}
 ```
 
-### Preview Mode
+### С идемпотентностью
 
 ```
-Operation: Preview Post
 Platform: Telegram
 Channel Name: my_channel
-Post Content: # Hello\n\nThis is **bold**
-Body Format: md
+Post Content: Важное сообщение
+Idempotency Key: unique-key-123
 ```
 
-Output:
+Повторный запрос с тем же ключом вернёт результат первой публикации без создания дубликата.
+
+## Обработка ошибок
+
+Включите **Continue On Fail** для продолжения workflow при ошибках.
+
+### Формат ответа с ошибкой
+
 ```json
 {
-  "valid": true,
-  "detectedType": "post",
-  "convertedBody": "<b>Hello</b>\n\nThis is <b>bold</b>",
-  "targetFormat": "html",
-  "convertedBodyLength": 41,
-  "warnings": []
-}
-```
-
-## Error Handling
-
-Enable **Continue On Fail** in node settings to handle errors gracefully without stopping workflow execution.
-
-### Error Response Format
-
-**Publish operation:**
-```json
-{
-  "error": "Error message",
+  "error": "Сообщение об ошибке",
   "code": "ERROR_CODE",
   "details": {},
   "requestId": "uuid-v4"
 }
 ```
 
-**Preview operation:**
-```json
-{
-  "valid": false,
-  "errors": ["Error message 1", "Error message 2"],
-  "warnings": [],
-  "code": "ERROR_CODE"
-}
-```
+### Коды ошибок
 
-### Common Error Codes
+| Код | Описание | Повтор |
+|-----|----------|--------|
+| `VALIDATION_ERROR` | Неверные параметры | Нет |
+| `AUTH_ERROR` | Ошибка аутентификации | Нет |
+| `PLATFORM_ERROR` | Ошибка API платформы | Зависит |
+| `TIMEOUT_ERROR` | Таймаут | Да |
+| `RATE_LIMIT_ERROR` | Превышен лимит | Да |
+| `INTERNAL_ERROR` | Внутренняя ошибка | Да |
 
-| Code | Description | Retry |
-|------|-------------|-------|
-| `VALIDATION_ERROR` | Invalid request parameters | No |
-| `AUTH_ERROR` | Authentication failed | No |
-| `PLATFORM_ERROR` | Platform API error | Depends |
-| `TIMEOUT_ERROR` | Request timeout | Yes |
-| `RATE_LIMIT_ERROR` | Rate limit exceeded | Yes |
-| `INTERNAL_ERROR` | Internal server error | Yes |
+Микросервис автоматически повторяет запросы при временных ошибках.
 
-**Note:** The microservice automatically retries transient errors (timeouts, 5xx, rate limits) based on `config.yaml` settings.
+## Устранение проблем
 
-## Troubleshooting
+### Нода не найдена после установки
+1. Перезапустите n8n полностью
+2. Проверьте **Settings** → **Community Nodes**
+3. Убедитесь в правильности имени пакета
 
-### Node Not Found After Installation
-1. Restart n8n completely
-2. Check **Settings** → **Community Nodes** for installation status
-3. Verify package name: `n8n-nodes-bozonx-social-media-posting-microservice`
-
-### Connection Error
-1. Verify microservice is running:
+### Ошибка подключения
+1. Проверьте доступность микросервиса:
    ```bash
    curl http://localhost:8080/api/v1/health
-   # Expected: {"status":"ok"}
    ```
-2. Ensure **Base URL** includes the full path (e.g., `http://localhost:8080/api/v1`)
-3. Check port 8080 is accessible from n8n container/instance
-4. Verify network connectivity (Docker networks, firewalls)
-5. If using authentication, verify credentials are correct
+2. **Base URL** должен включать `/api/v1`
+3. Проверьте доступность порта 8080
+4. Проверьте сеть (Docker networks, firewall)
 
-### Authentication Error
+### Ошибка аутентификации
 
-**Using Channel Mode:**
-- Verify channel name exists in microservice `config.yaml`
+**Channel Mode:**
+- Проверьте наличие канала в `config.yaml` микросервиса
+- Проверьте подстановку переменных окружения
 
-- Ensure environment variables are properly substituted
+**Inline Auth:**
+- Формат bot token: `123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11`
+- Формат chat ID: `@channelname` или `-100123456789`
+- Бот должен быть админом канала
+- Бот должен быть добавлен в канал
 
-**Using Inline Auth:**
-- Verify bot token format: `123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11`
-- Verify chat ID format: `@channelname` or `-100123456789`
-- Check bot has admin permissions in the channel
-- Ensure bot is added to the channel
+### Ошибка публикации
+1. Проверьте сообщение об ошибке
+2. Лимиты Telegram:
+   - Текст: 4096 символов
+   - Caption: 1024 символа
+   - Альбом: 2-10 элементов
+   - Размер файла: 50 MB (через URL)
+3. URL медиа должны быть публично доступны
+4. Проверьте поддерживаемые форматы (JPEG, PNG, MP4)
+5. Формат текста должен соответствовать содержимому
 
-### Publishing Error
-1. Review error message and code in node output
-2. Check platform-specific limits:
-   - Telegram text: 4096 characters
-   - Telegram caption: 1024 characters
-   - Telegram album: 2-10 items
-   - Telegram file size: 50 MB (via URL)
-3. Verify media URLs are publicly accessible
-4. Ensure media formats are supported (JPEG, PNG, MP4, etc.)
-5. Check body format matches content (HTML tags in HTML mode, etc.)
+## Конфигурация микросервиса
 
-### Preview Validation Fails
-- Review `errors` array in response
-- Check all required fields are provided
-- Verify media URLs are valid (format, not necessarily accessible)
-- Ensure `type: auto` doesn't have conflicting media fields
-
-## Development
-
-### Build
-
-```bash
-pnpm build
-```
-
-### Watch Mode
-
-```bash
-pnpm build:watch
-```
-
-### Lint
-
-```bash
-pnpm lint
-pnpm lint:fix
-```
-
-### Publish
-
-```bash
-pnpm publish:npm
-```
-
-## Microservice Configuration
-
-The microservice uses `config.yaml` for channel configuration. Example:
+Пример `config.yaml`:
 
 ```yaml
 channels:
   my_channel:
-    provider: telegram
-
+    platform: telegram
     auth:
       apiKey: ${TELEGRAM_BOT_TOKEN}
       chatId: "@my_channel"
-    parseMode: HTML
-    convertBody: true
     bodyFormat: html
 ```
 
-Environment variables are substituted using `${VAR_NAME}` syntax.
+Переменные окружения подставляются через `${VAR_NAME}`.
 
-## Resources
+## Ресурсы
 
-- [Social Media Posting Microservice Repository](https://github.com/bozonx/social-media-posting-microservice)
-- [Microservice API Documentation](https://github.com/bozonx/social-media-posting-microservice/blob/main/docs/api.md)
-- [Microservice Development Guide](https://github.com/bozonx/social-media-posting-microservice/blob/main/docs/dev.md)
-- [n8n Community Nodes Documentation](https://docs.n8n.io/integrations/community-nodes/)
-- [n8n Community Forum](https://community.n8n.io/)
+- [Репозиторий микросервиса](https://github.com/bozonx/social-media-posting-microservice)
+- [API документация](https://github.com/bozonx/social-media-posting-microservice/blob/main/docs/api.md)
+- [n8n Community Nodes](https://docs.n8n.io/integrations/community-nodes/)
 - [Telegram Bot API](https://core.telegram.org/bots/api)
 
-## License
+## Лицензия
 
 MIT

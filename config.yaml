@@ -22,6 +22,10 @@ retryDelayMs: 1000
 # How long to keep idempotency keys in cache to prevent duplicate posts
 idempotencyTtlMinutes: 10
 
+# Maximum body length (characters)
+# Default maximum length for post body text across all post types
+maxBodyDefault: 500000
+
 
 # ============================================
 # DEFAULT PROVIDER SETTINGS
@@ -55,12 +59,4 @@ channels:
     # Disable notifications by default
     # If true, posts will be sent silently without notifying subscribers
     disableNotification: false
-    
-    # Maximum text message length
-    # Telegram's limit for text-only messages
-    maxTextLength: 4096
-    
-    # Maximum caption length for media
-    # Telegram's limit for captions on photos, videos, etc.
-    maxCaptionLength: 1024
   

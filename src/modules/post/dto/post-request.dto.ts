@@ -6,6 +6,10 @@ import {
   IsObject,
   IsArray,
   MaxLength,
+  ArrayMaxSize,
+  IsNumber,
+  Min,
+  Max,
 } from 'class-validator';
 import { PostType, BodyFormat } from '../../../common/enums/index.js';
 import type { MediaInput } from '../../../common/types/index.js';
@@ -13,11 +17,12 @@ import {
   IsMediaInput,
   IsMediaInputArray,
 } from '../../../common/validators/media-input.validator.js';
+import {
+  IsValidBodyLength,
+  DEFAULT_MAX_BODY_LENGTH,
+} from '../../../common/validators/body-length.validator.js';
 import { Transform } from 'class-transformer';
 import { MediaInputHelper } from '../../../common/helpers/media-input.helper.js';
-
-/** Maximum body length in characters */
-const MAX_BODY_LENGTH = 100_000;
 
 /**
  * Post request DTO
@@ -28,9 +33,9 @@ export class PostRequestDto {
   @IsString()
   platform!: string;
 
-  /** Post content/text body (max 100,000 characters) */
+  /** Post content/text body */
   @IsString()
-  @MaxLength(MAX_BODY_LENGTH)
+  @IsValidBodyLength()
   body!: string;
 
   /** Post type (auto-detected if not specified) */
@@ -45,18 +50,21 @@ export class PostRequestDto {
    */
   @IsOptional()
   @IsString()
+  @MaxLength(50)
   bodyFormat?: string = 'text';
 
 
 
-  /** Post title (used by platforms that support it) */
+  /** Post title (used by platforms that support it, max 1000 characters) */
   @IsOptional()
   @IsString()
+  @MaxLength(1000)
   title?: string;
 
-  /** Post description/summary (used by platforms that support it) */
+  /** Post description/summary (used by platforms that support it, max 2000 characters) */
   @IsOptional()
   @IsString()
+  @MaxLength(2000)
   description?: string;
 
   /** Cover image (for image posts or article thumbnails) */
@@ -111,20 +119,24 @@ export class PostRequestDto {
   @IsBoolean()
   disableNotification?: boolean;
 
-  /** Post tags/hashtags */
+  /** Post tags/hashtags (max 200 items, each max 300 characters) */
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(200)
   @IsString({ each: true })
+  @MaxLength(300, { each: true })
   tags?: string[];
 
-  /** Scheduled publication time (ISO 8601 format) */
+  /** Scheduled publication time (ISO 8601 format, max 50 characters) */
   @IsOptional()
   @IsString()
+  @MaxLength(50)
   scheduledAt?: string;
 
-  /** Post language code (e.g., 'en', 'ru') */
+  /** Post language code (e.g., 'en', 'ru', max 50 characters) */
   @IsOptional()
   @IsString()
+  @MaxLength(50)
   postLanguage?: string;
 
   /** Publication mode: publish immediately or save as draft */
@@ -132,8 +144,16 @@ export class PostRequestDto {
   @IsEnum(['publish', 'draft'])
   mode?: 'publish' | 'draft';
 
-  /** Idempotency key to prevent duplicate posts */
+  /** Idempotency key to prevent duplicate posts (max 1000 characters) */
   @IsOptional()
   @IsString()
+  @MaxLength(1000)
   idempotencyKey?: string;
+
+  /** Maximum body length override (max 500,000 characters) */
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(DEFAULT_MAX_BODY_LENGTH)
+  maxBody?: number;
 }

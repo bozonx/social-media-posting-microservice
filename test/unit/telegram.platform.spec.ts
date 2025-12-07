@@ -715,28 +715,21 @@ describe('TelegramPlatform', () => {
       }
     });
 
-    it('should return valid preview result and include length warning when body exceeds limit', async () => {
-      const longBody = 'x'.repeat(50);
+    it('should return valid preview result with converted body', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',
-        body: longBody,
+        body: 'Test message',
         type: PostType.POST,
       };
 
-      const channelConfigWithLimit: TelegramChannelConfig = {
-        ...mockChannelConfig,
-        maxTextLength: 10,
-      };
-
-      const result = await platform.preview(request, channelConfigWithLimit);
+      const result = await platform.preview(request, mockChannelConfig);
 
       expect(result.success).toBe(true);
       if (result.success) {
         expect(result.data.valid).toBe(true);
         expect(result.data.detectedType).toBe(PostType.POST);
-        expect(result.data.convertedBody).toBe(longBody);
-        expect(result.data.convertedBodyLength).toBe(longBody.length);
-        expect(result.data.warnings).toContain('Body length (50) exceeds platform limit (10)');
+        expect(result.data.convertedBody).toBe('Test message');
+        expect(result.data.convertedBodyLength).toBe(12);
       }
     });
   });

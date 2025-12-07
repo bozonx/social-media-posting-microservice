@@ -101,5 +101,11 @@ export class AppConfigService {
     return this.config.idempotencyTtlMinutes;
   }
 
+  /**
+   * Get default maximum body length
+   */
+  get maxBodyDefault(): number {
+    return this.config.maxBodyDefault;
+  }
 
 }

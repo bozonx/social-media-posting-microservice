@@ -140,10 +140,7 @@ requestTimeoutSecs: 60
 retryAttempts: 3
 retryDelayMs: 1000
 idempotencyTtlMinutes: 10
-
-conversion:
-  preserveLinks: true
-  stripHtml: false
+maxBodyDefault: 500000
 
 channels:
   my_channel:

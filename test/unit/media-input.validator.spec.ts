@@ -83,12 +83,32 @@ describe('IsMediaInputConstraint', () => {
       expect(validator.validate(true, mockArgs)).toBe(false);
       expect(validator.validate([], mockArgs)).toBe(false);
     });
+
+    it('should return false for strings exceeding max length (500 chars)', () => {
+      const longString = 'a'.repeat(501);
+      expect(validator.validate(longString, mockArgs)).toBe(false);
+    });
+
+    it('should return true for strings at max length (500 chars)', () => {
+      const maxLengthString = 'a'.repeat(500);
+      expect(validator.validate(maxLengthString, mockArgs)).toBe(true);
+    });
+
+    it('should return false for object with url exceeding max length', () => {
+      const longUrl = 'https://example.com/' + 'a'.repeat(500);
+      expect(validator.validate({ url: longUrl }, mockArgs)).toBe(false);
+    });
+
+    it('should return false for object with fileId exceeding max length', () => {
+      const longFileId = 'a'.repeat(501);
+      expect(validator.validate({ fileId: longFileId }, mockArgs)).toBe(false);
+    });
   });
 
   describe('defaultMessage', () => {
     it('should return correct error message', () => {
       expect(validator.defaultMessage(mockArgs)).toBe(
-        'MediaInput must be a string (URL or file_id) or an object with url/fileId and optional hasSpoiler boolean',
+        'MediaInput must be a string (URL or file_id, max 500 characters) or an object with url/fileId (max 500 characters each) and optional hasSpoiler boolean',
       );
     });
   });
@@ -164,7 +184,7 @@ describe('IsMediaInputArrayConstraint', () => {
   describe('defaultMessage', () => {
     it('should return correct error message', () => {
       expect(validator.defaultMessage(mockArgs)).toBe(
-        'Each item in media array must be a string (URL or file_id) or an object with url/fileId and optional hasSpoiler boolean',
+        'Each item in media array must be a string (URL or file_id, max 500 characters) or an object with url/fileId (max 500 characters each) and optional hasSpoiler boolean',
       );
     });
   });

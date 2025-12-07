@@ -20,8 +20,6 @@ describe('PreviewService', () => {
       chatId: 'test-chat-id',
     },
     parseMode: 'HTML',
-    maxTextLength: 4096,
-    maxCaptionLength: 1024,
   };
 
   beforeEach(async () => {

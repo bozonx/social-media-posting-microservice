@@ -91,22 +91,19 @@ AgACAgIAAxkBAAIC...
 **JSON object:**
 ```json
 {
-  "url": "https://example.com/image.jpg",
-  "fileId": "AgACAgIAAxkBAAIC...",
+  "src": "https://example.com/image.jpg",
   "hasSpoiler": true
 }
 ```
 
 **Properties:**
-- `url`: Media file URL (max 500 characters)
-- `fileId`: Telegram file_id for reuse (max 500 characters)
+- `src`: Media URL or Telegram file_id (max 500 characters)
 - `hasSpoiler`: Spoiler flag (Telegram only)
 
 **Notes:**
 - String values are automatically detected as URL or file_id based on format
-- In object format, either `url` or `fileId` must be provided
-- If both are present, `fileId` takes priority
-- URL and fileId strings have a maximum length of 500 characters
+- You can use the **Cover has Spoiler** and **Video has Spoiler** switches in *Additional Options* to enable the spoiler effect for simple string inputs
+- `src` has a maximum length of 500 characters
 
 **Media Array** (for albums, 2-10 items):
 ```json
@@ -116,8 +113,8 @@ AgACAgIAAxkBAAIC...
 or with objects:
 ```json
 [
-  {"url": "https://example.com/1.jpg"},
-  {"fileId": "AgACAgIAAxkBAAIC..."}
+  {"src": "https://example.com/1.jpg"},
+  {"src": "AgACAgIAAxkBAAIC..."}
 ]
 ```
 

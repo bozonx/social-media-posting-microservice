@@ -97,6 +97,50 @@ export class BozonxPost implements INodeType {
 				},
 			},
 
+			// Telegram Authentication
+			{
+				displayName: 'Telegram Auth',
+				name: 'telegramAuth',
+				type: 'fixedCollection',
+				typeOptions: {
+					multipleValues: false,
+				},
+				placeholder: 'Add Telegram Auth',
+				default: {},
+				description: 'Telegram authentication credentials. Required if channel is not specified.',
+				displayOptions: {
+					show: {
+						channel: [''],
+						platform: ['telegram'],
+					},
+				},
+				options: [
+					{
+						name: 'auth',
+						displayName: 'Auth',
+						values: [
+							{
+								displayName: 'API Key',
+								name: 'apiKey',
+								type: 'string',
+								typeOptions: { password: true },
+								default: '',
+								required: true,
+								description: 'Telegram bot token (from @BotFather)',
+							},
+							{
+								displayName: 'Chat ID',
+								name: 'chatId',
+								type: 'string',
+								default: '',
+								required: true,
+								description: 'Telegram channel/chat ID (e.g., @mychannel or -100123456789)',
+							},
+						],
+					},
+				],
+			},
+
 			// Body
 			{
 				displayName: 'Post Content',
@@ -215,50 +259,6 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				default: '',
 				description: 'Key to prevent duplicate posts',
-			},
-
-			// Telegram Authentication
-			{
-				displayName: 'Telegram Auth',
-				name: 'telegramAuth',
-				type: 'fixedCollection',
-				typeOptions: {
-					multipleValues: false,
-				},
-				placeholder: 'Add Telegram Auth',
-				default: {},
-				description: 'Telegram authentication credentials. Required if channel is not specified.',
-				displayOptions: {
-					show: {
-						channel: [''],
-						platform: ['telegram'],
-					},
-				},
-				options: [
-					{
-						name: 'auth',
-						displayName: 'Auth',
-						values: [
-							{
-								displayName: 'API Key',
-								name: 'apiKey',
-								type: 'string',
-								typeOptions: { password: true },
-								default: '',
-								required: true,
-								description: 'Telegram bot token (from @BotFather)',
-							},
-							{
-								displayName: 'Chat ID',
-								name: 'chatId',
-								type: 'string',
-								default: '',
-								required: true,
-								description: 'Telegram channel/chat ID (e.g., @mychannel or -100123456789)',
-							},
-						],
-					},
-				],
 			},
 
 			// Additional Options

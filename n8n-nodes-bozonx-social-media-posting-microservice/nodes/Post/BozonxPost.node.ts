@@ -460,8 +460,11 @@ export class BozonxPost implements INodeType {
 							);
 						}
 					} else if (key === 'tags' && typeof value === 'string') {
-						// Convert comma-separated string to array
-						requestBody[key] = value.split(',').map((tag) => tag.trim());
+						// Convert comma-separated string to array, trim and remove empty
+						requestBody[key] = value
+							.split(',')
+							.map((tag) => tag.trim())
+							.filter((tag) => tag.length > 0);
 					} else {
 						requestBody[key] = value;
 					}

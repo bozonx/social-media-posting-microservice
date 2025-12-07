@@ -446,9 +446,9 @@ describe('TelegramPlatform', () => {
         body: 'Album with explicit types',
         bodyFormat: 'html',
         media: [
-          { url: 'https://example.com/file1', type: 'image' },
-          { url: 'https://example.com/file2', type: 'video' },
-          { url: 'https://example.com/file3' },
+          { src: 'https://example.com/file1', type: 'image' },
+          { src: 'https://example.com/file2', type: 'video' },
+          { src: 'https://example.com/file3' },
         ] as any,
         type: PostType.ALBUM,
       };
@@ -574,7 +574,7 @@ describe('TelegramPlatform', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Image caption',
-        cover: { fileId: 'AgACAgIAAxkBAAIC...' },
+        cover: { src: 'AgACAgIAAxkBAAIC...' },
         type: PostType.IMAGE,
       };
 
@@ -595,7 +595,7 @@ describe('TelegramPlatform', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Spoiler image',
-        cover: { url: 'https://example.com/image.jpg', hasSpoiler: true },
+        cover: { src: 'https://example.com/image.jpg', hasSpoiler: true },
         type: PostType.IMAGE,
       };
 
@@ -616,7 +616,7 @@ describe('TelegramPlatform', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Spoiler video',
-        video: { url: 'https://example.com/video.mp4', hasSpoiler: true },
+        video: { src: 'https://example.com/video.mp4', hasSpoiler: true },
         type: PostType.VIDEO,
       };
 
@@ -633,11 +633,11 @@ describe('TelegramPlatform', () => {
       );
     });
 
-    it('should prefer fileId over URL when both are provided', async () => {
+    it('should treat non-URL src as fileId', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Document caption',
-        document: { url: 'https://example.com/doc.pdf', fileId: 'BQACAgIAAxkBAAIC...' },
+        document: { src: 'BQACAgIAAxkBAAIC...' },
         type: PostType.DOCUMENT,
       };
 
@@ -650,6 +650,8 @@ describe('TelegramPlatform', () => {
         'BQACAgIAAxkBAAIC...',
         expect.any(Object),
       );
+      // Ensure it was not treated as URL
+      expect(mediaService.validateMediaUrl).not.toHaveBeenCalled();
     });
   });
 

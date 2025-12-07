@@ -38,6 +38,7 @@ Publish content to a social media platform.
 | `document` | MediaInput | No | Document file |
 | `media` | MediaInput[] | No | Media array for albums (2-10 items) |
 | `options` | object | No | Platform-specific options (passed directly to platform API) |
+| `disableNotification` | boolean | No | Send message silently (defaults to config value) |
 | `tags` | string[] | No | Tags without # symbol. Passed as-is to supported platforms |
 | `scheduledAt` | string | No | Scheduled time (ISO 8601) |
 | `postLanguage` | string | No | Content language code. Passed as-is to supported platforms |

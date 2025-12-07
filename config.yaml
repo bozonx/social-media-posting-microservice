@@ -52,14 +52,10 @@ channels:
       # Chat ID or channel username (with @ prefix for public channels)
       chatId: '@your_channel_username'
 
-
-    
     # Disable notifications by default
     # If true, posts will be sent silently without notifying subscribers
     disableNotification: false
     
-
-
     # Maximum text message length
     # Telegram's limit for text-only messages
     maxTextLength: 4096

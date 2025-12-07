@@ -281,6 +281,24 @@ describe('TelegramPlatform', () => {
       });
     });
 
+    it('should use disableNotification from request to override config', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: 'Test message',
+        type: PostType.POST,
+        disableNotification: true,
+      };
+
+      mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
+
+      // Config has disableNotification: false
+      await platform.publish(request, mockChannelConfig);
+
+      expect(mockApi.sendMessage).toHaveBeenCalledWith('test-chat-id', 'Test message', {
+        disable_notification: true,
+      });
+    });
+
     it('should build URL for public channels', async () => {
       const publicChannelConfig: TelegramChannelConfig = {
         platform: 'telegram',

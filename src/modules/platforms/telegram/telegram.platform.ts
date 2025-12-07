@@ -260,7 +260,8 @@ export class TelegramPlatform implements IPlatform {
       parseMode = bodyFormat;
     }
 
-    const disableNotification = channelConfig.disableNotification ?? false;
+    const disableNotification =
+      request.disableNotification ?? channelConfig.disableNotification ?? false;
 
     // Options are passed directly to Telegram API
     const options = request.options || {};

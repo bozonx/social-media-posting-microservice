@@ -106,6 +106,11 @@ export class PostRequestDto {
   @IsObject()
   options?: Record<string, any>;
 
+  /** Disable notification (silent message) */
+  @IsOptional()
+  @IsBoolean()
+  disableNotification?: boolean;
+
   /** Post tags/hashtags */
   @IsOptional()
   @IsArray()

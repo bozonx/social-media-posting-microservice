@@ -106,22 +106,24 @@ or with objects:
 JSON object for advanced Telegram features:
 ```json
 {
-  "parseMode": "HTML",
-  "disableNotification": true,
-  "disableWebPagePreview": false,
-  "protectContent": false,
-  "replyToMessageId": 123456,
-  "inlineKeyboard": [[{"text": "Open", "url": "https://example.com"}]]
+  "parse_mode": "HTML",
+  "disable_notification": true,
+  "disable_web_page_preview": false,
+  "protect_content": false,
+  "reply_to_message_id": 123456,
+  "reply_markup": {
+    "inline_keyboard": [[{"text": "Open", "url": "https://example.com"}]]
+  }
 }
 ```
 
 **Available options:**
-- `parseMode`: `HTML`, `Markdown`, `MarkdownV2`
-- `disableNotification`: Send without sound
-- `disableWebPagePreview`: Disable link previews
-- `protectContent`: Prevent forwarding
-- `replyToMessageId`: Reply to message
-- `inlineKeyboard`: Inline buttons
+- `parse_mode`: `HTML`, `Markdown`, `MarkdownV2`
+- `disable_notification`: Send without sound
+- `disable_web_page_preview`: Disable link previews
+- `protect_content`: Prevent forwarding
+- `reply_to_message_id`: Reply to message ID
+- `reply_markup`: Inline keyboard and other reply markup (see [Telegram Bot API](https://core.telegram.org/bots/api#sendmessage))
 
 ## Idempotency
 

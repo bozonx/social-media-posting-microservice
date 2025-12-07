@@ -118,28 +118,6 @@ curl -X POST http://localhost:8080/api/v1/post \
 
 See [API Documentation](docs/api.md) for complete reference.
 
-## Project Structure
-
-```
-src/
-├── main.ts                     # Entry point
-├── app.module.ts               # Root module
-├── config/                     # App configuration
-├── common/
-│   ├── enums/                  # PostType, BodyFormat, ErrorCode
-│   ├── types/                  # MediaInput type
-│   └── validators/             # Custom validators
-└── modules/
-    ├── app-config/             # YAML config loader
-    ├── post/                   # Post controller, service, DTOs
-    ├── providers/
-    │   ├── base/               # Provider interface
-    │   └── telegram/           # Telegram implementation
-    ├── converter/              # Content format conversion
-    ├── media/                  # Media URL validation
-    └── health/                 # Health check endpoint
-```
-
 ## Configuration
 
 ### Environment Variables
@@ -194,20 +172,6 @@ pnpm format       # Format
 pnpm test:unit    # Unit tests
 pnpm test:e2e     # E2E tests
 ```
-
-### Adding a New Provider
-
-1. Create `src/modules/providers/<platform>/`
-2. Implement `IProvider` interface
-3. Register in `providers.module.ts`
-4. Add channel config to `config.yaml`
-
-## Architecture
-
-- **Stateless** — No database, in-memory idempotency cache only
-- **Proxy Mode** — Synchronous request-response
-- **Modular** — Easy to add new providers
-- **Retry Logic** — `delay = retryDelayMs × random(0.8, 1.2) × attempt`
 
 ## License
 

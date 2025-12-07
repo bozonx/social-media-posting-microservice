@@ -9,7 +9,7 @@ export class BozonxSocialMediaPostingApi implements ICredentialType {
 	icon = 'file:../nodes/Post/post.svg' as unknown as Icon;
 	properties: INodeProperties[] = [
 		{
-			displayName: 'Base URL',
+			displayName: 'Microservice Base URL',
 			name: 'baseUrl',
 			type: 'string',
 			default: 'http://social-media-posting-microservice:8080/api/v1',
@@ -19,7 +19,7 @@ export class BozonxSocialMediaPostingApi implements ICredentialType {
 				'Full base URL of the Social Media Posting microservice API (including /api/v1 or custom path)',
 		},
 		{
-			displayName: 'Authentication',
+			displayName: 'Microservice Authentication',
 			name: 'authentication',
 			type: 'options',
 			options: [

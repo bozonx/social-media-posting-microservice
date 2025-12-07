@@ -44,8 +44,7 @@
             "dist/nodes/Post/BozonxPost.node.js"
         ],
         "credentials": [
-            "dist/credentials/BozonxSocialMediaPostingApi.credentials.js",
-            "dist/credentials/TelegramApi.credentials.js"
+            "dist/credentials/BozonxSocialMediaPostingApi.credentials.js"
         ]
     },
     "dependencies": {

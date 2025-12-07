@@ -27,8 +27,8 @@ Publish content to a social media platform.
 | `platform` | string | Yes | Platform name (`telegram`) |
 | `body` | string | Yes | Post content |
 | `channel` | string | No* | Channel name from `config.yaml` |
-| `auth` | object | No* | Inline authentication credentials |
-| `type` | string | No | Post type (default: `auto`) |
+| `auth` | object | No* | Inline authentication credentials. See below |
+| `type` | string | No | Post type (default: `auto`). See below |
 | `bodyFormat` | string | No | Body format: `text`, `html`, `md` (default: `text`) |
 | `convertBodyDefault` | boolean | No | **Reserved.** Not used for Telegram (body is sent as-is) |
 | `title` | string | No | Post title (platform-specific) |
@@ -38,11 +38,11 @@ Publish content to a social media platform.
 | `audio` | MediaInput | No | Audio file |
 | `document` | MediaInput | No | Document file |
 | `media` | MediaInput[] | No | Media array for albums (2-10 items) |
-| `options` | object | No | Platform-specific options (passed directly to provider API) |
-| `tags` | string[] | No | Tags/hashtags |
+| `options` | object | No | Platform-specific options (passed directly to platform API) |
+| `tags` | string[] | No | Tags without # symbol. Passed as-is to supported platforms |
 | `scheduledAt` | string | No | Scheduled time (ISO 8601) |
-| `postLanguage` | string | No | Content language code |
-| `mode` | string | No | Mode: `publish`, `draft` |
+| `postLanguage` | string | No | Content language code. Passed as-is to supported platforms |
+| `mode` | string | No | Mode: `publish`, `draft`. Only for supported platforms |
 | `idempotencyKey` | string | No | Key to prevent duplicates |
 
 **Note:** Either `channel` or `auth` must be provided.

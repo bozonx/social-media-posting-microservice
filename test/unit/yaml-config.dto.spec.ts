@@ -10,12 +10,7 @@ describe('YamlConfigDto', () => {
                 retryDelayMs: 1000,
                 idempotencyTtlMinutes: 10,
                 maxBodyDefault: 500000,
-                platforms: {
-                    telegram: {
-                        sdkVersion: 'latest',
-                        maxRetries: 3,
-                    },
-                },
+
                 channels: {
                     test_channel: {
                         platform: 'telegram',
@@ -54,7 +49,7 @@ describe('YamlConfigDto', () => {
                 retryDelayMs: 1000,
                 idempotencyTtlMinutes: 10,
                 maxBodyDefault: 500000,
-                platforms: {},
+
                 channels: {},
             };
 
@@ -68,7 +63,7 @@ describe('YamlConfigDto', () => {
                 retryDelayMs: 1000,
                 idempotencyTtlMinutes: 10,
                 maxBodyDefault: 500000,
-                platforms: {},
+
                 channels: {},
             };
 
@@ -82,7 +77,7 @@ describe('YamlConfigDto', () => {
                 retryDelayMs: 1000,
                 idempotencyTtlMinutes: 10,
                 maxBodyDefault: 500000,
-                platforms: {},
+
                 channels: {},
             };
 
@@ -96,7 +91,7 @@ describe('YamlConfigDto', () => {
                 retryDelayMs: -1,
                 idempotencyTtlMinutes: 10,
                 maxBodyDefault: 500000,
-                platforms: {},
+
                 channels: {},
             };
 
@@ -110,7 +105,7 @@ describe('YamlConfigDto', () => {
                 retryDelayMs: 60001,
                 idempotencyTtlMinutes: 10,
                 maxBodyDefault: 500000,
-                platforms: {},
+
                 channels: {},
             };
 
@@ -124,7 +119,7 @@ describe('YamlConfigDto', () => {
                 retryDelayMs: 1000,
                 idempotencyTtlMinutes: 0,
                 maxBodyDefault: 500000,
-                platforms: {},
+
                 channels: {},
             };
 
@@ -138,7 +133,7 @@ describe('YamlConfigDto', () => {
                 retryDelayMs: 1000,
                 idempotencyTtlMinutes: 1441,
                 maxBodyDefault: 500000,
-                platforms: {},
+
                 channels: {},
             };
 
@@ -152,7 +147,7 @@ describe('YamlConfigDto', () => {
                 retryDelayMs: 1000,
                 idempotencyTtlMinutes: 10,
                 maxBodyDefault: 0,
-                platforms: {},
+
                 channels: {},
             };
 
@@ -166,7 +161,7 @@ describe('YamlConfigDto', () => {
                 retryDelayMs: 1000,
                 idempotencyTtlMinutes: 10,
                 maxBodyDefault: 500001,
-                platforms: {},
+
                 channels: {},
             };
 
@@ -189,7 +184,7 @@ describe('YamlConfigDto', () => {
                 retryDelayMs: 0, // Min
                 idempotencyTtlMinutes: 1, // Min
                 maxBodyDefault: 1, // Min
-                platforms: {},
+
                 channels: {},
             };
 
@@ -205,7 +200,7 @@ describe('YamlConfigDto', () => {
                 retryDelayMs: 60000, // Max
                 idempotencyTtlMinutes: 1440, // Max
                 maxBodyDefault: 500000, // Max
-                platforms: {},
+
                 channels: {},
             };
 

@@ -1,15 +1,15 @@
 import {
-  IsString,
-  IsOptional,
-  IsEnum,
-  IsBoolean,
-  IsObject,
-  IsArray,
-  MaxLength,
   ArrayMaxSize,
+  IsArray,
+  IsBoolean,
+  IsEnum,
   IsNumber,
-  Min,
+  IsObject,
+  IsOptional,
+  IsString,
   Max,
+  MaxLength,
+  Min,
 } from 'class-validator';
 import { PostType, BodyFormat } from '../../../common/enums/index.js';
 import type { MediaInput } from '../../../common/types/index.js';

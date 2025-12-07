@@ -15,19 +15,11 @@ export interface AppConfig {
   /** Default maximum body length (characters) */
   maxBodyDefault: number;
 
-  /** Default platform configurations */
-  platforms: Record<string, PlatformDefaultConfig>;
   /** Named channel configurations */
   channels: Record<string, ChannelConfig>;
 }
 
-/**
- * Default configuration for a platform
- */
-export interface PlatformDefaultConfig {
-  sdkVersion: string;
-  maxRetries: number;
-}
+
 
 /**
  * Channel configuration

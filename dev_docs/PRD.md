@@ -520,11 +520,6 @@ conversion:
 # - Сжатия изображений
 # - Конвертации видео
 
-# Настройки платформ по умолчанию
-platforms:
-  telegram:
-    sdkVersion: latest
-    maxRetries: 3
 
 # Каналы (именованные конфигурации)
 channels:

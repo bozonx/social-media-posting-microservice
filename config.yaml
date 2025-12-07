@@ -27,15 +27,7 @@ idempotencyTtlMinutes: 10
 maxBodyDefault: 500000
 
 
-# ============================================
-# DEFAULT PROVIDER SETTINGS
-# ============================================
-platforms:
-  telegram:
-    # SDK version to use (not currently enforced)
-    sdkVersion: latest
-    # Maximum retries for this provider (not currently used)
-    maxRetries: 3
+
 
 # ============================================
 # CHANNELS (NAMED CONFIGURATIONS)

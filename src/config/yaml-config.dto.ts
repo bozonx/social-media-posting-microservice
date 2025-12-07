@@ -58,11 +58,7 @@ export class YamlConfigDto {
     @Max(500000)
     maxBodyDefault!: number;
 
-    /**
-     * Platform default configurations
-     */
-    @IsObject()
-    platforms!: Record<string, any>;
+
 
     /**
      * Named channel configurations

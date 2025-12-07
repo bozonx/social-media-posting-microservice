@@ -14,12 +14,7 @@ describe('AppConfigService', () => {
     retryDelayMs: 1000,
     idempotencyTtlMinutes: 10,
 
-    platforms: {
-      telegram: {
-        sdkVersion: 'latest',
-        maxRetries: 3,
-      },
-    },
+
     channels: {
       'test-channel': {
         platform: 'telegram',
@@ -76,8 +71,8 @@ describe('AppConfigService', () => {
     });
 
     it('should get nested config value', () => {
-      const maxRetries = service.get('platforms.telegram.maxRetries');
-      expect(maxRetries).toBe(3);
+      const platform = service.get('channels.test-channel.platform');
+      expect(platform).toBe('telegram');
     });
 
     it('should return undefined for non-existent path', () => {

@@ -6,9 +6,9 @@ import type {
 } from '../../post/dto/index.js';
 
 /**
- * Response from provider after successful publication
+ * Response from platform after successful publication
  */
-export interface ProviderPublishResponse {
+export interface PlatformPublishResponse {
   /** Platform-specific post ID */
   postId: string;
   /** Public URL to the post (if available) */
@@ -18,15 +18,15 @@ export interface ProviderPublishResponse {
 }
 
 /**
- * Provider interface that all platform providers must implement
+ * Platform interface that all social media platforms must implement
  * Defines the contract for publishing and previewing posts
  */
-export interface IProvider {
-  /** Provider name (e.g., 'telegram') */
+export interface IPlatform {
+  /** Platform name (e.g., 'telegram') */
   readonly name: string;
   /** List of supported post types */
   readonly supportedTypes: PostType[];
-  /** Whether the provider supports cover image with other media (e.g. video cover) */
+  /** Whether the platform supports cover image with other media (e.g. video cover) */
   readonly supportsCoverWithMedia?: boolean;
 
   /**
@@ -35,7 +35,7 @@ export interface IProvider {
    * @param channelConfig - Channel configuration
    * @returns Publication result with post ID and URL
    */
-  publish(request: PostRequestDto, channelConfig: any): Promise<ProviderPublishResponse>;
+  publish(request: PostRequestDto, channelConfig: any): Promise<PlatformPublishResponse>;
 
   /**
    * Preview a post without publishing

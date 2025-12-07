@@ -4,8 +4,8 @@ import { PostRequestDto, PostResponseDto, ErrorResponseDto } from './dto/index.j
 import { PostType, ErrorCode } from '../../common/enums/index.js';
 import { AppConfigService } from '../app-config/app-config.service.js';
 import { IdempotencyService } from './idempotency.service.js';
-import { ProviderRegistry } from '../providers/base/provider-registry.service.js';
-import { AuthValidatorRegistry } from '../providers/base/auth-validator-registry.service.js';
+import { PlatformRegistry } from '../platforms/base/platform-registry.service.js';
+import { AuthValidatorRegistry } from '../platforms/base/auth-validator-registry.service.js';
 import { BasePostService, ResolvedChannelConfig } from './base-post.service.js';
 
 @Injectable()
@@ -20,16 +20,16 @@ export class PostService extends BasePostService {
 
   constructor(
     appConfig: AppConfigService,
-    providerRegistry: ProviderRegistry,
+    platformRegistry: PlatformRegistry,
     authValidatorRegistry: AuthValidatorRegistry,
     private readonly idempotencyService: IdempotencyService,
   ) {
-    super(appConfig, providerRegistry, authValidatorRegistry);
+    super(appConfig, platformRegistry, authValidatorRegistry);
   }
 
   /**
    * Publish a post to a social media platform
-   * Handles idempotency, provider selection, retry logic, and error handling
+   * Handles idempotency, platform selection, retry logic, and error handling
    * @param request - Post request with platform, content, and media
    * @returns Success response with post details or error response
    */
@@ -58,19 +58,19 @@ export class PostService extends BasePostService {
     const requestId = randomUUID();
 
     try {
-      const { provider, channelConfig } = this.validateRequest(request);
+      const { platform, channelConfig } = this.validateRequest(request);
 
       const requestTimeoutMs = this.getRequestTimeoutMs(
         this.appConfig.incomingRequestTimeoutSecs,
       );
-      const providerTimeoutMs = this.getProviderTimeoutMs(
-        this.appConfig.providerTimeoutSecs,
+      const platformTimeoutMs = this.getPlatformTimeoutMs(
+        this.appConfig.platformTimeoutSecs,
         requestTimeoutMs,
       );
 
       // Check if explicit type is supported
       const postType = request.type || PostType.AUTO;
-      if (!provider.supportedTypes.includes(postType)) {
+      if (!platform.supportedTypes.includes(postType)) {
         throw new BadRequestException(
           `Post type "${postType}" is not supported by ${request.platform}`,
         );
@@ -91,8 +91,8 @@ export class PostService extends BasePostService {
           this.retryWithJitter(
             () =>
               this.maybeExecuteWithTimeout(
-                () => provider.publish(request, channelConfig),
-                providerTimeoutMs,
+                () => platform.publish(request, channelConfig),
+                platformTimeoutMs,
               ),
             this.appConfig.retryAttempts,
             this.appConfig.retryDelayMs,
@@ -195,24 +195,24 @@ export class PostService extends BasePostService {
     return normalizedSecs * 1000;
   }
 
-  private getProviderTimeoutMs(
-    providerTimeoutSecs: number | undefined,
+  private getPlatformTimeoutMs(
+    platformTimeoutSecs: number | undefined,
     requestTimeoutMs: number,
   ): number | undefined {
-    if (typeof providerTimeoutSecs !== 'number' || providerTimeoutSecs <= 0) {
+    if (typeof platformTimeoutSecs !== 'number' || platformTimeoutSecs <= 0) {
       return undefined;
     }
 
-    const providerTimeoutMs = providerTimeoutSecs * 1000;
+    const platformTimeoutMs = platformTimeoutSecs * 1000;
 
-    if (providerTimeoutMs > requestTimeoutMs) {
+    if (platformTimeoutMs > requestTimeoutMs) {
       const effectiveRequestSecs = requestTimeoutMs / 1000;
       throw new Error(
-        `providerTimeoutSecs must not exceed incomingRequestTimeoutSecs (effective ${effectiveRequestSecs} seconds)`,
+        `platformTimeoutSecs must not exceed incomingRequestTimeoutSecs (effective ${effectiveRequestSecs} seconds)`,
       );
     }
 
-    return providerTimeoutMs;
+    return platformTimeoutMs;
   }
 
   private maybeExecuteWithTimeout<T>(

@@ -31,7 +31,7 @@ Edit `config.yaml` with your Telegram credentials:
 ```yaml
 channels:
   my_channel:
-    provider: telegram
+    platform: telegram
 
     auth:
       botToken: ${MY_TELEGRAM_TOKEN}  # or direct value
@@ -134,7 +134,7 @@ See [API Documentation](docs/api.md) for complete reference.
 ### Config File (`config.yaml`)
 
 ```yaml
-providerTimeoutSecs: 45
+platformTimeoutSecs: 45
 incomingRequestTimeoutSecs: 60
 retryAttempts: 3
 retryDelayMs: 1000
@@ -147,7 +147,7 @@ conversion:
 
 channels:
   my_channel:
-    provider: telegram
+    platform: telegram
 
     auth:
       botToken: ${MY_TELEGRAM_TOKEN}

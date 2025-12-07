@@ -3,17 +3,17 @@ import { Test } from '@nestjs/testing';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { AppModule } from '@/app.module.js';
-import { TelegramProvider } from '@/modules/providers/telegram/telegram.provider.js';
+import { TelegramPlatform } from '@/modules/platforms/telegram/telegram.platform.js';
 import { AppConfigService } from '@/modules/app-config/app-config.service.js';
 import { IdempotencyService } from '@/modules/post/idempotency.service.js';
-import { ProviderRegistry } from '@/modules/providers/base/provider-registry.service.js';
-import { AuthValidatorRegistry } from '@/modules/providers/base/auth-validator-registry.service.js';
+import { PlatformRegistry } from '@/modules/platforms/base/platform-registry.service.js';
+import { AuthValidatorRegistry } from '@/modules/platforms/base/auth-validator-registry.service.js';
 import { PostType } from '@/common/enums/index.js';
 
 describe('PostController (e2e)', () => {
   let app: NestFastifyApplication;
 
-  const mockTelegramProvider = {
+  const mockTelegramPlatform = {
     name: 'telegram',
     supportedTypes: [
       PostType.AUTO,
@@ -29,16 +29,16 @@ describe('PostController (e2e)', () => {
     getPostStatus: jest.fn(),
   };
 
-  const mockProviderRegistry = {
+  const mockPlatformRegistry = {
     get: jest.fn().mockImplementation((platform: string) => {
       if (platform.toLowerCase() === 'telegram') {
-        return mockTelegramProvider;
+        return mockTelegramPlatform;
       }
-      throw new BadRequestException(`Provider "${platform}" is not supported`);
+      throw new BadRequestException(`Platform "${platform}" is not supported`);
     }),
     has: jest.fn().mockImplementation((platform: string) => platform.toLowerCase() === 'telegram'),
     register: jest.fn(),
-    getRegisteredProviders: jest.fn().mockReturnValue(['telegram']),
+    getRegisteredPlatforms: jest.fn().mockReturnValue(['telegram']),
   };
 
   const mockAuthValidatorRegistry = {
@@ -54,7 +54,7 @@ describe('PostController (e2e)', () => {
     getChannel: jest.fn().mockImplementation(name => {
       if (name === 'test_channel') {
         return {
-          provider: 'telegram',
+          platform: 'telegram',
           auth: {
             botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
             chatId: 'channel-chat-id',
@@ -70,7 +70,7 @@ describe('PostController (e2e)', () => {
     get retryAttempts() { return 1; },
     get retryDelayMs() { return 0; },
     get incomingRequestTimeoutSecs() { return 60; },
-    get providerTimeoutSecs() { return 60; },
+    get platformTimeoutSecs() { return 60; },
     getConversionConfig: jest.fn().mockReturnValue({}),
   };
 
@@ -108,10 +108,10 @@ describe('PostController (e2e)', () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideProvider(TelegramProvider)
-      .useValue(mockTelegramProvider)
-      .overrideProvider(ProviderRegistry)
-      .useValue(mockProviderRegistry)
+      .overrideProvider(TelegramPlatform)
+      .useValue(mockTelegramPlatform)
+      .overrideProvider(PlatformRegistry)
+      .useValue(mockPlatformRegistry)
       .overrideProvider(AuthValidatorRegistry)
       .useValue(mockAuthValidatorRegistry)
       .overrideProvider(AppConfigService)
@@ -181,7 +181,7 @@ describe('PostController (e2e)', () => {
         raw: { message_id: 100 },
       };
 
-      mockTelegramProvider.publish.mockResolvedValue(mockResult);
+      mockTelegramPlatform.publish.mockResolvedValue(mockResult);
 
       const response = await app.inject({
         method: 'POST',
@@ -199,13 +199,13 @@ describe('PostController (e2e)', () => {
         url: mockResult.url,
       });
 
-      expect(mockTelegramProvider.publish).toHaveBeenCalledWith(
+      expect(mockTelegramPlatform.publish).toHaveBeenCalledWith(
         expect.objectContaining({
           platform: 'telegram',
           body: 'Hello World',
         }),
         expect.objectContaining({
-          provider: 'telegram',
+          platform: 'telegram',
           auth: payload.auth,
         }),
       );
@@ -231,12 +231,12 @@ describe('PostController (e2e)', () => {
       const body = JSON.parse(response.body);
       expect(body.success).toBe(false);
       expect(body.error.code).toBe('VALIDATION_ERROR');
-      expect(body.error.message).toMatch(/Provider "twitter" is not supported/i);
+      expect(body.error.message).toMatch(/Platform "twitter" is not supported/i);
     });
 
     it('should fail when post type is not supported', async () => {
-      const originalSupportedTypes = [...mockTelegramProvider.supportedTypes];
-      mockTelegramProvider.supportedTypes = []; // Empty list
+      const originalSupportedTypes = [...mockTelegramPlatform.supportedTypes];
+      mockTelegramPlatform.supportedTypes = []; // Empty list
 
       const payload = {
         platform: 'telegram',
@@ -254,7 +254,7 @@ describe('PostController (e2e)', () => {
         payload,
       });
 
-      mockTelegramProvider.supportedTypes = originalSupportedTypes;
+      mockTelegramPlatform.supportedTypes = originalSupportedTypes;
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
@@ -277,7 +277,7 @@ describe('PostController (e2e)', () => {
         raw: { message_id: 200 },
       };
 
-      mockTelegramProvider.publish.mockResolvedValue(mockResult);
+      mockTelegramPlatform.publish.mockResolvedValue(mockResult);
 
       const response = await app.inject({
         method: 'POST',
@@ -290,10 +290,10 @@ describe('PostController (e2e)', () => {
       expect(body.success).toBe(true);
       expect(body.data.postId).toBe('200');
 
-      expect(mockTelegramProvider.publish).toHaveBeenCalledWith(
+      expect(mockTelegramPlatform.publish).toHaveBeenCalledWith(
         expect.any(Object),
         expect.objectContaining({
-          provider: 'telegram',
+          platform: 'telegram',
           auth: {
             botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
             chatId: 'channel-chat-id',
@@ -303,7 +303,7 @@ describe('PostController (e2e)', () => {
       );
     });
 
-    it('should handle provider errors gracefully', async () => {
+    it('should handle platform errors gracefully', async () => {
       const payload = {
         platform: 'telegram',
         body: 'Error test',
@@ -311,9 +311,9 @@ describe('PostController (e2e)', () => {
         auth: { botToken: 't', chatId: 'c' },
       };
 
-      const providerError = new Error('Telegram API Error');
-      (providerError as any).response = { status: 500, data: { description: 'Internal Error' } };
-      mockTelegramProvider.publish.mockRejectedValue(providerError);
+      const platformError = new Error('Telegram API Error');
+      (platformError as any).response = { status: 500, data: { description: 'Internal Error' } };
+      mockTelegramPlatform.publish.mockRejectedValue(platformError);
 
       const response = await app.inject({
         method: 'POST',
@@ -344,7 +344,7 @@ describe('PostController (e2e)', () => {
       };
 
       // Mock implementation to track calls
-      mockTelegramProvider.publish.mockResolvedValue(mockResult);
+      mockTelegramPlatform.publish.mockResolvedValue(mockResult);
 
       // First request
       const response1 = await app.inject({
@@ -369,7 +369,7 @@ describe('PostController (e2e)', () => {
       expect(body2.data.postId).toBe('300');
 
       // Provider should be called only ONCE
-      expect(mockTelegramProvider.publish).toHaveBeenCalledTimes(1);
+      expect(mockTelegramPlatform.publish).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -393,8 +393,8 @@ describe('PostController (e2e)', () => {
         warnings: [],
       };
 
-      // PreviewService returns provider.preview() result directly
-      mockTelegramProvider.preview.mockResolvedValue({
+      // PreviewService returns platform.preview() result directly
+      mockTelegramPlatform.preview.mockResolvedValue({
         success: true,
         data: mockPreviewData,
       });

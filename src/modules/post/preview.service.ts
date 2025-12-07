@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PostRequestDto, PreviewResponseDto, PreviewErrorResponseDto } from './dto/index.js';
 import { AppConfigService } from '../app-config/app-config.service.js';
-import { ProviderRegistry } from '../providers/base/provider-registry.service.js';
-import { AuthValidatorRegistry } from '../providers/base/auth-validator-registry.service.js';
+import { PlatformRegistry } from '../platforms/base/platform-registry.service.js';
+import { AuthValidatorRegistry } from '../platforms/base/auth-validator-registry.service.js';
 import { BasePostService } from './base-post.service.js';
 
 @Injectable()
@@ -11,10 +11,10 @@ export class PreviewService extends BasePostService {
 
   constructor(
     appConfig: AppConfigService,
-    providerRegistry: ProviderRegistry,
+    platformRegistry: PlatformRegistry,
     authValidatorRegistry: AuthValidatorRegistry,
   ) {
-    super(appConfig, providerRegistry, authValidatorRegistry);
+    super(appConfig, platformRegistry, authValidatorRegistry);
   }
 
   /**
@@ -25,10 +25,10 @@ export class PreviewService extends BasePostService {
    */
   async preview(request: PostRequestDto): Promise<PreviewResponseDto | PreviewErrorResponseDto> {
     try {
-      const { provider, channelConfig } = this.validateRequest(request);
+      const { platform, channelConfig } = this.validateRequest(request);
 
-      // Delegate to provider
-      return await provider.preview(request, channelConfig);
+      // Delegate to platform
+      return await platform.preview(request, channelConfig);
     } catch (error: any) {
       // Log error with full stack trace for debugging
       this.logger.warn({

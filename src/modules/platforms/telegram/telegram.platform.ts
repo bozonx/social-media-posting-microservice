@@ -1,6 +1,6 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { Bot } from 'grammy';
-import { IProvider, ProviderPublishResponse } from '../base/provider.interface.js';
+import { IPlatform, PlatformPublishResponse } from '../base/platform.interface.js';
 import { PostType, BodyFormat } from '../../../common/enums/index.js';
 import {
   PostRequestDto,
@@ -22,7 +22,7 @@ export interface TelegramChannelConfig extends ChannelConfig {
 }
 
 @Injectable()
-export class TelegramProvider implements IProvider {
+export class TelegramPlatform implements IPlatform {
   readonly name = 'telegram';
   readonly supportedTypes = [
     PostType.AUTO,
@@ -35,7 +35,7 @@ export class TelegramProvider implements IProvider {
   ];
   readonly supportsCoverWithMedia = false;
 
-  private readonly logger = new Logger(TelegramProvider.name);
+  private readonly logger = new Logger(TelegramPlatform.name);
   private readonly MAX_CAPTION_LENGTH = 1024;
   private readonly MAX_TEXT_LENGTH = 4096;
   private readonly MAX_MEDIA_GROUP_SIZE = 10;
@@ -49,7 +49,7 @@ export class TelegramProvider implements IProvider {
   async publish(
     request: PostRequestDto,
     channelConfig: TelegramChannelConfig,
-  ): Promise<ProviderPublishResponse> {
+  ): Promise<PlatformPublishResponse> {
     const { errors, warnings, actualType } = this.validateRequest(request);
 
     if (errors.length > 0) {

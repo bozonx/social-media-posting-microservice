@@ -94,7 +94,7 @@ interface PostRequest {
   /**
    * Флаг автоматической конвертации контента
    * @note В текущей версии для Telegram игнорируется (контент отправляется as-is)
-   * Используется для будущих провайдеров
+   * Используется для будущих платформ
    * @default true
    */
   convertBody?: boolean;
@@ -373,13 +373,14 @@ src/
 │   │   └── dto/
 │   │       ├── post-request.dto.ts
 │   │       └── post-response.dto.ts
-│   ├── providers/
-│   │   ├── providers.module.ts
+│   ├── platforms/
+│   │   ├── platforms.module.ts
 │   │   ├── base/
-│   │   │   ├── base-provider.interface.ts
-│   │   │   └── base-provider.abstract.ts
+│   │   │   ├── platform.interface.ts
+│   │   │   ├── platform-registry.service.ts
+│   │   │   └── auth-validator.interface.ts
 │   │   ├── telegram/
-│   │   │   ├── telegram.provider.ts
+│   │   │   ├── telegram.platform.ts
 │   │   │   ├── telegram.types.ts
 │   │   │   └── telegram.config.ts
 │   │   ├── facebook/
@@ -409,14 +410,14 @@ src/
     └── utils/
 ```
 
-### 3.2. Провайдеры (Providers)
+### 3.2. Платформы (Platforms)
 
-Каждый провайдер социальной сети реализует базовый интерфейс:
+Каждая интеграция социальной сети реализует базовый интерфейс:
 
 ```typescript
-interface IProvider {
+interface IPlatform {
   /**
-   * Название провайдера
+   * Название платформы
    */
   readonly name: string;
   
@@ -428,7 +429,7 @@ interface IProvider {
   /**
    * Публикация контента
    */
-  publish(request: PostRequest, config: ProviderConfig): Promise<PostResponse>;
+  publish(request: PostRequest, config: PlatformConfig): Promise<PlatformPublishResponse>;
   
   /**
    * Получение статуса публикации
@@ -489,8 +490,8 @@ graph TD
 ```yaml
 # Общие параметры
 common:
-  # Таймаут соединения с провайдером (сек)
-  providerTimeoutSecs: 45
+  # Таймаут соединения с платформой (сек)
+  platformTimeoutSecs: 45
   
   # Таймаут входящего запроса к микросервису (сек)
   incomingRequestTimeoutSecs: 60
@@ -520,8 +521,8 @@ conversion:
 # - Сжатия изображений
 # - Конвертации видео
 
-# Настройки провайдеров по умолчанию
-providers:
+# Настройки платформ по умолчанию
+platforms:
   telegram:
     sdkVersion: latest
     maxRetries: 3
@@ -530,7 +531,7 @@ providers:
 channels:
   # Telegram канал компании
   company_telegram:
-    provider: telegram
+    platform: telegram
 
     auth:
       botToken: your_bot_token_here
@@ -715,7 +716,7 @@ interface TelegramAdditional {
 | Код ошибки | Описание | HTTP Status |
 |------------|----------|-------------|
 | `VALIDATION_ERROR` | Ошибка валидации входных данных | 400 |
-| `PROVIDER_NOT_FOUND` | Провайдер не найден | 400 |
+| `PLATFORM_NOT_FOUND` | Платформа не поддерживается | 400 |
 | `CHANNEL_NOT_FOUND` | Канал не найден в конфиге | 404 |
 | `AUTH_ERROR` | Ошибка авторизации | 401 |
 | `PLATFORM_ERROR` | Ошибка от платформы | 502 |

@@ -9,7 +9,7 @@ describe('AppConfigService', () => {
   let configService: ConfigService;
 
   const mockConfig = {
-    providerTimeoutSecs: 45,
+    platformTimeoutSecs: 45,
     incomingRequestTimeoutSecs: 60,
     convertBodyDefault: true,
     retryAttempts: 3,
@@ -19,7 +19,7 @@ describe('AppConfigService', () => {
       preserveLinks: true,
       stripHtml: false,
     },
-    providers: {
+    platforms: {
       telegram: {
         sdkVersion: 'latest',
         maxRetries: 3,
@@ -27,7 +27,7 @@ describe('AppConfigService', () => {
     },
     channels: {
       'test-channel': {
-        provider: 'telegram',
+        platform: 'telegram',
 
         auth: {
           botToken: 'test-token',
@@ -100,7 +100,7 @@ describe('AppConfigService', () => {
     it('should return enabled channel config', () => {
       const channel = service.getChannel('test-channel');
       expect(channel).toEqual({
-        provider: 'telegram',
+        platform: 'telegram',
         auth: {
           botToken: 'test-token',
           chatId: 'test-chat-id',
@@ -113,8 +113,6 @@ describe('AppConfigService', () => {
         'Channel "non-existent" not found in config',
       );
     });
-
-
   });
 
   describe('getAllChannels', () => {
@@ -129,7 +127,7 @@ describe('AppConfigService', () => {
       expect(service.retryAttempts).toBe(3);
       expect(service.retryDelayMs).toBe(1000);
       expect(service.incomingRequestTimeoutSecs).toBe(60);
-      expect(service.providerTimeoutSecs).toBe(45);
+      expect(service.platformTimeoutSecs).toBe(45);
       expect(service.convertBodyDefault).toBe(true);
       expect(service.idempotencyTtlMinutes).toBe(10);
     });

@@ -23,23 +23,23 @@ jest.unstable_mockModule('grammy', () => ({
 }));
 
 // Dynamic imports after mocking
-const { TelegramProvider } = await import('@/modules/providers/telegram/telegram.provider.js');
+const { TelegramPlatform } = await import('@/modules/platforms/telegram/telegram.platform.js');
 type TelegramChannelConfig =
-  import('@/modules/providers/telegram/telegram.provider.js').TelegramChannelConfig;
+  import('@/modules/platforms/telegram/telegram.platform.js').TelegramChannelConfig;
 
 const { MediaService } = await import('@/modules/media/media.service.js');
 const { TelegramTypeDetector } =
-  await import('@/modules/providers/telegram/telegram-type-detector.service.js');
+  await import('@/modules/platforms/telegram/telegram-type-detector.service.js');
 const { TelegramBotCache } =
-  await import('@/modules/providers/telegram/telegram-bot-cache.service.js');
+  await import('@/modules/platforms/telegram/telegram-bot-cache.service.js');
 
-describe('TelegramProvider', () => {
-  let provider: TelegramProvider;
+describe('TelegramPlatform', () => {
+  let platform: TelegramPlatform;
 
   let mediaService: MediaService;
 
   const mockChannelConfig: TelegramChannelConfig = {
-    provider: 'telegram',
+    platform: 'telegram',
     enabled: true,
     auth: {
       botToken: 'test-token',
@@ -59,7 +59,7 @@ describe('TelegramProvider', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        TelegramProvider,
+        TelegramPlatform,
 
         {
           provide: MediaService,
@@ -81,7 +81,7 @@ describe('TelegramProvider', () => {
       ],
     }).compile();
 
-    provider = module.get<TelegramProvider>(TelegramProvider);
+    platform = module.get<TelegramPlatform>(TelegramPlatform);
 
     mediaService = module.get<MediaService>(MediaService);
 
@@ -96,13 +96,13 @@ describe('TelegramProvider', () => {
     jest.clearAllMocks();
   });
 
-  describe('provider metadata', () => {
+  describe('platform metadata', () => {
     it('should have correct name', () => {
-      expect(provider.name).toBe('telegram');
+      expect(platform.name).toBe('telegram');
     });
 
     it('should support correct post types', () => {
-      expect(provider.supportedTypes).toEqual([
+      expect(platform.supportedTypes).toEqual([
         PostType.AUTO,
         PostType.POST,
         PostType.IMAGE,
@@ -127,7 +127,7 @@ describe('TelegramProvider', () => {
         chat: { id: 'test-chat-id' },
       });
 
-      const result = await provider.publish(request, mockChannelConfig);
+      const result = await platform.publish(request, mockChannelConfig);
 
       expect(result).toEqual({
         postId: '12345',
@@ -156,7 +156,7 @@ describe('TelegramProvider', () => {
 
       mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
 
-      const result = await provider.publish(request, mockChannelConfig);
+      const result = await platform.publish(request, mockChannelConfig);
 
       expect(result.postId).toBe('12345');
       expect(mockApi.sendMessage).toHaveBeenCalledWith(
@@ -176,7 +176,7 @@ describe('TelegramProvider', () => {
 
       mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
 
-      await provider.publish(request, mockChannelConfig);
+      await platform.publish(request, mockChannelConfig);
 
       // Body should not be converted
 
@@ -199,7 +199,7 @@ describe('TelegramProvider', () => {
 
       mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
 
-      await provider.publish(request, mockChannelConfig);
+      await platform.publish(request, mockChannelConfig);
 
 
 
@@ -230,7 +230,7 @@ describe('TelegramProvider', () => {
 
       mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
 
-      await provider.publish(request, mockChannelConfig);
+      await platform.publish(request, mockChannelConfig);
 
       expect(mockApi.sendMessage).toHaveBeenCalledWith('test-chat-id', 'Test message', {
         disable_notification: false,
@@ -241,7 +241,7 @@ describe('TelegramProvider', () => {
 
     it('should build URL for public channels', async () => {
       const publicChannelConfig: TelegramChannelConfig = {
-        provider: 'telegram',
+        platform: 'telegram',
         enabled: true,
         auth: {
           botToken: 'test-token',
@@ -257,7 +257,7 @@ describe('TelegramProvider', () => {
 
       mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
 
-      const result = await provider.publish(request, publicChannelConfig);
+      const result = await platform.publish(request, publicChannelConfig);
 
       expect(result.url).toBe('https://t.me/publicchannel/12345');
     });
@@ -275,7 +275,7 @@ describe('TelegramProvider', () => {
 
       mockApi.sendPhoto.mockResolvedValue({ message_id: 12345 });
 
-      const result = await provider.publish(request, mockChannelConfig);
+      const result = await platform.publish(request, mockChannelConfig);
 
       expect(result.postId).toBe('12345');
       expect(mediaService.validateMediaUrl).toHaveBeenCalledWith('https://example.com/image.jpg');
@@ -298,7 +298,7 @@ describe('TelegramProvider', () => {
         type: PostType.IMAGE,
       };
 
-      await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
+      await expect(platform.publish(request, mockChannelConfig)).rejects.toThrow(
         "Field 'cover' is required for type 'image'",
       );
     });
@@ -316,7 +316,7 @@ describe('TelegramProvider', () => {
 
       mockApi.sendVideo.mockResolvedValue({ message_id: 12345 });
 
-      const result = await provider.publish(request, mockChannelConfig);
+      const result = await platform.publish(request, mockChannelConfig);
 
       expect(result.postId).toBe('12345');
       expect(mediaService.validateMediaUrl).toHaveBeenCalledWith('https://example.com/video.mp4');
@@ -339,7 +339,7 @@ describe('TelegramProvider', () => {
         type: PostType.VIDEO,
       };
 
-      await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
+      await expect(platform.publish(request, mockChannelConfig)).rejects.toThrow(
         "Field 'video' is required for type 'video'",
       );
     });
@@ -365,7 +365,7 @@ describe('TelegramProvider', () => {
         { message_id: 12347 },
       ]);
 
-      const result = await provider.publish(request, mockChannelConfig);
+      const result = await platform.publish(request, mockChannelConfig);
 
       expect(result.postId).toBe('12345');
       expect(mediaService.validateMediaUrl).toHaveBeenCalledTimes(3);
@@ -407,7 +407,7 @@ describe('TelegramProvider', () => {
         type: PostType.ALBUM,
       };
 
-      await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
+      await expect(platform.publish(request, mockChannelConfig)).rejects.toThrow(
         "Field 'media' is required for type 'album'",
       );
     });
@@ -425,7 +425,7 @@ describe('TelegramProvider', () => {
 
       mockApi.sendDocument.mockResolvedValue({ message_id: 12345 });
 
-      const result = await provider.publish(request, mockChannelConfig);
+      const result = await platform.publish(request, mockChannelConfig);
 
       expect(result.postId).toBe('12345');
       expect(mediaService.validateMediaUrl).toHaveBeenCalledWith(
@@ -449,7 +449,7 @@ describe('TelegramProvider', () => {
         type: PostType.DOCUMENT,
       };
 
-      await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
+      await expect(platform.publish(request, mockChannelConfig)).rejects.toThrow(
         "Field 'document' is required for type 'document'",
       );
     });
@@ -467,7 +467,7 @@ describe('TelegramProvider', () => {
 
       mockApi.sendAudio.mockResolvedValue({ message_id: 12345 });
 
-      const result = await provider.publish(request, mockChannelConfig);
+      const result = await platform.publish(request, mockChannelConfig);
 
       expect(result.postId).toBe('12345');
       expect(mediaService.validateMediaUrl).toHaveBeenCalledWith('https://example.com/audio.mp3');
@@ -489,7 +489,7 @@ describe('TelegramProvider', () => {
         type: PostType.AUDIO,
       };
 
-      await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
+      await expect(platform.publish(request, mockChannelConfig)).rejects.toThrow(
         "Field 'audio' is required for type 'audio'",
       );
     });
@@ -506,7 +506,7 @@ describe('TelegramProvider', () => {
 
       mockApi.sendPhoto.mockResolvedValue({ message_id: 12345 });
 
-      await provider.publish(request, mockChannelConfig);
+      await platform.publish(request, mockChannelConfig);
 
       expect(mockApi.sendPhoto).toHaveBeenCalledWith(
         'test-chat-id',
@@ -527,7 +527,7 @@ describe('TelegramProvider', () => {
 
       mockApi.sendPhoto.mockResolvedValue({ message_id: 12345 });
 
-      await provider.publish(request, mockChannelConfig);
+      await platform.publish(request, mockChannelConfig);
 
       expect(mockApi.sendPhoto).toHaveBeenCalledWith(
         'test-chat-id',
@@ -548,7 +548,7 @@ describe('TelegramProvider', () => {
 
       mockApi.sendVideo.mockResolvedValue({ message_id: 12345 });
 
-      await provider.publish(request, mockChannelConfig);
+      await platform.publish(request, mockChannelConfig);
 
       expect(mockApi.sendVideo).toHaveBeenCalledWith(
         'test-chat-id',
@@ -569,7 +569,7 @@ describe('TelegramProvider', () => {
 
       mockApi.sendDocument.mockResolvedValue({ message_id: 12345 });
 
-      await provider.publish(request, mockChannelConfig);
+      await platform.publish(request, mockChannelConfig);
 
       expect(mockApi.sendDocument).toHaveBeenCalledWith(
         'test-chat-id',
@@ -588,7 +588,7 @@ describe('TelegramProvider', () => {
         type: PostType.POST,
       };
 
-      await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
+      await expect(platform.publish(request, mockChannelConfig)).rejects.toThrow(
         "For type 'post', media fields must not be provided",
       );
     });
@@ -600,7 +600,7 @@ describe('TelegramProvider', () => {
         type: PostType.ARTICLE,
       };
 
-      await expect(provider.publish(request, mockChannelConfig)).rejects.toThrow(
+      await expect(platform.publish(request, mockChannelConfig)).rejects.toThrow(
         "Post type 'article' is not supported for Telegram",
       );
     });
@@ -610,29 +610,29 @@ describe('TelegramProvider', () => {
 
   describe('buildPostUrl', () => {
     it('should build URL for public channels', () => {
-      const url = (provider as any).buildPostUrl('@publicchannel', 12345);
+      const url = (platform as any).buildPostUrl('@publicchannel', 12345);
       expect(url).toBe('https://t.me/publicchannel/12345');
     });
 
     it('should return undefined for private chats', () => {
-      const url = (provider as any).buildPostUrl('123456789', 12345);
+      const url = (platform as any).buildPostUrl('123456789', 12345);
       expect(url).toBeUndefined();
     });
 
     it('should return undefined for negative chat IDs', () => {
-      const url = (provider as any).buildPostUrl('-100123456789', 12345);
+      const url = (platform as any).buildPostUrl('-100123456789', 12345);
       expect(url).toBeUndefined();
     });
 
     it('should handle numeric chatId', () => {
-      const url = (provider as any).buildPostUrl(123456789, 12345);
+      const url = (platform as any).buildPostUrl(123456789, 12345);
       expect(url).toBeUndefined();
     });
 
     it('should handle numeric chatId for public channels', () => {
       // This is an edge case - numeric chatId won't start with '@'
       // but we ensure it doesn't throw an error
-      const url = (provider as any).buildPostUrl(456361709, 12345);
+      const url = (platform as any).buildPostUrl(456361709, 12345);
       expect(url).toBeUndefined();
     });
   });
@@ -645,7 +645,7 @@ describe('TelegramProvider', () => {
         type: PostType.ARTICLE,
       };
 
-      const result = await provider.preview(request, mockChannelConfig as any);
+      const result = await platform.preview(request, mockChannelConfig as any);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -668,7 +668,7 @@ describe('TelegramProvider', () => {
         maxTextLength: 10,
       };
 
-      const result = await provider.preview(request, channelConfigWithLimit);
+      const result = await platform.preview(request, channelConfigWithLimit);
 
       expect(result.success).toBe(true);
       if (result.success) {

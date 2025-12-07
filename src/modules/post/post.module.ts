@@ -4,11 +4,11 @@ import { PostService } from './post.service.js';
 import { PreviewService } from './preview.service.js';
 import { IdempotencyService } from './idempotency.service.js';
 import { AppConfigModule } from '../app-config/app-config.module.js';
-import { ProvidersModule } from '../providers/providers.module.js';
+import { PlatformsModule } from '../platforms/platforms.module.js';
 
 @Module({
-  imports: [AppConfigModule, ProvidersModule],
+  imports: [AppConfigModule, PlatformsModule],
   controllers: [PostController],
   providers: [PostService, PreviewService, IdempotencyService],
 })
-export class PostModule {}
+export class PostModule { }

@@ -4,9 +4,9 @@
 # ============================================
 # COMMON PARAMETERS
 # ============================================
-# Connection timeout with provider (seconds)
+# Connection timeout with platform (seconds)
 # Maximum time to wait for establishing a connection to the platform API
-# providerTimeoutSecs: 30
+# platformTimeoutSecs: 30
 
 # Request timeout (seconds)
 # Maximum time to wait for a complete API request/response cycle
@@ -56,7 +56,7 @@ conversion:
 # ============================================
 # DEFAULT PROVIDER SETTINGS
 # ============================================
-providers:
+platforms:
   telegram:
     # SDK version to use (not currently enforced)
     sdkVersion: latest
@@ -71,9 +71,9 @@ channels:
   company_telegram:
 
     
-    # Provider name
-    # Must match one of the supported providers (currently: telegram)
-    provider: telegram
+    # Platform name
+    # Must match one of the supported platforms (currently: telegram)
+    platform: telegram
     
 
     # Authentication (bot token and chat ID)

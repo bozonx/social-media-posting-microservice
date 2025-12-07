@@ -67,10 +67,10 @@ export class AppConfigService {
   }
 
   /**
-   * Get provider connection timeout
+   * Get platform connection timeout
    */
-  get providerTimeoutSecs(): number | undefined {
-    return this.config.providerTimeoutSecs;
+  get platformTimeoutSecs(): number | undefined {
+    return this.config.platformTimeoutSecs;
   }
 
   /**

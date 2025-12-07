@@ -3,17 +3,17 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { BadRequestException, Logger } from '@nestjs/common';
 import { PreviewService } from '@/modules/post/preview.service.js';
 import { AppConfigService } from '@/modules/app-config/app-config.service.js';
-import { ProviderRegistry } from '@/modules/providers/base/provider-registry.service.js';
-import { AuthValidatorRegistry } from '@/modules/providers/base/auth-validator-registry.service.js';
+import { PlatformRegistry } from '@/modules/platforms/base/platform-registry.service.js';
+import { AuthValidatorRegistry } from '@/modules/platforms/base/auth-validator-registry.service.js';
 import type { PostRequestDto, PreviewResponseDto } from '@/modules/post/dto/index.js';
 
 describe('PreviewService', () => {
   let service: PreviewService;
   let appConfigService: AppConfigService;
-  let mockTelegramProvider: any;
+  let mockTelegramPlatform: any;
 
   const mockChannelConfig = {
-    provider: 'telegram',
+    platform: 'telegram',
 
     auth: {
       botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
@@ -25,18 +25,18 @@ describe('PreviewService', () => {
   };
 
   beforeEach(async () => {
-    mockTelegramProvider = {
+    mockTelegramPlatform = {
       name: 'telegram',
       supportedTypes: [],
       preview: jest.fn(),
     };
 
-    const mockProviderRegistry = {
+    const mockPlatformRegistry = {
       get: jest.fn().mockImplementation((platform: string) => {
         if (platform.toLowerCase() === 'telegram') {
-          return mockTelegramProvider;
+          return mockTelegramPlatform;
         }
-        throw new BadRequestException(`Provider "${platform}" is not supported`);
+        throw new BadRequestException(`Platform "${platform}" is not supported`);
       }),
       has: jest
         .fn()
@@ -57,8 +57,8 @@ describe('PreviewService', () => {
           },
         },
         {
-          provide: ProviderRegistry,
-          useValue: mockProviderRegistry,
+          provide: PlatformRegistry,
+          useValue: mockPlatformRegistry,
         },
         {
           provide: AuthValidatorRegistry,
@@ -106,7 +106,7 @@ describe('PreviewService', () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.data.errors).toContain('Provider "unsupported" is not supported');
+        expect(result.data.errors).toContain('Platform "unsupported" is not supported');
       }
     });
 
@@ -143,7 +143,7 @@ describe('PreviewService', () => {
       }
     });
 
-    it('should return error when channel provider does not match platform', async () => {
+    it('should return error when channel platform does not match platform', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Test message',
@@ -151,7 +151,7 @@ describe('PreviewService', () => {
       };
 
       (appConfigService.getChannel as jest.Mock).mockReturnValue({
-        provider: 'vk',
+        platform: 'vk',
 
         auth: { botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11', chatId: 'test' },
       });
@@ -161,14 +161,14 @@ describe('PreviewService', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.data.errors).toContain(
-          'Channel provider "vk" does not match requested platform "telegram"',
+          'Channel platform "vk" does not match requested platform "telegram"',
         );
       }
     });
   });
 
-  describe('preview - provider delegation', () => {
-    it('should delegate to TelegramProvider with channel config', async () => {
+  describe('preview - platform delegation', () => {
+    it('should delegate to TelegramPlatform with channel config', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Test message',
@@ -188,12 +188,12 @@ describe('PreviewService', () => {
       };
 
       (appConfigService.getChannel as jest.Mock).mockReturnValue(mockChannelConfig);
-      (mockTelegramProvider.preview as jest.Mock).mockResolvedValue(previewResult);
+      (mockTelegramPlatform.preview as jest.Mock).mockResolvedValue(previewResult);
 
       const result = await service.preview(request);
 
       expect(appConfigService.getChannel).toHaveBeenCalledWith('test-channel');
-      expect(mockTelegramProvider.preview).toHaveBeenCalledWith(request, {
+      expect(mockTelegramPlatform.preview).toHaveBeenCalledWith(request, {
         ...mockChannelConfig,
         source: 'channel',
       });
@@ -222,13 +222,13 @@ describe('PreviewService', () => {
         },
       };
 
-      (mockTelegramProvider.preview as jest.Mock).mockResolvedValue(previewResult);
+      (mockTelegramPlatform.preview as jest.Mock).mockResolvedValue(previewResult);
 
       const result = await service.preview(request);
 
       expect(appConfigService.getChannel).not.toHaveBeenCalled();
-      expect(mockTelegramProvider.preview).toHaveBeenCalledWith(request, {
-        provider: 'telegram',
+      expect(mockTelegramPlatform.preview).toHaveBeenCalledWith(request, {
+        platform: 'telegram',
 
         auth: request.auth,
         source: 'inline',

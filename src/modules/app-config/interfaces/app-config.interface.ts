@@ -2,8 +2,8 @@
  * Application configuration structure from YAML file
  */
 export interface AppConfig {
-  /** Connection timeout with provider (seconds) */
-  providerTimeoutSecs?: number;
+  /** Connection timeout with platform (seconds) */
+  platformTimeoutSecs?: number;
   /** Request timeout (seconds) */
   incomingRequestTimeoutSecs: number;
   /** Automatic body conversion (default) */
@@ -19,27 +19,27 @@ export interface AppConfig {
     preserveLinks: boolean;
     stripHtml: boolean;
   };
-  /** Default provider configurations */
-  providers: Record<string, ProviderDefaultConfig>;
+  /** Default platform configurations */
+  platforms: Record<string, PlatformDefaultConfig>;
   /** Named channel configurations */
   channels: Record<string, ChannelConfig>;
 }
 
 /**
- * Default configuration for a provider
+ * Default configuration for a platform
  */
-export interface ProviderDefaultConfig {
+export interface PlatformDefaultConfig {
   sdkVersion: string;
   maxRetries: number;
 }
 
 /**
  * Channel configuration
- * Represents a named channel with provider and authentication details
+ * Represents a named channel with platform and authentication details
  */
 export interface ChannelConfig {
-  /** Provider name (e.g., 'telegram') */
-  provider: string;
+  /** Platform name (e.g., 'telegram') */
+  platform: string;
 
   /** Authentication credentials */
   auth: Record<string, string>;

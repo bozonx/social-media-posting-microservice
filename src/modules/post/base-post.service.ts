@@ -1,8 +1,8 @@
 import { BadRequestException, Logger } from '@nestjs/common';
 import { AppConfigService } from '../app-config/app-config.service.js';
-import { ProviderRegistry } from '../providers/base/provider-registry.service.js';
-import { AuthValidatorRegistry } from '../providers/base/auth-validator-registry.service.js';
-import { IProvider } from '../providers/base/provider.interface.js';
+import { PlatformRegistry } from '../platforms/base/platform-registry.service.js';
+import { AuthValidatorRegistry } from '../platforms/base/auth-validator-registry.service.js';
+import { IPlatform } from '../platforms/base/platform.interface.js';
 import { PostRequestDto } from './dto/index.js';
 import type { ChannelConfig } from '../app-config/interfaces/app-config.interface.js';
 
@@ -16,25 +16,25 @@ export interface ResolvedChannelConfig extends ChannelConfig {
 
 /**
  * Base service with shared logic for PostService and PreviewService
- * Handles provider resolution, channel config, and auth validation
+ * Handles platform resolution, channel config, and auth validation
  */
 export abstract class BasePostService {
   protected abstract readonly logger: Logger;
 
   constructor(
     protected readonly appConfig: AppConfigService,
-    protected readonly providerRegistry: ProviderRegistry,
+    protected readonly platformRegistry: PlatformRegistry,
     protected readonly authValidatorRegistry: AuthValidatorRegistry,
   ) { }
 
   /**
-   * Get provider instance by platform name
-   * @param platform - Platform name (e.g., 'telegram')
-   * @returns Provider instance
-   * @throws BadRequestException if provider is not found
+   * Get platform instance by name
+   * @param platformName - Platform name (e.g., 'telegram')
+   * @returns Platform instance
+   * @throws BadRequestException if platform is not found
    */
-  protected getProvider(platform: string): IProvider {
-    return this.providerRegistry.get(platform);
+  protected getPlatform(platformName: string): IPlatform {
+    return this.platformRegistry.get(platformName);
   }
 
   /**
@@ -54,7 +54,7 @@ export abstract class BasePostService {
 
 
       return {
-        provider: request.platform.toLowerCase(),
+        platform: request.platform.toLowerCase(),
 
         auth: request.auth,
         source: 'inline',
@@ -65,27 +65,27 @@ export abstract class BasePostService {
   }
 
   /**
-   * Validate that platform matches channel provider
-   * @param platform - Requested platform
+   * Validate that platform matches channel platform
+   * @param platformName - Requested platform
    * @param channelConfig - Channel configuration
    * @throws BadRequestException if platform doesn't match
    */
-  protected validatePlatformMatch(platform: string, channelConfig: ChannelConfig): void {
-    if (String(channelConfig.provider).toLowerCase() !== platform.toLowerCase()) {
+  protected validatePlatformMatch(platformName: string, channelConfig: ChannelConfig): void {
+    if (String(channelConfig.platform).toLowerCase() !== platformName.toLowerCase()) {
       throw new BadRequestException(
-        `Channel provider "${channelConfig.provider}" does not match requested platform "${platform}"`,
+        `Channel platform "${channelConfig.platform}" does not match requested platform "${platformName}"`,
       );
     }
   }
 
   /**
    * Validate auth object for the platform
-   * @param platform - Platform name
+   * @param platformName - Platform name
    * @param auth - Auth object
    * @throws BadRequestException if auth is invalid
    */
-  protected validateAuth(platform: string, auth: Record<string, any>): void {
-    this.authValidatorRegistry.validate(platform, auth);
+  protected validateAuth(platformName: string, auth: Record<string, any>): void {
+    this.authValidatorRegistry.validate(platformName, auth);
   }
 
 
@@ -93,25 +93,25 @@ export abstract class BasePostService {
   /**
    * Full validation chain for request
    * @param request - Post request
-   * @returns Object with provider and channelConfig
+   * @returns Object with platform and channelConfig
    * @throws BadRequestException on validation failure
    */
   protected validateRequest(request: PostRequestDto): {
-    provider: IProvider;
+    platform: IPlatform;
     channelConfig: ResolvedChannelConfig;
   } {
-    const platform = request.platform?.toLowerCase();
-    if (!platform) {
+    const platformName = request.platform?.toLowerCase();
+    if (!platformName) {
       throw new BadRequestException("Field 'platform' is required");
     }
 
-    const provider = this.getProvider(platform);
+    const platform = this.getPlatform(platformName);
     const channelConfig = this.getChannelConfig(request);
 
-    this.validatePlatformMatch(platform, channelConfig);
+    this.validatePlatformMatch(platformName, channelConfig);
 
-    this.validateAuth(platform, channelConfig.auth);
+    this.validateAuth(platformName, channelConfig.auth);
 
-    return { provider, channelConfig };
+    return { platform, channelConfig };
   }
 }

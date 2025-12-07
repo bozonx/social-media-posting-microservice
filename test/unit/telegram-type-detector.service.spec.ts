@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import { TelegramTypeDetector } from '@/modules/providers/telegram/telegram-type-detector.service.js';
+import { TelegramTypeDetector } from '@/modules/platforms/telegram/telegram-type-detector.service.js';
 import type { PostRequestDto } from '@/modules/post/dto/index.js';
 import { PostType } from '@/common/enums/index.js';
 

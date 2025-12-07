@@ -78,9 +78,9 @@ In addition to the fields listed in the table, the `auth` object may contain **a
 {
   "auth": {
     "apiKey": "123456789:ABC-DEF...",
-    "chatId": "@my_channel",
     "customProxyUrl": "socks5://user:pass@host:1080"
-  }
+  },
+  "channelId": "@my_channel"
 }
 ```
 
@@ -101,13 +101,11 @@ In addition to the fields listed in the table, the `auth` object may contain **a
   "body": "Hello"
 }
 
-// Override only chatId from channel config
+// Override only channelId
 {
   "platform": "telegram",
   "channel": "my_channel",
-  "auth": {
-    "chatId": "@different_channel"
-  },
+  "channelId": "@different_channel",
   "body": "Hello"
 }
 
@@ -115,9 +113,9 @@ In addition to the fields listed in the table, the `auth` object may contain **a
 {
   "platform": "telegram",
   "auth": {
-    "apiKey": "123456789:ABC-DEF...",
-    "chatId": "@my_channel"
+    "apiKey": "123456789:ABC-DEF..."
   },
+  "channelId": "@my_channel",
   "body": "Hello"
 }
 ```
@@ -594,9 +592,9 @@ curl -X POST http://localhost:8080/api/v1/post \
     "platform": "telegram",
     "body": "Test post",
     "auth": {
-      "apiKey": "123456:ABC...",
-      "chatId": "@my_channel"
-    }
+      "apiKey": "123456:ABC..."
+    },
+    "channelId": "@my_channel"
   }'
 ```
 

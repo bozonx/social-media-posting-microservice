@@ -256,6 +256,13 @@ export class BozonxPost implements INodeType {
 							'Format of the post content. Can also be platform-specific (e.g., "MarkdownV2" for Telegram). Max 50 characters.',
 					},
 					{
+						displayName: 'Cover has Spoiler',
+						name: 'coverHasSpoiler',
+						type: 'boolean',
+						default: false,
+						description: 'Whether to hide the cover image behind a spoiler',
+					},
+					{
 						displayName: 'Description',
 						name: 'description',
 						type: 'string',
@@ -328,6 +335,13 @@ export class BozonxPost implements INodeType {
 						default: '',
 						description: 'Post title (platform-specific, max 1000 characters)',
 					},
+					{
+						displayName: 'Video has Spoiler',
+						name: 'videoHasSpoiler',
+						type: 'boolean',
+						default: false,
+						description: 'Whether to hide the video behind a spoiler',
+					},
 				],
 			},
 		],
@@ -390,8 +404,28 @@ export class BozonxPost implements INodeType {
 				const media = this.getNodeParameter('media', i, '') as string;
 				const idempotencyKey = this.getNodeParameter('idempotencyKey', i, '') as string;
 
-				if (cover) requestBody.cover = parseMediaField(cover);
-				if (video) requestBody.video = parseMediaField(video);
+				if (cover) {
+					let coverVal: any = parseMediaField(cover);
+					if (additionalOptions.coverHasSpoiler) {
+						if (typeof coverVal === 'string') {
+							coverVal = { src: coverVal, hasSpoiler: true };
+						} else if (typeof coverVal === 'object' && coverVal !== null && !Array.isArray(coverVal)) {
+							coverVal = { ...coverVal, hasSpoiler: true };
+						}
+					}
+					requestBody.cover = coverVal;
+				}
+				if (video) {
+					let videoVal: any = parseMediaField(video);
+					if (additionalOptions.videoHasSpoiler) {
+						if (typeof videoVal === 'string') {
+							videoVal = { src: videoVal, hasSpoiler: true };
+						} else if (typeof videoVal === 'object' && videoVal !== null && !Array.isArray(videoVal)) {
+							videoVal = { ...videoVal, hasSpoiler: true };
+						}
+					}
+					requestBody.video = videoVal;
+				}
 				if (audio) requestBody.audio = parseMediaField(audio);
 				if (document) requestBody.document = parseMediaField(document);
 				if (media) requestBody.media = parseMediaField(media);
@@ -404,6 +438,9 @@ export class BozonxPost implements INodeType {
 
 				// Add additional options
 				for (const [key, value] of Object.entries(additionalOptions)) {
+					// Skip spoiler flags as they are handled above
+					if (['coverHasSpoiler', 'videoHasSpoiler'].includes(key)) continue;
+
 					// Skip empty strings but allow false boolean values
 					if (value === '' || value === undefined || value === null) {
 						continue;

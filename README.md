@@ -35,8 +35,8 @@ channels:
 
     auth:
       apiKey: ${MY_TELEGRAM_TOKEN}  # or direct value
-      chatId: "@my_channel"
-    parseMode: HTML
+    channelId: "@my_channel"
+
 ```
 
 ### 3. Run
@@ -102,7 +102,7 @@ curl -X POST http://localhost:8080/api/v1/post \
     "channel": "my_channel",
     "body": "Sensitive content",
     "cover": {
-      "url": "https://example.com/image.jpg",
+      "src": "https://example.com/image.jpg",
       "hasSpoiler": true
     }
   }'
@@ -148,7 +148,7 @@ channels:
 
     auth:
       apiKey: ${MY_TELEGRAM_TOKEN}
-      chatId: "@my_channel"
+    channelId: "@my_channel"
 ```
 
 ## Docker

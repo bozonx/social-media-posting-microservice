@@ -223,8 +223,7 @@ channels:
     platform: telegram
     auth:
       apiKey: ${TELEGRAM_BOT_TOKEN}
-      chatId: "@my_channel"
-    bodyFormat: html
+    channelId: "@my_channel"
 ```
 
 Environment variables are substituted via `${VAR_NAME}`.

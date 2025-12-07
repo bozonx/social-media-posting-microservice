@@ -3,7 +3,7 @@ import { IAuthValidator } from '../base/auth-validator.interface.js';
 
 /**
  * Telegram-specific auth validator
- * Validates botToken and chatId presence and format
+ * Validates apiKey and chatId presence and format
  */
 @Injectable()
 export class TelegramAuthValidator implements IAuthValidator {
@@ -11,7 +11,7 @@ export class TelegramAuthValidator implements IAuthValidator {
 
   /**
    * Validate Telegram auth object
-   * @param auth - Auth object with botToken and chatId
+   * @param auth - Auth object with apiKey and chatId
    * @returns Array of error messages (empty if valid)
    */
   validate(auth: Record<string, any>): string[] {
@@ -22,13 +22,13 @@ export class TelegramAuthValidator implements IAuthValidator {
       return errors;
     }
 
-    // Validate botToken
-    if (!auth.botToken) {
-      errors.push("Field 'botToken' is required for Telegram auth");
-    } else if (typeof auth.botToken !== 'string') {
-      errors.push("Field 'botToken' must be a string");
-    } else if (!this.isValidBotToken(auth.botToken)) {
-      errors.push("Field 'botToken' has invalid format (expected: 123456789:ABC-DEF...)");
+    // Validate apiKey
+    if (!auth.apiKey) {
+      errors.push("Field 'apiKey' is required for Telegram auth");
+    } else if (typeof auth.apiKey !== 'string') {
+      errors.push("Field 'apiKey' must be a string");
+    } else if (!this.isValidBotToken(auth.apiKey)) {
+      errors.push("Field 'apiKey' has invalid format (expected: 123456789:ABC-DEF...)");
     }
 
     // Validate chatId
@@ -42,7 +42,7 @@ export class TelegramAuthValidator implements IAuthValidator {
   }
 
   /**
-   * Check if botToken has valid format
+   * Check if apiKey (bot token) has valid format
    * Telegram bot tokens have format: 123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
    */
   private isValidBotToken(token: string): boolean {

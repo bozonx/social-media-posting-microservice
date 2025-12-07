@@ -76,11 +76,11 @@ channels:
     platform: telegram
     
 
-    # Authentication (bot token and chat ID)
+    # Authentication (API credentials and chat ID)
     # You can use environment variables: ${MY_CUSTOM_VAR}
     auth:
-      # Telegram bot token from @BotFather
-      botToken: your_bot_token_here
+      # API key (for Telegram: bot token from @BotFather)
+      apiKey: your_bot_token_here
       # Chat ID or channel username (with @ prefix for public channels)
       chatId: '@your_channel_username'
 

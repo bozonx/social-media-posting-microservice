@@ -30,7 +30,7 @@ describe('AppConfigService', () => {
         platform: 'telegram',
 
         auth: {
-          botToken: 'test-token',
+          apiKey: 'test-token',
           chatId: 'test-chat-id',
         },
       },
@@ -91,8 +91,8 @@ describe('AppConfigService', () => {
     });
 
     it('should handle deeply nested paths', () => {
-      const botToken = service.get('channels.test-channel.auth.botToken');
-      expect(botToken).toBe('test-token');
+      const apiKey = service.get('channels.test-channel.auth.apiKey');
+      expect(apiKey).toBe('test-token');
     });
   });
 
@@ -102,7 +102,7 @@ describe('AppConfigService', () => {
       expect(channel).toEqual({
         platform: 'telegram',
         auth: {
-          botToken: 'test-token',
+          apiKey: 'test-token',
           chatId: 'test-chat-id',
         },
       });

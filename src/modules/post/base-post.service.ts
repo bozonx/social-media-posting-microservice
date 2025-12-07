@@ -45,23 +45,35 @@ export abstract class BasePostService {
    * @throws BadRequestException if neither channel nor auth is provided
    */
   protected getChannelConfig(request: PostRequestDto): ResolvedChannelConfig {
+    // Get base config from channel or create inline config
+    let baseConfig: ChannelConfig;
+    let source: 'channel' | 'inline';
+
     if (request.channel) {
-      const config = this.appConfig.getChannel(request.channel);
-      return { ...config, source: 'channel' };
-    }
-
-    if (request.auth) {
-
-
-      return {
+      baseConfig = this.appConfig.getChannel(request.channel);
+      source = 'channel';
+    } else if (request.auth) {
+      // Create inline config with auth from request
+      baseConfig = {
         platform: request.platform.toLowerCase(),
-
-        auth: request.auth,
-        source: 'inline',
+        auth: {},
       };
+      source = 'inline';
+    } else {
+      throw new BadRequestException('Either "channel" or "auth" must be provided');
     }
 
-    throw new BadRequestException('Either "channel" or "auth" must be provided');
+    // Merge auth: request.auth fields override channel auth fields
+    const mergedAuth = {
+      ...baseConfig.auth,
+      ...(request.auth || {}),
+    };
+
+    return {
+      ...baseConfig,
+      auth: mergedAuth,
+      source,
+    };
   }
 
   /**

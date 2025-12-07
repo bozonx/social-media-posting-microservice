@@ -228,21 +228,21 @@ export class BozonxPost implements INodeType {
 						displayName: 'Telegram',
 						values: [
 							{
-								displayName: 'Bot Token',
-								name: 'botToken',
+								displayName: 'API Key',
+								name: 'apiKey',
 								type: 'string',
 								typeOptions: { password: true },
 								default: '',
-								required: true,
-								description: 'Telegram bot token',
+								required: false,
+								description: 'Telegram bot token (from @BotFather). Optional if using channel config.',
 							},
 							{
 								displayName: 'Chat ID',
 								name: 'chatId',
 								type: 'string',
 								default: '',
-								required: true,
-								description: 'Telegram channel/chat ID (e.g., @mychannel or -100123456789)',
+								required: false,
+								description: 'Telegram channel/chat ID (e.g., @mychannel or -100123456789). Optional if using channel config.',
 							},
 						],
 					},
@@ -352,7 +352,7 @@ export class BozonxPost implements INodeType {
 				const type = this.getNodeParameter('type', i, 'auto') as string;
 				const authentication = this.getNodeParameter('authentication', i, {}) as {
 					channel?: { channelName: string };
-					telegram?: { botToken: string; chatId: string };
+					telegram?: { apiKey?: string; chatId?: string };
 				};
 				const additionalOptions = this.getNodeParameter('additionalOptions', i, {}) as Record<
 					string,
@@ -386,11 +386,19 @@ export class BozonxPost implements INodeType {
 				// Add authentication if provided
 				if (authentication.channel?.channelName) {
 					requestBody.channel = authentication.channel.channelName;
-				} else if (authentication.telegram) {
-					requestBody.auth = {
-						botToken: authentication.telegram.botToken,
-						chatId: authentication.telegram.chatId,
-					};
+				}
+				// Add auth fields only if provided (they can override channel config)
+				if (authentication.telegram) {
+					const auth: Record<string, string> = {};
+					if (authentication.telegram.apiKey) {
+						auth.apiKey = authentication.telegram.apiKey;
+					}
+					if (authentication.telegram.chatId) {
+						auth.chatId = authentication.telegram.chatId;
+					}
+					if (Object.keys(auth).length > 0) {
+						requestBody.auth = auth;
+					}
 				}
 
 				// Add additional options

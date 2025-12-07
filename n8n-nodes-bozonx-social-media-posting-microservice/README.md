@@ -375,7 +375,7 @@ channels:
     provider: telegram
 
     auth:
-      botToken: ${TELEGRAM_BOT_TOKEN}
+      apiKey: ${TELEGRAM_BOT_TOKEN}
       chatId: "@my_channel"
     parseMode: HTML
     convertBody: true

@@ -3,7 +3,7 @@ import { Bot } from 'grammy';
 
 /**
  * Cache for Telegram Bot instances
- * Reuses bot instances by botToken to avoid creating new connections on each request
+ * Reuses bot instances by apiKey (bot token) to avoid creating new connections on each request
  */
 @Injectable()
 export class TelegramBotCache implements OnModuleDestroy {
@@ -12,7 +12,7 @@ export class TelegramBotCache implements OnModuleDestroy {
 
   /**
    * Get or create a Bot instance for the given token
-   * @param botToken - Telegram bot token
+   * @param botToken - Telegram bot token (apiKey)
    * @returns Bot instance
    */
   getOrCreate(botToken: string): Bot {
@@ -27,7 +27,7 @@ export class TelegramBotCache implements OnModuleDestroy {
 
   /**
    * Remove a Bot instance from cache
-   * @param botToken - Telegram bot token
+   * @param botToken - Telegram bot token (apiKey)
    */
   remove(botToken: string): void {
     this.cache.delete(botToken);

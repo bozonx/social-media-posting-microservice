@@ -34,7 +34,7 @@ channels:
     platform: telegram
 
     auth:
-      botToken: ${MY_TELEGRAM_TOKEN}  # or direct value
+      apiKey: ${MY_TELEGRAM_TOKEN}  # or direct value
       chatId: "@my_channel"
     parseMode: HTML
 ```
@@ -150,7 +150,7 @@ channels:
     platform: telegram
 
     auth:
-      botToken: ${MY_TELEGRAM_TOKEN}
+      apiKey: ${MY_TELEGRAM_TOKEN}
       chatId: "@my_channel"
 ```
 

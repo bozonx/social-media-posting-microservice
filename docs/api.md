@@ -27,7 +27,7 @@ Publish content to a social media platform.
 | `platform` | string | Yes | Platform name (`telegram`) |
 | `body` | string | Yes | Post content |
 | `channel` | string | No* | Channel name from `config.yaml` |
-| `auth` | object | No* | Inline authentication credentials. See below |
+| `auth` | object | No* | Inline authentication credentials. See [Auth Field](#auth-field) below |
 | `type` | string | No | Post type (default: `auto`). See below |
 | `bodyFormat` | string | No | Body format: `text`, `html`, `md` (default: `text`) |
 | `convertBodyDefault` | boolean | No | **Reserved.** Not used for Telegram (body is sent as-is) |
@@ -46,6 +46,64 @@ Publish content to a social media platform.
 | `idempotencyKey` | string | No | Key to prevent duplicates |
 
 **Note:** Either `channel` or `auth` must be provided.
+
+### Auth Field
+
+The `auth` field contains platform-specific authentication credentials. Its structure matches the `auth` section in `config.yaml`:
+
+**For Telegram:**
+
+```json
+{
+  "auth": {
+    "apiKey": "123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+    "chatId": "@my_channel"
+  }
+}
+```
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `apiKey` | string | Yes | API key (for Telegram: bot token from @BotFather) |
+| `chatId` | string/number | Yes | Chat ID or channel username (with @ prefix for public channels) |
+
+**Auth Merging Behavior:**
+
+- If `channel` is provided, the base auth is taken from the channel configuration in `config.yaml`
+- If `auth` is also provided in the request, its fields **override** the channel's auth fields
+- All auth fields in the request are optional - they only override specific fields from the channel config
+- Final validation checks that all required fields for the platform are present after merging
+
+**Examples:**
+
+```json
+// Use channel config entirely
+{
+  "platform": "telegram",
+  "channel": "my_channel",
+  "body": "Hello"
+}
+
+// Override only chatId from channel config
+{
+  "platform": "telegram",
+  "channel": "my_channel",
+  "auth": {
+    "chatId": "@different_channel"
+  },
+  "body": "Hello"
+}
+
+// Provide complete inline auth (no channel)
+{
+  "platform": "telegram",
+  "auth": {
+    "apiKey": "123456789:ABC-DEF...",
+    "chatId": "@my_channel"
+  },
+  "body": "Hello"
+}
+```
 
 ### Post Types
 
@@ -470,7 +528,7 @@ curl -X POST http://localhost:8080/api/v1/post \
     "platform": "telegram",
     "body": "Test post",
     "auth": {
-      "botToken": "123456:ABC...",
+      "apiKey": "123456:ABC...",
       "chatId": "@my_channel"
     }
   }'

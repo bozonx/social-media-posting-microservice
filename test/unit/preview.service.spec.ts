@@ -16,7 +16,7 @@ describe('PreviewService', () => {
     platform: 'telegram',
 
     auth: {
-      botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
+      apiKey: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
       chatId: 'test-chat-id',
     },
     parseMode: 'HTML',
@@ -153,7 +153,7 @@ describe('PreviewService', () => {
       (appConfigService.getChannel as jest.Mock).mockReturnValue({
         platform: 'vk',
 
-        auth: { botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11', chatId: 'test' },
+        auth: { apiKey: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11', chatId: 'test' },
       });
 
       const result = await service.preview(request);
@@ -205,7 +205,7 @@ describe('PreviewService', () => {
         platform: 'telegram',
         body: 'Test message',
         auth: {
-          botToken: 'test-token',
+          apiKey: 'test-token',
           chatId: '@test_channel',
         },
       };

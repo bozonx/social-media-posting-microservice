@@ -16,7 +16,7 @@ import { PostType } from '@/common/enums/index.js';
 interface ChannelConfig {
   platform: string;
 
-  auth: { botToken: string; chatId: string };
+  auth: { apiKey: string; chatId: string };
 }
 
 interface CommonConfig {
@@ -36,7 +36,7 @@ const createChannelConfig = (overrides: Partial<ChannelConfig> = {}): ChannelCon
   platform: 'telegram',
 
   auth: {
-    botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
+    apiKey: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
     chatId: 'test-chat-id',
   },
   ...overrides,
@@ -195,7 +195,7 @@ describe('PostService', () => {
       it('should publish using inline auth', async () => {
         const request = createPostRequest({
           channel: undefined,
-          auth: { botToken: 'inline-token', chatId: 'inline-chat-id' },
+          auth: { apiKey: 'inline-token', chatId: 'inline-chat-id' },
         });
         const platformResult = createPlatformResult();
 

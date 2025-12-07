@@ -67,8 +67,8 @@ export class TelegramPlatform implements IPlatform {
       });
     }
 
-    const { botToken, chatId } = channelConfig.auth;
-    const bot = this.botCache.getOrCreate(botToken);
+    const { apiKey, chatId } = channelConfig.auth;
+    const bot = this.botCache.getOrCreate(apiKey);
 
     const { processedBody, parseMode, disableNotification, options } = this.prepareMessageData(
       request,

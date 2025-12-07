@@ -534,7 +534,7 @@ channels:
     platform: telegram
 
     auth:
-      botToken: your_bot_token_here
+      apiKey: your_bot_token_here
       chatId: @your_channel_username
     options:
       disableNotification: false
@@ -795,7 +795,7 @@ interface TelegramAdditional {
 - **Секреты и конфигурация**
   - Токены и ключи API можно указывать напрямую в `config.yaml` или через переменные окружения
   - Поддерживается подстановка `${VAR_NAME}` для любых переменных из `.env`
-  - Пример: `botToken: ${MY_BOT_TOKEN}`
+  - Пример: `apiKey: ${MY_BOT_TOKEN}`
 
 **Важно:** Файл `config.yaml` содержит секретные данные и должен быть защищен (например, монтироваться как Secret в Kubernetes или не попадать в публичный репозиторий).
 

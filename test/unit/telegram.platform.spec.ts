@@ -42,7 +42,7 @@ describe('TelegramPlatform', () => {
     platform: 'telegram',
     enabled: true,
     auth: {
-      botToken: 'test-token',
+      apiKey: 'test-token',
       chatId: 'test-chat-id',
     },
     disableNotification: false,
@@ -244,7 +244,7 @@ describe('TelegramPlatform', () => {
         platform: 'telegram',
         enabled: true,
         auth: {
-          botToken: 'test-token',
+          apiKey: 'test-token',
           chatId: '@publicchannel',
         },
       };

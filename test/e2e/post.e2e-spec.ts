@@ -56,7 +56,7 @@ describe('PostController (e2e)', () => {
         return {
           platform: 'telegram',
           auth: {
-            botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
+            apiKey: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
             chatId: 'channel-chat-id',
           },
         };
@@ -170,7 +170,7 @@ describe('PostController (e2e)', () => {
         body: 'Hello World',
         type: PostType.POST,
         auth: {
-          botToken: 'mock-token',
+          apiKey: 'mock-token',
           chatId: '123456',
         },
       };
@@ -216,7 +216,7 @@ describe('PostController (e2e)', () => {
         platform: 'twitter', // Mismatch
         body: 'Hello World',
         auth: {
-          botToken: 'mock-token',
+          apiKey: 'mock-token',
           chatId: '123456',
         },
       };
@@ -243,7 +243,7 @@ describe('PostController (e2e)', () => {
         body: 'Hello World',
         type: PostType.POST,
         auth: {
-          botToken: 'mock-token',
+          apiKey: 'mock-token',
           chatId: '123456',
         },
       };
@@ -295,7 +295,7 @@ describe('PostController (e2e)', () => {
         expect.objectContaining({
           platform: 'telegram',
           auth: {
-            botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
+            apiKey: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
             chatId: 'channel-chat-id',
           },
           source: 'channel',
@@ -308,7 +308,7 @@ describe('PostController (e2e)', () => {
         platform: 'telegram',
         body: 'Error test',
         type: PostType.POST,
-        auth: { botToken: 't', chatId: 'c' },
+        auth: { apiKey: 't', chatId: 'c' },
       };
 
       const platformError = new Error('Telegram API Error');
@@ -333,7 +333,7 @@ describe('PostController (e2e)', () => {
         platform: 'telegram',
         body: 'Idempotency test',
         type: PostType.POST,
-        auth: { botToken: 't', chatId: 'c' },
+        auth: { apiKey: 't', chatId: 'c' },
         idempotencyKey: 'unique-key-123',
       };
 

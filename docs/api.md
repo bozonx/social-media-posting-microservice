@@ -67,6 +67,23 @@ The `auth` field contains platform-specific authentication credentials. Its stru
 |----------|------|----------|-------------|
 | `apiKey` | string | Yes | API key (for Telegram: bot token from @BotFather) |
 
+In addition to the fields listed in the table, the `auth` object may contain **additional provider-specific fields**.
+
+- All `auth` fields from config and request are **merged and passed to the provider as-is**
+- Each provider is responsible for parsing and validating its own extra fields
+
+**Example with additional Telegram auth fields:**
+
+```json
+{
+  "auth": {
+    "apiKey": "123456789:ABC-DEF...",
+    "chatId": "@my_channel",
+    "customProxyUrl": "socks5://user:pass@host:1080"
+  }
+}
+```
+
 **Auth Merging Behavior:**
 
 - If `channel` is provided, the base auth is taken from the channel configuration in `config.yaml`

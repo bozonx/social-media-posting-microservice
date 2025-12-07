@@ -26,6 +26,8 @@ export interface IProvider {
   readonly name: string;
   /** List of supported post types */
   readonly supportedTypes: PostType[];
+  /** Whether the provider supports cover image with other media (e.g. video cover) */
+  readonly supportsCoverWithMedia?: boolean;
 
   /**
    * Publish a post to the platform

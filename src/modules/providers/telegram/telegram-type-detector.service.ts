@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PostRequestDto } from '../../post/dto/index.js';
 import { PostType } from '../../../common/enums/index.js';
 import { MediaInputHelper } from '../../../common/helpers/media-input.helper.js';
+import { MediaPriorityValidator } from '../../../common/validators/media-priority.validator.js';
 
 /**
  * Service for determining message type for Telegram
@@ -24,24 +25,10 @@ export class TelegramTypeDetector {
       return request.type;
     }
 
-    // Priority 1: media[] -> ALBUM
-    if (MediaInputHelper.isNotEmpty(request.media)) {
-      return PostType.ALBUM;
-    }
-
-    // Priority 2: document -> DOCUMENT
-    if (MediaInputHelper.isDefined(request.document)) {
-      return PostType.DOCUMENT;
-    }
-
-    // Priority 3: audio -> AUDIO
-    if (MediaInputHelper.isDefined(request.audio)) {
-      return PostType.AUDIO;
-    }
-
-    // Priority 4: video -> VIDEO
-    if (MediaInputHelper.isDefined(request.video)) {
-      return PostType.VIDEO;
+    // Priority 1-4: Check primary media fields (ALBUM, DOCUMENT, AUDIO, VIDEO)
+    const primaryType = MediaPriorityValidator.detectPrimaryMediaField(request);
+    if (primaryType) {
+      return primaryType;
     }
 
     // Priority 5: cover -> IMAGE

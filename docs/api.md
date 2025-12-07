@@ -52,7 +52,7 @@ Publish content to a social media platform.
 | Type | Description |
 |------|-------------|
 | `auto` | Auto-detect from media fields (default) |
-| `post` | Text-only message |
+| `post` | Text message |
 | `image` | Single image with caption |
 | `video` | Video with caption |
 | `audio` | Audio file with caption |
@@ -237,7 +237,9 @@ When `type` is `auto` (default), the type is detected by priority:
 | 5 | `cover` | `image` |
 | 6 | (none) | `post` |
 
-**Note:** With `type: auto`, only one media field should be provided. Multiple conflicting fields return a validation error.
+**Note:** With `type: auto`, if multiple media fields are provided, the one with the highest priority is selected.
+For Telegram, `cover` (priority 5) is considered low priority and cannot be combined with other media types (it will be ignored if higher priority media is present).
+Other providers may allow combining `cover` with other media (e.g. video + cover).
 
 ### Body Format Handling
 
@@ -503,7 +505,6 @@ When `idempotencyKey` is provided:
 
 - Scoped to single instance
 - Lost on restart
-- No cross-instance support (requires Redis)
 
 ---
 
@@ -532,21 +533,3 @@ Configure in `config.yaml`:
 retryAttempts: 3
 retryDelayMs: 1000
 ```
-
----
-
-## Configuration
-
-Channel configuration in `config.yaml`:
-
-```yaml
-channels:
-  my_channel:
-    provider: telegram
-
-    auth:
-      botToken: ${MY_TELEGRAM_TOKEN}
-      chatId: "@my_channel"
-```
-
-Environment variables are substituted using `${VAR_NAME}` syntax.

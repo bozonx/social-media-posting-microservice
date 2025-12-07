@@ -51,6 +51,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Media Validation Refactoring**:
+  - Replaced strict validation errors for multiple media fields with soft priority-based logic
+  - Priority order: `media[]` (1) → `document` (2) → `audio` (3) → `video` (4)
+  - For Telegram: `cover` (priority 5) is ignored if higher priority media is present (instead of throwing error)
+  - `AmbiguousMediaValidator` renamed to `MediaPriorityValidator`
+
 - Default `type` changed from `post` to `auto`
 - Media fields (`cover`, `video`, `media[]`) now accept `MediaInput` type instead of plain strings
 - `TelegramProvider.supportedTypes` now includes `AUTO` and `AUDIO`

@@ -10,7 +10,7 @@ import {
 
 import { MediaService } from '../../media/media.service.js';
 import { MediaInputHelper } from '../../../common/helpers/media-input.helper.js';
-import { AmbiguousMediaValidator } from '../../../common/validators/ambiguous-media.validator.js';
+
 import { TelegramTypeDetector } from './telegram-type-detector.service.js';
 import { TelegramBotCache } from './telegram-bot-cache.service.js';
 import type { ChannelConfig } from '../../app-config/interfaces/app-config.interface.js';
@@ -33,6 +33,7 @@ export class TelegramProvider implements IProvider {
     PostType.AUDIO,
     PostType.DOCUMENT,
   ];
+  readonly supportsCoverWithMedia = false;
 
   private readonly logger = new Logger(TelegramProvider.name);
   private readonly MAX_CAPTION_LENGTH = 1024;
@@ -209,13 +210,6 @@ export class TelegramProvider implements IProvider {
   private validateRequest(request: PostRequestDto) {
     const errors: string[] = [];
     const warnings: string[] = [];
-
-    // Ambiguous Media
-    try {
-      AmbiguousMediaValidator.validate(request);
-    } catch (e: any) {
-      errors.push(e.message);
-    }
 
     // Detect Type
     const actualType = this.typeDetector.detectType(request);

@@ -72,7 +72,7 @@ export class BozonxPost implements INodeType {
 				required: false,
 				displayOptions: {
 					show: {
-						channel: [''],
+						// channel: [''],
 						platform: ['telegram'],
 						authType: ['telegramApi'],
 					},

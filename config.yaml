@@ -69,14 +69,13 @@ providers:
 channels:
   # Company Telegram channel
   company_telegram:
+
+    
     # Provider name
     # Must match one of the supported providers (currently: telegram)
     provider: telegram
     
-    # Whether this channel is enabled
-    # Disabled channels cannot be used for posting
-    enabled: true
-    
+
     # Authentication (bot token and chat ID)
     # You can use environment variables: ${MY_CUSTOM_VAR}
     auth:

@@ -54,9 +54,7 @@ export class AppConfigService {
     if (!channel) {
       throw new Error(`Channel "${channelName}" not found in config`);
     }
-    if (!channel.enabled) {
-      throw new Error(`Channel "${channelName}" is disabled`);
-    }
+
     return channel;
   }
 

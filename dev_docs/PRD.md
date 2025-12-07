@@ -531,7 +531,7 @@ channels:
   # Telegram канал компании
   company_telegram:
     provider: telegram
-    enabled: true
+
     auth:
       botToken: your_bot_token_here
       chatId: @your_channel_username

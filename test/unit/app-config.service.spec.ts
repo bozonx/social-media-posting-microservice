@@ -28,20 +28,13 @@ describe('AppConfigService', () => {
     channels: {
       'test-channel': {
         provider: 'telegram',
-        enabled: true,
+
         auth: {
           botToken: 'test-token',
           chatId: 'test-chat-id',
         },
       },
-      'disabled-channel': {
-        provider: 'telegram',
-        enabled: false,
-        auth: {
-          botToken: 'test-token',
-          chatId: 'test-chat-id',
-        },
-      },
+
     },
   };
 
@@ -108,7 +101,6 @@ describe('AppConfigService', () => {
       const channel = service.getChannel('test-channel');
       expect(channel).toEqual({
         provider: 'telegram',
-        enabled: true,
         auth: {
           botToken: 'test-token',
           chatId: 'test-chat-id',
@@ -122,18 +114,13 @@ describe('AppConfigService', () => {
       );
     });
 
-    it('should throw error for disabled channel', () => {
-      expect(() => service.getChannel('disabled-channel')).toThrow(
-        'Channel "disabled-channel" is disabled',
-      );
-    });
+
   });
 
   describe('getAllChannels', () => {
     it('should return all channels', () => {
       const channels = service.getAllChannels();
       expect(channels).toHaveProperty('test-channel');
-      expect(channels).toHaveProperty('disabled-channel');
     });
   });
 

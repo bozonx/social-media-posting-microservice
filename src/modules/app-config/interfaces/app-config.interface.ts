@@ -40,8 +40,7 @@ export interface ProviderDefaultConfig {
 export interface ChannelConfig {
   /** Provider name (e.g., 'telegram') */
   provider: string;
-  /** Whether the channel is enabled */
-  enabled: boolean;
+
   /** Authentication credentials */
   auth: Record<string, string>;
   /** Additional provider-specific settings */

@@ -543,7 +543,7 @@ Channel configuration in `config.yaml`:
 channels:
   my_channel:
     provider: telegram
-    enabled: true
+
     auth:
       botToken: ${MY_TELEGRAM_TOKEN}
       chatId: "@my_channel"

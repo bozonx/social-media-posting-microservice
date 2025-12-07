@@ -15,7 +15,7 @@ import { PostType } from '@/common/enums/index.js';
 
 interface ChannelConfig {
   provider: string;
-  enabled: boolean;
+
   auth: { botToken: string; chatId: string };
 }
 
@@ -34,7 +34,7 @@ interface ProviderResult {
 
 const createChannelConfig = (overrides: Partial<ChannelConfig> = {}): ChannelConfig => ({
   provider: 'telegram',
-  enabled: true,
+
   auth: {
     botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
     chatId: 'test-chat-id',

@@ -55,7 +55,6 @@ describe('PostController (e2e)', () => {
       if (name === 'test_channel') {
         return {
           provider: 'telegram',
-          enabled: true,
           auth: {
             botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
             chatId: 'channel-chat-id',
@@ -68,6 +67,10 @@ describe('PostController (e2e)', () => {
       retryAttempts: 1,
       retryDelayMs: 0,
     }),
+    get retryAttempts() { return 1; },
+    get retryDelayMs() { return 0; },
+    get incomingRequestTimeoutSecs() { return 60; },
+    get providerTimeoutSecs() { return 60; },
     getConversionConfig: jest.fn().mockReturnValue({}),
   };
 

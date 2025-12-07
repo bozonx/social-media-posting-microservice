@@ -14,7 +14,7 @@ describe('PreviewService', () => {
 
   const mockChannelConfig = {
     provider: 'telegram',
-    enabled: true,
+
     auth: {
       botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
       chatId: 'test-chat-id',
@@ -152,7 +152,7 @@ describe('PreviewService', () => {
 
       (appConfigService.getChannel as jest.Mock).mockReturnValue({
         provider: 'vk',
-        enabled: true,
+
         auth: { botToken: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11', chatId: 'test' },
       });
 
@@ -229,7 +229,7 @@ describe('PreviewService', () => {
       expect(appConfigService.getChannel).not.toHaveBeenCalled();
       expect(mockTelegramProvider.preview).toHaveBeenCalledWith(request, {
         provider: 'telegram',
-        enabled: true,
+
         auth: request.auth,
         source: 'inline',
       });

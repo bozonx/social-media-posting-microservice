@@ -96,10 +96,7 @@ export class PostRequestDto {
   @IsObject()
   auth?: Record<string, any>;
 
-  /** Whether inline auth is enabled (defaults to true) */
-  @IsOptional()
-  @IsBoolean()
-  enabled?: boolean;
+
 
   /** Platform-specific options */
   @IsOptional()

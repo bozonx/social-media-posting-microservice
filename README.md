@@ -32,7 +32,7 @@ Edit `config.yaml` with your Telegram credentials:
 channels:
   my_channel:
     provider: telegram
-    enabled: true
+
     auth:
       botToken: ${MY_TELEGRAM_TOKEN}  # or direct value
       chatId: "@my_channel"
@@ -148,7 +148,7 @@ conversion:
 channels:
   my_channel:
     provider: telegram
-    enabled: true
+
     auth:
       botToken: ${MY_TELEGRAM_TOKEN}
       chatId: "@my_channel"

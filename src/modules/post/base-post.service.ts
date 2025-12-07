@@ -25,7 +25,7 @@ export abstract class BasePostService {
     protected readonly appConfig: AppConfigService,
     protected readonly providerRegistry: ProviderRegistry,
     protected readonly authValidatorRegistry: AuthValidatorRegistry,
-  ) {}
+  ) { }
 
   /**
    * Get provider instance by platform name
@@ -51,14 +51,11 @@ export abstract class BasePostService {
     }
 
     if (request.auth) {
-      // Check if inline auth is explicitly disabled
-      if (request.enabled === false) {
-        throw new BadRequestException('Inline auth is disabled for this request');
-      }
+
 
       return {
         provider: request.platform.toLowerCase(),
-        enabled: request.enabled ?? true,
+
         auth: request.auth,
         source: 'inline',
       };
@@ -91,16 +88,7 @@ export abstract class BasePostService {
     this.authValidatorRegistry.validate(platform, auth);
   }
 
-  /**
-   * Validate that channel is enabled
-   * @param channelConfig - Channel configuration
-   * @throws BadRequestException if channel is disabled
-   */
-  protected validateChannelEnabled(channelConfig: ChannelConfig): void {
-    if (!channelConfig.enabled) {
-      throw new BadRequestException('Channel is disabled');
-    }
-  }
+
 
   /**
    * Full validation chain for request
@@ -121,7 +109,7 @@ export abstract class BasePostService {
     const channelConfig = this.getChannelConfig(request);
 
     this.validatePlatformMatch(platform, channelConfig);
-    this.validateChannelEnabled(channelConfig);
+
     this.validateAuth(platform, channelConfig.auth);
 
     return { provider, channelConfig };

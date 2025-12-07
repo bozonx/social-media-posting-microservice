@@ -312,7 +312,7 @@ Enable **Continue On Fail** in node settings to handle errors gracefully without
 
 **Using Channel Mode:**
 - Verify channel name exists in microservice `config.yaml`
-- Check channel is enabled: `enabled: true`
+
 - Ensure environment variables are properly substituted
 
 **Using Inline Auth:**
@@ -373,7 +373,7 @@ The microservice uses `config.yaml` for channel configuration. Example:
 channels:
   my_channel:
     provider: telegram
-    enabled: true
+
     auth:
       botToken: ${TELEGRAM_BOT_TOKEN}
       chatId: "@my_channel"

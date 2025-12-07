@@ -12,7 +12,6 @@ import { MediaService } from '../../media/media.service.js';
 import { MediaInputHelper } from '../../../common/helpers/media-input.helper.js';
 
 import { TelegramTypeDetector } from './telegram-type-detector.service.js';
-import { TelegramBotCache } from './telegram-bot-cache.service.js';
 import type { ChannelConfig } from '../../app-config/interfaces/app-config.interface.js';
 
 export interface TelegramChannelConfig extends ChannelConfig {
@@ -41,8 +40,7 @@ export class TelegramPlatform implements IPlatform {
   constructor(
     private readonly mediaService: MediaService,
     private readonly typeDetector: TelegramTypeDetector,
-    private readonly botCache: TelegramBotCache,
-  ) { }
+  ) {}
 
   async publish(
     request: PostRequestDto,
@@ -66,7 +64,7 @@ export class TelegramPlatform implements IPlatform {
     }
 
     const { apiKey, chatId } = channelConfig.auth;
-    const bot = this.botCache.getOrCreate(apiKey);
+    const bot = new Bot(apiKey);
 
     const { processedBody, parseMode, disableNotification, options } = this.prepareMessageData(
       request,
@@ -226,7 +224,7 @@ export class TelegramPlatform implements IPlatform {
    * Prepares message data for sending to Telegram.
    * Maps bodyFormat to parse_mode without converting the body content.
    * Body is sent as-is to Telegram API.
-   * 
+   *
    * Standard formats (text, html, md) are mapped to Telegram parse_mode.
    * Custom values (e.g., MarkdownV2) are passed as-is.
    * If parse_mode is specified in options, it overrides bodyFormat mapping.
@@ -539,7 +537,6 @@ export class TelegramPlatform implements IPlatform {
     }
     return warnings;
   }
-
 
   private buildPostUrl(chatId: string | number, messageId: number): string | undefined {
     const chatIdStr = String(chatId);

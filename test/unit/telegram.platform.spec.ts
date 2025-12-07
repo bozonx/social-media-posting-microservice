@@ -30,8 +30,6 @@ type TelegramChannelConfig =
 const { MediaService } = await import('@/modules/media/media.service.js');
 const { TelegramTypeDetector } =
   await import('@/modules/platforms/telegram/telegram-type-detector.service.js');
-const { TelegramBotCache } =
-  await import('@/modules/platforms/telegram/telegram-bot-cache.service.js');
 
 describe('TelegramPlatform', () => {
   let platform: TelegramPlatform;
@@ -48,19 +46,10 @@ describe('TelegramPlatform', () => {
     disableNotification: false,
   };
 
-  const mockBotCache = {
-    getOrCreate: jest.fn().mockImplementation(() => ({
-      api: mockApi,
-    })),
-    remove: jest.fn(),
-    clear: jest.fn(),
-  };
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TelegramPlatform,
-
         {
           provide: MediaService,
           useValue: {
@@ -73,10 +62,6 @@ describe('TelegramPlatform', () => {
           useValue: {
             detectType: jest.fn((request: PostRequestDto) => request.type ?? PostType.POST),
           },
-        },
-        {
-          provide: TelegramBotCache,
-          useValue: mockBotCache,
         },
       ],
     }).compile();
@@ -180,7 +165,6 @@ describe('TelegramPlatform', () => {
 
       // Body should not be converted
 
-
       // parse_mode should be Markdown
       expect(mockApi.sendMessage).toHaveBeenCalledWith(
         'test-chat-id',
@@ -200,9 +184,6 @@ describe('TelegramPlatform', () => {
       mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
 
       await platform.publish(request, mockChannelConfig);
-
-
-
 
       expect(mockApi.sendMessage).toHaveBeenCalledWith(
         'test-chat-id',
@@ -665,8 +646,6 @@ describe('TelegramPlatform', () => {
       );
     });
   });
-
-
 
   describe('buildPostUrl', () => {
     it('should build URL for public channels', () => {

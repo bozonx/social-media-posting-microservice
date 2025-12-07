@@ -3,7 +3,6 @@ import { TelegramPlatform } from './telegram/telegram.platform.js';
 
 import { MediaModule } from '../media/media.module.js';
 import { TelegramTypeDetector } from './telegram/telegram-type-detector.service.js';
-import { TelegramBotCache } from './telegram/telegram-bot-cache.service.js';
 import { TelegramAuthValidator } from './telegram/telegram-auth.validator.js';
 import { PlatformRegistry } from './base/platform-registry.service.js';
 import { AuthValidatorRegistry } from './base/auth-validator-registry.service.js';
@@ -15,7 +14,6 @@ import { AuthValidatorRegistry } from './base/auth-validator-registry.service.js
     AuthValidatorRegistry,
     TelegramPlatform,
     TelegramTypeDetector,
-    TelegramBotCache,
     TelegramAuthValidator,
   ],
   exports: [
@@ -23,8 +21,6 @@ import { AuthValidatorRegistry } from './base/auth-validator-registry.service.js
     AuthValidatorRegistry,
     TelegramPlatform,
     TelegramTypeDetector,
-    TelegramBotCache,
-
     MediaModule,
   ],
 })
@@ -34,7 +30,7 @@ export class PlatformsModule implements OnModuleInit {
     private readonly authValidatorRegistry: AuthValidatorRegistry,
     private readonly telegramPlatform: TelegramPlatform,
     private readonly telegramAuthValidator: TelegramAuthValidator,
-  ) { }
+  ) {}
 
   onModuleInit(): void {
     // Register platforms

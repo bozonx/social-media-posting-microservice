@@ -15,24 +15,23 @@ import { MediaInput } from '../types/media-input.type.js';
 export class IsMediaInputConstraint implements ValidatorConstraintInterface {
   /**
    * Validates MediaInput value
-   * Accepts either a valid URL string or an object with url/fileId properties
+   * Accepts:
+   * - A string (URL or Telegram file_id)
+   * - An object with url/fileId properties
    * @param value - Value to validate
    * @param args - Validation arguments
    * @returns True if valid, false otherwise
    */
   validate(value: any, args: ValidationArguments) {
-    if (!value) {
-      return true; // Optional field
+    // Optional field - allow null/undefined
+    if (value === null || value === undefined) {
+      return true;
     }
 
-    // If it's a string, it should be a valid URL
+    // If it's a string, accept both URLs and file_id
+    // file_id is a non-empty string (e.g., "AgACAgIAAxkBAAIC...")
     if (typeof value === 'string') {
-      try {
-        new URL(value);
-        return true;
-      } catch {
-        return false;
-      }
+      return value.trim().length > 0;
     }
 
     // If it's an object, it should have either url or fileId
@@ -49,7 +48,7 @@ export class IsMediaInputConstraint implements ValidatorConstraintInterface {
   }
 
   defaultMessage(args: ValidationArguments) {
-    return 'MediaInput must be a valid URL string or an object with url/fileId and optional hasSpoiler boolean';
+    return 'MediaInput must be a string (URL or file_id) or an object with url/fileId and optional hasSpoiler boolean';
   }
 }
 
@@ -97,7 +96,7 @@ export class IsMediaInputArrayConstraint implements ValidatorConstraintInterface
   }
 
   defaultMessage(args: ValidationArguments) {
-    return 'Each item in media array must be a valid URL string or an object with url/fileId and optional hasSpoiler boolean';
+    return 'Each item in media array must be a string (URL or file_id) or an object with url/fileId and optional hasSpoiler boolean';
   }
 }
 

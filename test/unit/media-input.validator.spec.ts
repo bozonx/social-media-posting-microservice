@@ -28,9 +28,14 @@ describe('IsMediaInputConstraint', () => {
       expect(validator.validate('https://example.com/path/to/file.pdf', mockArgs)).toBe(true);
     });
 
-    it('should return false for invalid URL string', () => {
-      expect(validator.validate('not-a-url', mockArgs)).toBe(false);
-      expect(validator.validate('example.com/image.jpg', mockArgs)).toBe(false);
+    it('should return true for file_id string (non-URL)', () => {
+      expect(validator.validate('AgACAgIAAxkBAAIC...', mockArgs)).toBe(true);
+      expect(validator.validate('BAACAgIAAxkBAAIC...', mockArgs)).toBe(true);
+    });
+
+    it('should return false for empty string', () => {
+      expect(validator.validate('', mockArgs)).toBe(false);
+      expect(validator.validate('   ', mockArgs)).toBe(false);
     });
 
     it('should return true for object with url', () => {
@@ -83,7 +88,7 @@ describe('IsMediaInputConstraint', () => {
   describe('defaultMessage', () => {
     it('should return correct error message', () => {
       expect(validator.defaultMessage(mockArgs)).toBe(
-        'MediaInput must be a valid URL string or an object with url/fileId and optional hasSpoiler boolean',
+        'MediaInput must be a string (URL or file_id) or an object with url/fileId and optional hasSpoiler boolean',
       );
     });
   });
@@ -144,8 +149,13 @@ describe('IsMediaInputArrayConstraint', () => {
       expect(validator.validate({ url: 'https://example.com/image.jpg' }, mockArgs)).toBe(false);
     });
 
+    it('should return true for array with file_id strings', () => {
+      expect(validator.validate(['https://example.com/1.jpg', 'AgACAgIAAxkBAAIC...'], mockArgs)).toBe(true);
+      expect(validator.validate(['AgACAgIAAxkBAAIC...', 'BAACAgIAAxkBAAIC...'], mockArgs)).toBe(true);
+    });
+
     it('should return false if any item is invalid', () => {
-      expect(validator.validate(['https://example.com/1.jpg', 'not-a-url'], mockArgs)).toBe(false);
+      expect(validator.validate(['https://example.com/1.jpg', ''], mockArgs)).toBe(false);
       expect(validator.validate(['https://example.com/1.jpg', {}], mockArgs)).toBe(false);
       expect(validator.validate(['https://example.com/1.jpg', 123], mockArgs)).toBe(false);
     });
@@ -154,7 +164,7 @@ describe('IsMediaInputArrayConstraint', () => {
   describe('defaultMessage', () => {
     it('should return correct error message', () => {
       expect(validator.defaultMessage(mockArgs)).toBe(
-        'Each item in media array must be a valid URL string or an object with url/fileId and optional hasSpoiler boolean',
+        'Each item in media array must be a string (URL or file_id) or an object with url/fileId and optional hasSpoiler boolean',
       );
     });
   });

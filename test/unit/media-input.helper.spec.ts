@@ -47,6 +47,10 @@ describe('MediaInputHelper', () => {
       );
     });
 
+    it('should return undefined for file_id string (non-URL)', () => {
+      expect(MediaInputHelper.getUrl('AgACAgIAAxkBAAIC...')).toBeUndefined();
+    });
+
     it('should return undefined for object without url', () => {
       expect(MediaInputHelper.getUrl({ fileId: 'AgACAgIAAxkBAAIC...' })).toBeUndefined();
     });
@@ -63,7 +67,11 @@ describe('MediaInputHelper', () => {
       );
     });
 
-    it('should return undefined for string input', () => {
+    it('should return fileId from string input (non-URL)', () => {
+      expect(MediaInputHelper.getFileId('AgACAgIAAxkBAAIC...')).toBe('AgACAgIAAxkBAAIC...');
+    });
+
+    it('should return undefined for URL string', () => {
       expect(MediaInputHelper.getFileId('https://example.com/image.jpg')).toBeUndefined();
     });
 
@@ -95,7 +103,7 @@ describe('MediaInputHelper', () => {
   });
 
   describe('toTelegramInput', () => {
-    it('should return fileId when available', () => {
+    it('should return fileId when available in object', () => {
       const result = MediaInputHelper.toTelegramInput({
         fileId: 'AgACAgIAAxkBAAIC...',
         url: 'https://example.com/image.jpg',
@@ -108,9 +116,14 @@ describe('MediaInputHelper', () => {
       expect(result).toBe('https://example.com/image.jpg');
     });
 
-    it('should return URL for string input', () => {
+    it('should return URL for URL string input', () => {
       const result = MediaInputHelper.toTelegramInput('https://example.com/image.jpg');
       expect(result).toBe('https://example.com/image.jpg');
+    });
+
+    it('should return fileId for file_id string input (non-URL)', () => {
+      const result = MediaInputHelper.toTelegramInput('AgACAgIAAxkBAAIC...');
+      expect(result).toBe('AgACAgIAAxkBAAIC...');
     });
 
     it('should throw error when neither url nor fileId is available', () => {

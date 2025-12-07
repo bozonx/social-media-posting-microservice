@@ -6,7 +6,21 @@ import { InputFile } from 'grammy';
  */
 export class MediaInputHelper {
   /**
-   * Type guard to check if MediaInput is a string URL
+   * Check if a string is a valid URL
+   * @param str - String to check
+   * @returns True if string is a valid URL
+   */
+  private static isValidUrl(str: string): boolean {
+    try {
+      new URL(str);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Type guard to check if MediaInput is a string URL or file_id
    * @param input - MediaInput to check
    * @returns True if input is a string
    */
@@ -26,12 +40,14 @@ export class MediaInputHelper {
   /**
    * Extract URL from MediaInput
    * Handles both string URLs and object format with url property
+   * If input is a string, checks if it's a valid URL
    * @param input - MediaInput to extract URL from
    * @returns URL string if available, undefined otherwise
    */
   static getUrl(input: MediaInput): string | undefined {
     if (this.isString(input)) {
-      return input;
+      // Only return as URL if it's a valid URL format
+      return this.isValidUrl(input) ? input : undefined;
     }
     if (this.isObject(input)) {
       return input.url;
@@ -41,11 +57,15 @@ export class MediaInputHelper {
 
   /**
    * Extract Telegram file_id from MediaInput
-   * Only available when MediaInput is in object format
+   * Available when MediaInput is in object format or a non-URL string
    * @param input - MediaInput to extract file_id from
    * @returns Telegram file_id if available, undefined otherwise
    */
   static getFileId(input: MediaInput): string | undefined {
+    if (this.isString(input)) {
+      // If it's not a valid URL, treat it as file_id
+      return this.isValidUrl(input) ? undefined : input;
+    }
     if (this.isObject(input)) {
       return input.fileId;
     }

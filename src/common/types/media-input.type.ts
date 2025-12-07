@@ -1,6 +1,8 @@
 /**
  * MediaInput type
- * Supports both string URL and object with additional parameters
+ * Supports:
+ * - String: URL or Telegram file_id
+ * - Object: With url/fileId and optional parameters
  */
 export type MediaInput = string | MediaInputObject;
 

@@ -123,19 +123,31 @@ The `auth` field contains platform-specific authentication credentials. Its stru
 
 ### MediaInput Format
 
-Media fields accept a string URL or an object:
+Media fields accept:
+- **String**: URL or Telegram file_id
+- **Object**: With additional options
 
 ```json
 // String URL
 "cover": "https://example.com/image.jpg"
 
-// Object with options
+// String file_id (Telegram)
+"cover": "AgACAgIAAxkBAAIC..."
+
+// Object with URL
 "cover": {
   "url": "https://example.com/image.jpg",
+  "hasSpoiler": true
+}
+
+// Object with file_id
+"cover": {
   "fileId": "AgACAgIAAxkBAAIC...",
   "hasSpoiler": true
 }
 ```
+
+**Object properties:**
 
 | Property | Type | Description |
 |----------|------|-------------|
@@ -143,7 +155,10 @@ Media fields accept a string URL or an object:
 | `fileId` | string | Telegram file_id (reuse uploaded files) |
 | `hasSpoiler` | boolean | Hide under spoiler |
 
-Either `url` or `fileId` must be provided. If both present, `fileId` takes priority.
+**Notes:**
+- Either `url` or `fileId` must be provided in object format
+- If both `url` and `fileId` are present, `fileId` takes priority
+- String values are automatically detected as URL or file_id based on format
 
 ### Success Response
 
@@ -487,6 +502,7 @@ curl -X POST http://localhost:8080/api/v1/post \
 ### Using file_id
 
 ```bash
+# Using file_id in object format
 curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
@@ -496,6 +512,16 @@ curl -X POST http://localhost:8080/api/v1/post \
     "video": {
       "fileId": "BAACAgIAAxkBAAIC4mF9..."
     }
+  }'
+
+# Using file_id as direct string
+curl -X POST http://localhost:8080/api/v1/post \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "telegram",
+    "channel": "my_channel",
+    "body": "Reposting video",
+    "video": "BAACAgIAAxkBAAIC4mF9..."
   }'
 ```
 

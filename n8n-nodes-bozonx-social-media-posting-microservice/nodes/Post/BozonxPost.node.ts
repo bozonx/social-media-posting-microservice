@@ -359,11 +359,24 @@ export class BozonxPost implements INodeType {
 					body,
 				};
 
-				// Add channel or platform
+				// Add channel or platform (platform is only sent when no channel specified)
 				if (channel) {
 					requestBody.channel = channel;
-				} else if (platform) {
-					requestBody.platform = platform;
+				} else {
+					// Only add platform and auth when using inline mode (no channel)
+					if (platform) {
+						requestBody.platform = platform;
+					}
+
+					// Add platform auth from credentials based on platform value
+					if (platform === 'telegram') {
+						const telegramBotToken = credentials.telegramBotToken as string;
+						if (telegramBotToken) {
+							requestBody.auth = {
+								apiKey: telegramBotToken,
+							};
+						}
+					}
 				}
 
 				// Add main fields
@@ -387,16 +400,6 @@ export class BozonxPost implements INodeType {
 				// Add channelId if provided
 				if (channelId) {
 					requestBody.channelId = channelId;
-				}
-
-				// Add platform auth from credentials based on platform value
-				if (platform === 'telegram') {
-					const telegramBotToken = credentials.telegramBotToken as string;
-					if (telegramBotToken) {
-						requestBody.auth = {
-							apiKey: telegramBotToken,
-						};
-					}
 				}
 
 				// Add additional options

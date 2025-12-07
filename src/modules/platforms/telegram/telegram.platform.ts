@@ -370,6 +370,7 @@ export class TelegramPlatform implements IPlatform {
       const url = MediaInputHelper.getUrl(item);
       const fileId = MediaInputHelper.getFileId(item);
       const hasSpoiler = MediaInputHelper.getHasSpoiler(item);
+      const explicitType = MediaInputHelper.getType(item);
       const mediaInput = fileId || url;
 
       if (!mediaInput) {
@@ -378,10 +379,11 @@ export class TelegramPlatform implements IPlatform {
         );
       }
 
-      const isVideo = url ? url.match(/\.(mp4|mov|avi|mkv)$/i) : false;
+      // Use explicit type if provided, otherwise detect by URL extension
+      const telegramType = this.mapMediaTypeToTelegram(explicitType, url);
 
       return {
-        type: isVideo ? 'video' : 'photo',
+        type: telegramType,
         media: mediaInput,
         caption: index === 0 ? caption : undefined,
         ...(parseMode && index === 0 && { parse_mode: parseMode as any }),
@@ -392,6 +394,28 @@ export class TelegramPlatform implements IPlatform {
     return await bot.api.sendMediaGroup(chatId, mediaGroup, {
       disable_notification: disableNotification,
     });
+  }
+
+  /**
+   * Map MediaType to Telegram media group type
+   * Falls back to URL extension detection if no explicit type provided
+   */
+  private mapMediaTypeToTelegram(
+    explicitType: string | undefined,
+    url: string | undefined,
+  ): 'photo' | 'video' {
+    if (explicitType) {
+      // Telegram sendMediaGroup only supports photo and video
+      if (explicitType === 'video') {
+        return 'video';
+      }
+      // image, audio, document all map to photo in media groups
+      return 'photo';
+    }
+
+    // Fallback: detect by URL extension
+    const isVideo = url ? /\.(mp4|mov|avi|mkv)$/i.test(url) : false;
+    return isVideo ? 'video' : 'photo';
   }
 
   private getRequiredFieldsErrors(request: PostRequestDto, type: PostType): string[] {

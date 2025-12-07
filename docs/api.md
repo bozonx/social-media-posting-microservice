@@ -155,12 +155,16 @@ Media fields accept:
 | `url` | string | Media file URL (max 500 characters) |
 | `fileId` | string | Telegram file_id (reuse uploaded files, max 500 characters) |
 | `hasSpoiler` | boolean | Hide under spoiler |
+| `type` | string | Explicit media type: `image`, `video`, `audio`, `document` |
 
 **Notes:**
 - Either `url` or `fileId` must be provided in object format
 - If both `url` and `fileId` are present, `fileId` takes priority
 - String values are automatically detected as URL or file_id based on format
 - URL and fileId strings have a maximum length of 500 characters
+- The `type` property is only used in `media[]` arrays to override auto-detection by URL extension
+- For single media fields (`cover`, `video`, `audio`, `document`) the `type` property is ignored
+- For Telegram albums, `type` is mapped to supported types: `video` → `video`, others → `photo`
 
 ### Success Response
 

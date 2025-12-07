@@ -1,4 +1,4 @@
-import { MediaInput, MediaInputObject } from '../types/media-input.type.js';
+import { MediaInput, MediaInputObject, MediaType } from '../types/media-input.type.js';
 import { InputFile } from 'grammy';
 
 /**
@@ -86,6 +86,19 @@ export class MediaInputHelper {
   }
 
   /**
+   * Extract explicit media type from MediaInput
+   * Used in media arrays to override auto-detection by URL extension
+   * @param input - MediaInput to extract type from
+   * @returns MediaType if specified, undefined otherwise
+   */
+  static getType(input: MediaInput): MediaType | undefined {
+    if (this.isObject(input)) {
+      return input.type;
+    }
+    return undefined;
+  }
+
+  /**
    * Convert MediaInput to Telegram-compatible format
    * Prioritizes file_id over URL for better performance and reliability
    * @param input - MediaInput to convert
@@ -144,7 +157,7 @@ export class MediaInputHelper {
     if (!Array.isArray(input)) {
       return undefined;
     }
-    const validItems = input.filter((item) => this.isValidShape(item));
+    const validItems = input.filter(item => this.isValidShape(item));
     return validItems.length > 0 ? validItems : undefined;
   }
 
@@ -154,7 +167,7 @@ export class MediaInputHelper {
    * @returns True if array exists and has at least one valid element
    */
   static isNotEmpty(input?: MediaInput[]): boolean {
-    return Array.isArray(input) && input.some((item) => this.isValidShape(item));
+    return Array.isArray(input) && input.some(item => this.isValidShape(item));
   }
 
   /**

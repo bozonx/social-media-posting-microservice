@@ -107,10 +107,10 @@ export class BozonxPost implements INodeType {
 				},
 				placeholder: 'Add Telegram Auth',
 				default: {},
-				description: 'Telegram authentication credentials. Required if channel is not specified.',
+				description:
+					'Telegram authentication credentials. Required if channel is not specified. If channel is specified, these values override server config.',
 				displayOptions: {
 					show: {
-						channel: [''],
 						platform: ['telegram'],
 					},
 				},
@@ -125,15 +125,20 @@ export class BozonxPost implements INodeType {
 								type: 'string',
 								typeOptions: { password: true },
 								default: '',
-								required: true,
+								required: false,
 								description: 'Telegram bot token (from @BotFather)',
+								displayOptions: {
+									show: {
+										'/channel': [''],
+									},
+								},
 							},
 							{
 								displayName: 'Chat ID',
 								name: 'chatId',
 								type: 'string',
 								default: '',
-								required: true,
+								required: false,
 								description: 'Telegram channel/chat ID (e.g., @mychannel or -100123456789)',
 							},
 						],
@@ -413,8 +418,8 @@ export class BozonxPost implements INodeType {
 				if (media) requestBody.media = parseMediaField(media);
 				if (idempotencyKey) requestBody.idempotencyKey = idempotencyKey;
 
-				// Add Telegram auth if provided and channel is not specified
-				if (!channel && telegramAuth.auth) {
+				// Add Telegram auth if provided (can override channel config or be used standalone)
+				if (telegramAuth.auth) {
 					const auth: Record<string, string> = {};
 					if (telegramAuth.auth.apiKey) {
 						auth.apiKey = telegramAuth.auth.apiKey;

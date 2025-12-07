@@ -103,7 +103,9 @@ const createMockPlatformRegistry = (mockTelegramPlatform: any) => ({
     }
     throw new BadRequestException(`Platform "${platformName}" is not supported`);
   }),
-  has: jest.fn().mockImplementation((platformName: string) => platformName.toLowerCase() === 'telegram'),
+  has: jest
+    .fn()
+    .mockImplementation((platformName: string) => platformName.toLowerCase() === 'telegram'),
 });
 
 const createMockAuthValidatorRegistry = () => ({
@@ -299,7 +301,7 @@ describe('PostService', () => {
 
         const request = createPostRequest();
         mockTelegramPlatform.publish.mockImplementation(
-          () => new Promise<PlatformResult>(() => { }),
+          () => new Promise<PlatformResult>(() => {}),
         );
         jest.spyOn(appConfigService, 'requestTimeoutSecs', 'get').mockReturnValue(1);
 
@@ -320,7 +322,7 @@ describe('PostService', () => {
       it('should fail when request timeout exceeds maximum allowed value', async () => {
         const request = createPostRequest();
         mockTelegramPlatform.publish.mockImplementation(
-          () => new Promise<PlatformResult>(() => { }),
+          () => new Promise<PlatformResult>(() => {}),
         );
         jest.spyOn(appConfigService, 'requestTimeoutSecs', 'get').mockReturnValue(1000);
 
@@ -331,8 +333,6 @@ describe('PostService', () => {
           expect(result.error.code).toBe('PLATFORM_ERROR');
         }
       });
-
-
     });
 
     describe('idempotency', () => {
@@ -385,17 +385,22 @@ describe('PostService', () => {
         expect(mockTelegramPlatform.publish).toHaveBeenCalledTimes(1);
       });
 
-      it('should throw ConflictException when record is processing', async () => {
+      it('should return error response when record is processing', async () => {
         idempotencyService.buildKey.mockReturnValue('idem-key');
         idempotencyService.acquireLock.mockReturnValue({
           acquired: false,
           status: 'processing',
         } as any);
 
-        await expect(service.publish(idempotentRequest)).rejects.toThrow(
-          'Request with the same idempotencyKey is already being processed',
-        );
+        const result = await service.publish(idempotentRequest);
 
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error.code).toBe('VALIDATION_ERROR');
+          expect(result.error.message).toBe(
+            'Request with the same idempotencyKey is already being processed',
+          );
+        }
         expect(idempotencyService.acquireLock).toHaveBeenCalledWith('idem-key');
         expect(mockTelegramPlatform.publish).not.toHaveBeenCalled();
         expect(idempotencyService.setCompleted).not.toHaveBeenCalled();

@@ -11,9 +11,6 @@ import yamlConfig from './config/yaml.config.js';
 import pkg from '../package.json' with { type: 'json' };
 import { PostModule } from './modules/post/post.module.js';
 import { AppConfigModule } from './modules/app-config/app-config.module.js';
-import { PlatformsModule } from './modules/platforms/platforms.module.js';
-
-import { MediaModule } from './modules/media/media.module.js';
 
 @Module({
   imports: [
@@ -42,15 +39,15 @@ import { MediaModule } from './modules/media/media.module.js';
             },
             transport: isDev
               ? {
-                target: 'pino-pretty',
-                options: {
-                  colorize: true,
-                  singleLine: false,
-                  translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
-                  ignore: 'pid,hostname',
-                  messageFormat: '[{context}] {msg}',
-                },
-              }
+                  target: 'pino-pretty',
+                  options: {
+                    colorize: true,
+                    singleLine: false,
+                    translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
+                    ignore: 'pid,hostname',
+                    messageFormat: '[{context}] {msg}',
+                  },
+                }
               : undefined,
             serializers: {
               req: req => ({
@@ -110,4 +107,4 @@ import { MediaModule } from './modules/media/media.module.js';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

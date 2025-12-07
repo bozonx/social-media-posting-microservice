@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, ConflictException, Logger } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { PostRequestDto, PostResponseDto, ErrorResponseDto } from './dto/index.js';
 import { PostType, ErrorCode } from '../../common/enums/index.js';
@@ -34,6 +34,7 @@ export class PostService extends BasePostService {
    * @returns Success response with post details or error response
    */
   async publish(request: PostRequestDto): Promise<PostResponseDto | ErrorResponseDto> {
+    const requestId = randomUUID();
     const idempotencyKey = this.idempotencyService.buildKey(request);
     let idempotencyLocked = false;
 
@@ -42,9 +43,14 @@ export class PostService extends BasePostService {
 
       if (!lock.acquired) {
         if (lock.status === 'processing') {
-          throw new ConflictException(
-            'Request with the same idempotencyKey is already being processed',
-          );
+          return {
+            success: false,
+            error: {
+              code: ErrorCode.VALIDATION_ERROR,
+              message: 'Request with the same idempotencyKey is already being processed',
+              requestId,
+            },
+          };
         }
 
         if (lock.status === 'completed' && lock.response) {
@@ -55,14 +61,10 @@ export class PostService extends BasePostService {
       idempotencyLocked = lock.acquired;
     }
 
-    const requestId = randomUUID();
-
     try {
       const { platform, channelConfig } = this.validateRequest(request);
 
-      const requestTimeoutMs = this.getRequestTimeoutMs(
-        this.appConfig.requestTimeoutSecs,
-      );
+      const requestTimeoutMs = this.getRequestTimeoutMs(this.appConfig.requestTimeoutSecs);
 
       // Check if explicit type is supported
       const postType = request.type || PostType.AUTO;
@@ -153,9 +155,6 @@ export class PostService extends BasePostService {
     if (error instanceof BadRequestException) {
       return ErrorCode.VALIDATION_ERROR;
     }
-    if (error instanceof ConflictException) {
-      return ErrorCode.VALIDATION_ERROR;
-    }
     if (error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
       return ErrorCode.TIMEOUT_ERROR;
     }
@@ -186,8 +185,6 @@ export class PostService extends BasePostService {
 
     return normalizedSecs * 1000;
   }
-
-
 
   private async executeWithRequestTimeout<T>(fn: () => Promise<T>, timeoutMs: number): Promise<T> {
     let timeoutHandle: ReturnType<typeof setTimeout> | undefined;

@@ -278,6 +278,13 @@ export class BozonxPost implements INodeType {
 						description: 'Post description (platform-specific)',
 					},
 					{
+						displayName: 'Disable Notification',
+						name: 'disableNotification',
+						type: 'boolean',
+						default: false,
+						description: 'Whether to send the message silently (users will receive a notification with no sound)',
+					},
+					{
 						displayName: 'Mode',
 						name: 'mode',
 						type: 'options',
@@ -396,27 +403,29 @@ export class BozonxPost implements INodeType {
 
 				// Add additional options
 				for (const [key, value] of Object.entries(additionalOptions)) {
-					if (value !== '' && value !== undefined && value !== null) {
-						// Parse JSON fields
-						if (key === 'options') {
-							try {
-								requestBody[key] = parsePlatformOptions(value as string);
-							} catch (error) {
-								if (this.continueOnFail()) {
-									throw error; // Let the outer try/catch handle it or return error item
-								}
-								throw new NodeOperationError(
-									this.getNode(),
-									`Invalid Platform Options: ${(error as Error).message}`,
-									{ itemIndex: i },
-								);
+					// Skip empty strings but allow false boolean values
+					if (value === '' || value === undefined || value === null) {
+						continue;
+					}
+					// Parse JSON fields
+					if (key === 'options') {
+						try {
+							requestBody[key] = parsePlatformOptions(value as string);
+						} catch (error) {
+							if (this.continueOnFail()) {
+								throw error; // Let the outer try/catch handle it or return error item
 							}
-						} else if (key === 'tags' && typeof value === 'string') {
-							// Convert comma-separated string to array
-							requestBody[key] = value.split(',').map((tag) => tag.trim());
-						} else {
-							requestBody[key] = value;
+							throw new NodeOperationError(
+								this.getNode(),
+								`Invalid Platform Options: ${(error as Error).message}`,
+								{ itemIndex: i },
+							);
 						}
+					} else if (key === 'tags' && typeof value === 'string') {
+						// Convert comma-separated string to array
+						requestBody[key] = value.split(',').map((tag) => tag.trim());
+					} else {
+						requestBody[key] = value;
 					}
 				}
 

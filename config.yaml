@@ -40,13 +40,16 @@ channels:
     # Must match one of the supported platforms (currently: telegram)
     platform: telegram
   
-    # Authentication (API credentials and chat ID)
+    # Authentication (API credentials)
     # You can use environment variables: ${MY_CUSTOM_VAR}
     auth:
       # API key (for Telegram: bot token from @BotFather)
       apiKey: your_bot_token_here
-      # Chat ID or channel username (with @ prefix for public channels)
-      chatId: '@your_channel_username'
+
+    # Channel/chat ID (platform-specific identifier)
+    # For Telegram: channel username (with @ prefix) or numeric chat ID
+    # Examples: '@your_channel_username' or '-100123456789'
+    channelId: '@your_channel_username'
 
     # Disable notifications by default
     # If true, posts will be sent silently without notifying subscribers

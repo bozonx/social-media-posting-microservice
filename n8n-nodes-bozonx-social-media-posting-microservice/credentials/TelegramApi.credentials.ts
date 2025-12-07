@@ -15,13 +15,5 @@ export class TelegramApi implements ICredentialType {
 			required: true,
 			description: 'Telegram bot token from @BotFather',
 		},
-		{
-			displayName: 'Chat ID',
-			name: 'chatId',
-			type: 'string',
-			default: '',
-			required: true,
-			description: 'Telegram channel/chat ID (e.g., @mychannel or -100123456789)',
-		},
 	];
 }

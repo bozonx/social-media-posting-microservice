@@ -27,6 +27,7 @@ Publish content to a social media platform.
 | `platform` | string | Yes | Platform name (`telegram`) |
 | `body` | string | Yes | Post content (max length determined by `maxBody` or config default) |
 | `channel` | string | No* | Channel name from `config.yaml` |
+| `channelId` | string | No | Channel/chat ID (e.g., @mychannel or -100123456789 for Telegram). Can override channel config |
 | `auth` | object | No* | Inline authentication credentials. See [Auth Field](#auth-field) below |
 | `type` | string | No | Post type (default: `auto`). See below |
 | `bodyFormat` | string | No | Body format: `text`, `html`, `md`, or platform-specific (e.g., `MarkdownV2`) (default: `text`, max 50 characters) |
@@ -57,8 +58,7 @@ The `auth` field contains platform-specific authentication credentials. Its stru
 ```json
 {
   "auth": {
-    "apiKey": "123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
-    "chatId": "@my_channel"
+    "apiKey": "123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
   }
 }
 ```
@@ -66,7 +66,6 @@ The `auth` field contains platform-specific authentication credentials. Its stru
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
 | `apiKey` | string | Yes | API key (for Telegram: bot token from @BotFather) |
-| `chatId` | string/number | Yes | Chat ID or channel username (with @ prefix for public channels) |
 
 **Auth Merging Behavior:**
 

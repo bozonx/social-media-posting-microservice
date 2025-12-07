@@ -87,20 +87,62 @@ export class MediaInputHelper {
   }
 
   /**
-   * Check if MediaInput array is not empty
-   * @param input - Optional array of MediaInput
-   * @returns True if array exists and has at least one element
+   * Check if input has valid MediaInput structure
+   * @param input - Input to check
+   * @returns True if input is a string or object with url/fileId
    */
-  static isNotEmpty(input?: MediaInput[]): boolean {
-    return Array.isArray(input) && input.length > 0;
+  static isValidShape(input: any): boolean {
+    if (this.isString(input)) {
+      return true;
+    }
+    if (typeof input === 'object' && input !== null) {
+      const hasUrl = typeof input.url === 'string';
+      const hasFileId = typeof input.fileId === 'string';
+      return hasUrl || hasFileId;
+    }
+    return false;
   }
 
   /**
-   * Check if MediaInput is defined and not null
+   * Sanitize media input
+   * @param input - Input to sanitize
+   * @returns MediaInput if valid, undefined otherwise
+   */
+  static sanitize(input: any): MediaInput | undefined {
+    if (this.isValidShape(input)) {
+      return input;
+    }
+    return undefined;
+  }
+
+  /**
+   * Sanitize media input array
+   * @param input - Input array to sanitize
+   * @returns Array of valid MediaInput items or undefined if empty/invalid
+   */
+  static sanitizeArray(input: any): MediaInput[] | undefined {
+    if (!Array.isArray(input)) {
+      return undefined;
+    }
+    const validItems = input.filter((item) => this.isValidShape(item));
+    return validItems.length > 0 ? validItems : undefined;
+  }
+
+  /**
+   * Check if MediaInput array is not empty and contains valid items
+   * @param input - Optional array of MediaInput
+   * @returns True if array exists and has at least one valid element
+   */
+  static isNotEmpty(input?: MediaInput[]): boolean {
+    return Array.isArray(input) && input.some((item) => this.isValidShape(item));
+  }
+
+  /**
+   * Check if MediaInput is defined, not null, and has valid shape
    * @param input - Optional MediaInput to check
-   * @returns True if input is defined and not null
+   * @returns True if input is defined, not null, and valid
    */
   static isDefined(input?: MediaInput): boolean {
-    return input !== undefined && input !== null;
+    return input !== undefined && input !== null && this.isValidShape(input);
   }
 }

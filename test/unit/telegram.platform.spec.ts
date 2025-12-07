@@ -440,6 +440,39 @@ describe('TelegramPlatform', () => {
       );
     });
 
+    it('should respect explicit media type for album items', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: 'Album with explicit types',
+        bodyFormat: 'html',
+        media: [
+          { url: 'https://example.com/file1', type: 'image' },
+          { url: 'https://example.com/file2', type: 'video' },
+          { url: 'https://example.com/file3' },
+        ] as any,
+        type: PostType.ALBUM,
+      };
+
+      mockApi.sendMediaGroup.mockResolvedValue([
+        { message_id: 12345 },
+        { message_id: 12346 },
+        { message_id: 12347 },
+      ]);
+
+      await platform.publish(request, mockChannelConfig);
+
+      expect(mockApi.sendMediaGroup).toHaveBeenCalledWith(
+        'test-chat-id',
+        [
+          expect.objectContaining({ type: 'photo', media: 'https://example.com/file1' }),
+          expect.objectContaining({ type: 'video', media: 'https://example.com/file2' }),
+          // No explicit type and no extension -> falls back to photo
+          expect.objectContaining({ type: 'photo', media: 'https://example.com/file3' }),
+        ],
+        { disable_notification: false },
+      );
+    });
+
     it('should throw error if media array is empty for ALBUM type', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',

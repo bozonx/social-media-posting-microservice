@@ -102,6 +102,29 @@ describe('MediaInputHelper', () => {
     });
   });
 
+  describe('getType', () => {
+    it('should return type from object input', () => {
+      expect(
+        MediaInputHelper.getType({
+          url: 'https://example.com/image.jpg',
+          type: 'image',
+        } as any),
+      ).toBe('image');
+    });
+
+    it('should return undefined when type is not set', () => {
+      expect(
+        MediaInputHelper.getType({
+          url: 'https://example.com/image.jpg',
+        } as any),
+      ).toBeUndefined();
+    });
+
+    it('should return undefined for string input', () => {
+      expect(MediaInputHelper.getType('https://example.com/image.jpg' as any)).toBeUndefined();
+    });
+  });
+
   describe('toTelegramInput', () => {
     it('should return fileId when available in object', () => {
       const result = MediaInputHelper.toTelegramInput({

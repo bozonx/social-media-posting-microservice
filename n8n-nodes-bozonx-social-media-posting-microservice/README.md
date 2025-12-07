@@ -42,23 +42,37 @@ curl http://localhost:8080/api/v1/health
 ### 2. Create Credentials in n8n
 
 1. Create **Social Media Posting API** credential
-2. **Base URL**: `http://localhost:8080/api/v1` (full path with `/api/v1`)
-3. **Authentication**: None / Basic Auth / Bearer Token
+2. Configure:
+   - **Microservice Base URL**: `http://localhost:8080/api/v1` (full path with `/api/v1`)
+   - **Microservice Authentication**: None / Basic Auth / Bearer Token (for microservice access)
+   - **Telegram Bot Token**: Your bot token (only needed for Inline Mode)
 
 ### 3. Use the Node
 
-#### With Pre-configured Channel:
+There are two authentication modes:
 
+#### Channel Mode (Recommended)
+
+Use pre-configured channels from microservice `config.yaml`. Platform and auth are stored on the server.
+
+- **Channel**: `my_channel` (channel name from config)
+- **Platform**: Select platform (informational, not sent to server)
+- **Post Content**: Your message
+
+The node sends only `channel` and content. Server uses auth from `config.yaml`.
+
+#### Inline Mode
+
+Use credentials from n8n. Leave **Channel** empty.
+
+- **Channel**: *(empty)*
 - **Platform**: `Telegram`
-- **Authentication**: `Use Channel from Config`
-- **Channel Name**: `my_channel`
+- **Post Content**: Your message
+- **Channel ID**: `@mychannel` or `-100123456789`
 
-#### With Inline Authentication:
+The node sends `platform`, `auth.apiKey` (from Telegram Bot Token), and content.
 
-- **Platform**: `Telegram`
-- **Authentication**: `Use Inline Auth`
-  - **API Key**: `123456:ABC...` (bot token)
-  - **Chat ID**: `@mychannel`
+> **Note**: If both Channel and Telegram Bot Token are specified, Channel takes priority (auth from credentials is ignored).
 
 ## Media Input Format
 

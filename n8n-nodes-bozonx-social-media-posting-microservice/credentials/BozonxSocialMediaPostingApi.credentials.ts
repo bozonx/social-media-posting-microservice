@@ -80,6 +80,14 @@ export class BozonxSocialMediaPostingApi implements ICredentialType {
 				},
 			},
 		},
+		{
+			displayName: 'Telegram Bot Token',
+			name: 'telegramBotToken',
+			type: 'string',
+			typeOptions: { password: true },
+			default: '',
+			description: 'Telegram Bot API token for publishing to Telegram channels. Leave empty if using channel auth from microservice config.',
+		},
 	];
 
 	authenticate: ICredentialType['authenticate'] = {

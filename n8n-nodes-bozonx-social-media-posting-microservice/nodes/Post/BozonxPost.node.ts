@@ -67,17 +67,6 @@ export class BozonxPost implements INodeType {
 				name: 'bozonxSocialMediaPostingApi',
 				required: true,
 			},
-			{
-				name: 'telegramApi',
-				required: false,
-				displayOptions: {
-					show: {
-						// channel: [''],
-						platform: ['telegram'],
-						authType: ['telegramApi'],
-					},
-				},
-			},
 		],
 		usableAsTool: true,
 		properties: [
@@ -106,37 +95,8 @@ export class BozonxPost implements INodeType {
 				],
 				default: 'telegram',
 				required: true,
-				description: 'Social media platform to post to',
-				displayOptions: {
-					show: {
-						channel: [''],
-					},
-				},
-			},
-
-			// Auth Type
-			{
-				displayName: 'Authentication',
-				name: 'authType',
-				type: 'options',
-				options: [
-					{
-						name: 'None',
-						value: 'none',
-					},
-					{
-						name: 'Telegram API',
-						value: 'telegramApi',
-					},
-				],
-				default: 'none',
-				description: 'Authentication method for Telegram',
-				displayOptions: {
-					show: {
-						channel: [''],
-						platform: ['telegram'],
-					},
-				},
+				description:
+					'Social media platform to post to. Determines which API key from credentials to use.',
 			},
 
 			// Channel ID
@@ -429,17 +389,13 @@ export class BozonxPost implements INodeType {
 					requestBody.channelId = channelId;
 				}
 
-				// Add Telegram auth from credentials if not using channel
-				if (platform === 'telegram' && !channel) {
-					try {
-						const telegramCredentials = await this.getCredentials('telegramApi', i);
-						if (telegramCredentials && telegramCredentials.botToken) {
-							requestBody.auth = {
-								apiKey: telegramCredentials.botToken as string,
-							};
-						}
-					} catch (error) {
-						// Telegram credentials not configured, this is ok if using channel
+				// Add platform auth from credentials based on platform value
+				if (platform === 'telegram') {
+					const telegramBotToken = credentials.telegramBotToken as string;
+					if (telegramBotToken) {
+						requestBody.auth = {
+							apiKey: telegramBotToken,
+						};
 					}
 				}
 

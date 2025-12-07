@@ -74,8 +74,8 @@ describe('MediaPriorityValidator', () => {
     it('should handle MediaInput objects correctly', () => {
         const request: PostRequestDto = {
             ...baseRequest,
-            audio: { url: 'https://example.com/audio.mp3' },
-            video: { fileId: 'AgACAgIAAxkBAAIC...' },
+            audio: { src: 'https://example.com/audio.mp3' },
+            video: { src: 'AgACAgIAAxkBAAIC...' },
         };
 
         // AUDIO > VIDEO

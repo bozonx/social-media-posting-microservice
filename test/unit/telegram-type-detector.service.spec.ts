@@ -171,7 +171,7 @@ describe('TelegramTypeDetector', () => {
     const request: PostRequestDto = {
       ...baseRequest,
       type: PostType.AUTO,
-      cover: { url: 'https://example.com/image.jpg', hasSpoiler: true },
+      cover: { src: 'https://example.com/image.jpg', hasSpoiler: true },
     };
 
     const result = detector.detectType(request);
@@ -183,7 +183,7 @@ describe('TelegramTypeDetector', () => {
     const request: PostRequestDto = {
       ...baseRequest,
       type: PostType.AUTO,
-      video: { fileId: 'AgACAgIAAxkBAAIC...' },
+      video: { src: 'AgACAgIAAxkBAAIC...' },
     };
 
     const result = detector.detectType(request);

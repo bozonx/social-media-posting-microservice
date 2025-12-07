@@ -38,43 +38,34 @@ describe('IsMediaInputConstraint', () => {
       expect(validator.validate('   ', mockArgs)).toBe(false);
     });
 
-    it('should return true for object with url', () => {
-      expect(validator.validate({ url: 'https://example.com/image.jpg' }, mockArgs)).toBe(true);
+    it('should return true for object with src (url)', () => {
+      expect(validator.validate({ src: 'https://example.com/image.jpg' }, mockArgs)).toBe(true);
     });
 
-    it('should return true for object with fileId', () => {
-      expect(validator.validate({ fileId: 'AgACAgIAAxkBAAIC...' }, mockArgs)).toBe(true);
-    });
-
-    it('should return true for object with both url and fileId', () => {
-      expect(
-        validator.validate(
-          { url: 'https://example.com/image.jpg', fileId: 'AgACAgIAAxkBAAIC...' },
-          mockArgs,
-        ),
-      ).toBe(true);
+    it('should return true for object with src (fileId)', () => {
+      expect(validator.validate({ src: 'AgACAgIAAxkBAAIC...' }, mockArgs)).toBe(true);
     });
 
     it('should return true for object with hasSpoiler boolean', () => {
       expect(
-        validator.validate({ url: 'https://example.com/image.jpg', hasSpoiler: true }, mockArgs),
+        validator.validate({ src: 'https://example.com/image.jpg', hasSpoiler: true }, mockArgs),
       ).toBe(true);
       expect(
-        validator.validate({ url: 'https://example.com/image.jpg', hasSpoiler: false }, mockArgs),
+        validator.validate({ src: 'https://example.com/image.jpg', hasSpoiler: false }, mockArgs),
       ).toBe(true);
     });
 
-    it('should return false for object without url or fileId', () => {
+    it('should return false for object without src', () => {
       expect(validator.validate({}, mockArgs)).toBe(false);
       expect(validator.validate({ hasSpoiler: true }, mockArgs)).toBe(false);
     });
 
     it('should return false for object with non-boolean hasSpoiler', () => {
       expect(
-        validator.validate({ url: 'https://example.com/image.jpg', hasSpoiler: 'true' }, mockArgs),
+        validator.validate({ src: 'https://example.com/image.jpg', hasSpoiler: 'true' }, mockArgs),
       ).toBe(false);
       expect(
-        validator.validate({ url: 'https://example.com/image.jpg', hasSpoiler: 1 }, mockArgs),
+        validator.validate({ src: 'https://example.com/image.jpg', hasSpoiler: 1 }, mockArgs),
       ).toBe(false);
     });
 
@@ -94,21 +85,16 @@ describe('IsMediaInputConstraint', () => {
       expect(validator.validate(maxLengthString, mockArgs)).toBe(true);
     });
 
-    it('should return false for object with url exceeding max length', () => {
+    it('should return false for object with src exceeding max length', () => {
       const longUrl = 'https://example.com/' + 'a'.repeat(500);
-      expect(validator.validate({ url: longUrl }, mockArgs)).toBe(false);
-    });
-
-    it('should return false for object with fileId exceeding max length', () => {
-      const longFileId = 'a'.repeat(501);
-      expect(validator.validate({ fileId: longFileId }, mockArgs)).toBe(false);
+      expect(validator.validate({ src: longUrl }, mockArgs)).toBe(false);
     });
   });
 
   describe('defaultMessage', () => {
     it('should return correct error message', () => {
       expect(validator.defaultMessage(mockArgs)).toBe(
-        'MediaInput must be a string (URL or file_id, max 500 characters) or an object with url/fileId (max 500 characters each) and optional hasSpoiler boolean',
+        'MediaInput must be a string (URL or file_id, max 500 characters) or an object with src (max 500 characters) and optional hasSpoiler boolean',
       );
     });
   });
@@ -138,9 +124,9 @@ describe('IsMediaInputArrayConstraint', () => {
       expect(
         validator.validate(
           [
-            { url: 'https://example.com/1.jpg' },
-            { fileId: 'AgACAgIAAxkBAAIC...' },
-            { url: 'https://example.com/3.jpg', hasSpoiler: true },
+            { src: 'https://example.com/1.jpg' },
+            { src: 'AgACAgIAAxkBAAIC...' },
+            { src: 'https://example.com/3.jpg', hasSpoiler: true },
           ],
           mockArgs,
         ),
@@ -152,8 +138,8 @@ describe('IsMediaInputArrayConstraint', () => {
         validator.validate(
           [
             'https://example.com/1.jpg',
-            { url: 'https://example.com/2.jpg' },
-            { fileId: 'AgACAgIAAxkBAAIC...' },
+            { src: 'https://example.com/2.jpg' },
+            { src: 'AgACAgIAAxkBAAIC...' },
           ],
           mockArgs,
         ),
@@ -166,7 +152,7 @@ describe('IsMediaInputArrayConstraint', () => {
 
     it('should return false for non-array', () => {
       expect(validator.validate('https://example.com/image.jpg', mockArgs)).toBe(false);
-      expect(validator.validate({ url: 'https://example.com/image.jpg' }, mockArgs)).toBe(false);
+      expect(validator.validate({ src: 'https://example.com/image.jpg' }, mockArgs)).toBe(false);
     });
 
     it('should return true for array with file_id strings', () => {
@@ -174,7 +160,7 @@ describe('IsMediaInputArrayConstraint', () => {
       expect(validator.validate(['AgACAgIAAxkBAAIC...', 'BAACAgIAAxkBAAIC...'], mockArgs)).toBe(true);
     });
 
-    it('should return false if any item is invalid', () => {
+    it('should return false if success is invalid', () => {
       expect(validator.validate(['https://example.com/1.jpg', ''], mockArgs)).toBe(false);
       expect(validator.validate(['https://example.com/1.jpg', {}], mockArgs)).toBe(false);
       expect(validator.validate(['https://example.com/1.jpg', 123], mockArgs)).toBe(false);
@@ -184,7 +170,7 @@ describe('IsMediaInputArrayConstraint', () => {
   describe('defaultMessage', () => {
     it('should return correct error message', () => {
       expect(validator.defaultMessage(mockArgs)).toBe(
-        'Each item in media array must be a string (URL or file_id, max 500 characters) or an object with url/fileId (max 500 characters each) and optional hasSpoiler boolean',
+        'Each item in media array must be a string (URL or file_id, max 500 characters) or an object with src (max 500 characters) and optional hasSpoiler boolean',
       );
     });
   });

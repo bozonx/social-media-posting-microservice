@@ -63,6 +63,10 @@ export class BozonxPost implements INodeType {
 				name: 'bozonxSocialMediaPostingApi',
 				required: true,
 			},
+			{
+				name: 'telegramApi',
+				required: false,
+			},
 		],
 		usableAsTool: true,
 		properties: [
@@ -97,18 +101,18 @@ export class BozonxPost implements INodeType {
 				},
 			},
 
-			// Telegram Authentication
+			// Telegram Auth Override (optional)
 			{
-				displayName: 'Telegram Auth',
-				name: 'telegramAuth',
+				displayName: 'Override Telegram Auth',
+				name: 'overrideTelegramAuth',
 				type: 'fixedCollection',
 				typeOptions: {
 					multipleValues: false,
 				},
-				placeholder: 'Add Telegram Auth',
+				placeholder: 'Add Auth Override',
 				default: {},
 				description:
-					'Telegram authentication credentials. Required if channel is not specified. If channel is specified, these values override server config.',
+					'Override Telegram credentials or channel config. Leave empty to use credentials from Telegram API credentials.',
 				displayOptions: {
 					show: {
 						platform: ['telegram'],
@@ -120,18 +124,13 @@ export class BozonxPost implements INodeType {
 						displayName: 'Auth',
 						values: [
 							{
-								displayName: 'API Key',
-								name: 'apiKey',
+								displayName: 'Bot Token',
+								name: 'botToken',
 								type: 'string',
 								typeOptions: { password: true },
 								default: '',
 								required: false,
 								description: 'Telegram bot token (from @BotFather)',
-								displayOptions: {
-									show: {
-										'/channel': [''],
-									},
-								},
 							},
 							{
 								displayName: 'Chat ID',
@@ -380,8 +379,8 @@ export class BozonxPost implements INodeType {
 				const platform = this.getNodeParameter('platform', i, '') as string;
 				const body = this.getNodeParameter('body', i) as string;
 				const type = this.getNodeParameter('type', i, 'auto') as string;
-				const telegramAuth = this.getNodeParameter('telegramAuth', i, {}) as {
-					auth?: { apiKey: string; chatId: string };
+				const overrideTelegramAuth = this.getNodeParameter('overrideTelegramAuth', i, {}) as {
+					auth?: { botToken: string; chatId: string };
 				};
 				const additionalOptions = this.getNodeParameter('additionalOptions', i, {}) as Record<
 					string,
@@ -418,14 +417,47 @@ export class BozonxPost implements INodeType {
 				if (media) requestBody.media = parseMediaField(media);
 				if (idempotencyKey) requestBody.idempotencyKey = idempotencyKey;
 
-				// Add Telegram auth if provided (can override channel config or be used standalone)
-				if (telegramAuth.auth) {
+				// Add Telegram auth
+				// Priority: 1) Override auth, 2) Telegram credentials, 3) Channel config
+				if (platform === 'telegram' && !channel) {
 					const auth: Record<string, string> = {};
-					if (telegramAuth.auth.apiKey) {
-						auth.apiKey = telegramAuth.auth.apiKey;
+
+					// Check for override auth first
+					if (overrideTelegramAuth.auth?.botToken || overrideTelegramAuth.auth?.chatId) {
+						if (overrideTelegramAuth.auth.botToken) {
+							auth.apiKey = overrideTelegramAuth.auth.botToken;
+						}
+						if (overrideTelegramAuth.auth.chatId) {
+							auth.chatId = overrideTelegramAuth.auth.chatId;
+						}
+					} else {
+						// Use Telegram credentials if available
+						try {
+							const telegramCredentials = await this.getCredentials('telegramApi', i);
+							if (telegramCredentials) {
+								if (telegramCredentials.botToken) {
+									auth.apiKey = telegramCredentials.botToken as string;
+								}
+								if (telegramCredentials.chatId) {
+									auth.chatId = telegramCredentials.chatId as string;
+								}
+							}
+						} catch (error) {
+							// Telegram credentials not configured, this is ok if using channel
+						}
 					}
-					if (telegramAuth.auth.chatId) {
-						auth.chatId = telegramAuth.auth.chatId;
+
+					if (Object.keys(auth).length > 0) {
+						requestBody.auth = auth;
+					}
+				} else if (channel && overrideTelegramAuth.auth) {
+					// Override channel config if override auth is provided
+					const auth: Record<string, string> = {};
+					if (overrideTelegramAuth.auth.botToken) {
+						auth.apiKey = overrideTelegramAuth.auth.botToken;
+					}
+					if (overrideTelegramAuth.auth.chatId) {
+						auth.chatId = overrideTelegramAuth.auth.chatId;
 					}
 					if (Object.keys(auth).length > 0) {
 						requestBody.auth = auth;

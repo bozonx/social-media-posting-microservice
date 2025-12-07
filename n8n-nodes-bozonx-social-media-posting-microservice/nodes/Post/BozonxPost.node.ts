@@ -66,6 +66,16 @@ export class BozonxPost implements INodeType {
 		],
 		usableAsTool: true,
 		properties: [
+			// Channel
+			{
+				displayName: 'Channel',
+				name: 'channel',
+				type: 'string',
+				default: '',
+				description:
+					'Channel name from microservice config.yaml. If specified, platform and auth are taken from server config.',
+			},
+
 			// Platform
 			{
 				displayName: 'Platform',
@@ -80,6 +90,11 @@ export class BozonxPost implements INodeType {
 				default: 'telegram',
 				required: true,
 				description: 'Social media platform to post to',
+				displayOptions: {
+					show: {
+						channel: [''],
+					},
+				},
 			},
 
 			// Body
@@ -123,7 +138,8 @@ export class BozonxPost implements INodeType {
 				name: 'cover',
 				type: 'string',
 				default: '',
-				description: 'Cover image URL, file_id (Telegram), or MediaInput object as JSON (URL/fileId max 500 characters)',
+				description:
+					'Cover image URL, file_id (Telegram), or MediaInput object as JSON (URL/fileId max 500 characters)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'post', 'image', 'article', 'story'],
@@ -137,7 +153,8 @@ export class BozonxPost implements INodeType {
 				name: 'video',
 				type: 'string',
 				default: '',
-				description: 'Video URL, file_id (Telegram), or MediaInput object as JSON (URL/fileId max 500 characters)',
+				description:
+					'Video URL, file_id (Telegram), or MediaInput object as JSON (URL/fileId max 500 characters)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'video', 'short', 'story'],
@@ -151,7 +168,8 @@ export class BozonxPost implements INodeType {
 				name: 'audio',
 				type: 'string',
 				default: '',
-				description: 'Audio URL, file_id (Telegram), or MediaInput object as JSON (URL/fileId max 500 characters)',
+				description:
+					'Audio URL, file_id (Telegram), or MediaInput object as JSON (URL/fileId max 500 characters)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'audio'],
@@ -165,7 +183,8 @@ export class BozonxPost implements INodeType {
 				name: 'document',
 				type: 'string',
 				default: '',
-				description: 'Document URL, file_id (Telegram), or MediaInput object as JSON (URL/fileId max 500 characters)',
+				description:
+					'Document URL, file_id (Telegram), or MediaInput object as JSON (URL/fileId max 500 characters)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'document'],
@@ -180,7 +199,8 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				typeOptions: { rows: 3 },
 				default: '',
-				description: 'JSON array of media URLs, file_ids (Telegram), or MediaInput objects for albums (2-10 items)',
+				description:
+					'JSON array of media URLs, file_ids (Telegram), or MediaInput objects for albums (2-10 items)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'album'],
@@ -197,35 +217,27 @@ export class BozonxPost implements INodeType {
 				description: 'Key to prevent duplicate posts',
 			},
 
-			// Authentication (optional)
+			// Telegram Authentication
 			{
-				displayName: 'Authentication',
-				name: 'authentication',
+				displayName: 'Telegram Auth',
+				name: 'telegramAuth',
 				type: 'fixedCollection',
 				typeOptions: {
 					multipleValues: false,
 				},
-				placeholder: 'Add Authentication',
+				placeholder: 'Add Telegram Auth',
 				default: {},
-				description: 'Optional authentication. If not provided, uses config from microservice.',
+				description: 'Telegram authentication credentials. Required if channel is not specified.',
+				displayOptions: {
+					show: {
+						channel: [''],
+						platform: ['telegram'],
+					},
+				},
 				options: [
 					{
-						name: 'channel',
-						displayName: 'Channel',
-						values: [
-							{
-								displayName: 'Channel Name',
-								name: 'channelName',
-								type: 'string',
-								default: '',
-								required: true,
-								description: 'Channel name from microservice config.yaml',
-							},
-						],
-					},
-					{
-						name: 'telegram',
-						displayName: 'Telegram',
+						name: 'auth',
+						displayName: 'Auth',
 						values: [
 							{
 								displayName: 'API Key',
@@ -233,16 +245,16 @@ export class BozonxPost implements INodeType {
 								type: 'string',
 								typeOptions: { password: true },
 								default: '',
-								required: false,
-								description: 'Telegram bot token (from @BotFather). Optional if using channel config.',
+								required: true,
+								description: 'Telegram bot token (from @BotFather)',
 							},
 							{
 								displayName: 'Chat ID',
 								name: 'chatId',
 								type: 'string',
 								default: '',
-								required: false,
-								description: 'Telegram channel/chat ID (e.g., @mychannel or -100123456789). Optional if using channel config.',
+								required: true,
+								description: 'Telegram channel/chat ID (e.g., @mychannel or -100123456789)',
 							},
 						],
 					},
@@ -267,7 +279,8 @@ export class BozonxPost implements INodeType {
 							{ name: 'Markdown', value: 'md' },
 						],
 						default: 'text',
-						description: 'Format of the post content. Can also be platform-specific (e.g., "MarkdownV2" for Telegram). Max 50 characters.',
+						description:
+							'Format of the post content. Can also be platform-specific (e.g., "MarkdownV2" for Telegram). Max 50 characters.',
 					},
 					{
 						displayName: 'Description',
@@ -275,14 +288,16 @@ export class BozonxPost implements INodeType {
 						type: 'string',
 						typeOptions: { rows: 2 },
 						default: '',
-						description: 'Post description/summary (used by platforms that support it, max 5000 characters)',
+						description:
+							'Post description/summary (used by platforms that support it, max 5000 characters)',
 					},
 					{
 						displayName: 'Disable Notification',
 						name: 'disableNotification',
 						type: 'boolean',
 						default: false,
-						description: 'Whether to send the message silently (users will receive a notification with no sound)',
+						description:
+							'Whether to send the message silently (users will receive a notification with no sound)',
 					},
 					{
 						displayName: 'Mode',
@@ -308,7 +323,8 @@ export class BozonxPost implements INodeType {
 						name: 'postLanguage',
 						type: 'string',
 						default: '',
-						description: 'Content language code (e.g., en, ru). Passed as-is to supported platforms. Max 50 characters.',
+						description:
+							'Content language code (e.g., en, ru). Passed as-is to supported platforms. Max 50 characters.',
 					},
 					{
 						displayName: 'Scheduled At',
@@ -322,7 +338,8 @@ export class BozonxPost implements INodeType {
 						name: 'tags',
 						type: 'string',
 						default: '',
-						description: 'Comma-separated tags/hashtags without # symbol. Passed as-is to supported platforms. Max 200 items, each max 300 characters.',
+						description:
+							'Comma-separated tags/hashtags without # symbol. Passed as-is to supported platforms. Max 200 items, each max 300 characters.',
 					},
 					{
 						displayName: 'Max Body Length',
@@ -354,12 +371,12 @@ export class BozonxPost implements INodeType {
 			try {
 				const endpoint = '/post';
 
-				const platform = this.getNodeParameter('platform', i) as string;
+				const channel = this.getNodeParameter('channel', i, '') as string;
+				const platform = this.getNodeParameter('platform', i, '') as string;
 				const body = this.getNodeParameter('body', i) as string;
 				const type = this.getNodeParameter('type', i, 'auto') as string;
-				const authentication = this.getNodeParameter('authentication', i, {}) as {
-					channel?: { channelName: string };
-					telegram?: { apiKey?: string; chatId?: string };
+				const telegramAuth = this.getNodeParameter('telegramAuth', i, {}) as {
+					auth?: { apiKey: string; chatId: string };
 				};
 				const additionalOptions = this.getNodeParameter('additionalOptions', i, {}) as Record<
 					string,
@@ -368,9 +385,15 @@ export class BozonxPost implements INodeType {
 
 				// Build request body
 				const requestBody: IDataObject = {
-					platform,
 					body,
 				};
+
+				// Add channel or platform
+				if (channel) {
+					requestBody.channel = channel;
+				} else if (platform) {
+					requestBody.platform = platform;
+				}
 
 				// Add main fields
 				if (type) requestBody.type = type;
@@ -390,18 +413,14 @@ export class BozonxPost implements INodeType {
 				if (media) requestBody.media = parseMediaField(media);
 				if (idempotencyKey) requestBody.idempotencyKey = idempotencyKey;
 
-				// Add authentication if provided
-				if (authentication.channel?.channelName) {
-					requestBody.channel = authentication.channel.channelName;
-				}
-				// Add auth fields only if provided (they can override channel config)
-				if (authentication.telegram) {
+				// Add Telegram auth if provided and channel is not specified
+				if (!channel && telegramAuth.auth) {
 					const auth: Record<string, string> = {};
-					if (authentication.telegram.apiKey) {
-						auth.apiKey = authentication.telegram.apiKey;
+					if (telegramAuth.auth.apiKey) {
+						auth.apiKey = telegramAuth.auth.apiKey;
 					}
-					if (authentication.telegram.chatId) {
-						auth.chatId = authentication.telegram.chatId;
+					if (telegramAuth.auth.chatId) {
+						auth.chatId = telegramAuth.auth.chatId;
 					}
 					if (Object.keys(auth).length > 0) {
 						requestBody.auth = auth;

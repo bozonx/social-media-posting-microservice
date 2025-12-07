@@ -61,11 +61,7 @@ export class PostService extends BasePostService {
       const { platform, channelConfig } = this.validateRequest(request);
 
       const requestTimeoutMs = this.getRequestTimeoutMs(
-        this.appConfig.incomingRequestTimeoutSecs,
-      );
-      const platformTimeoutMs = this.getPlatformTimeoutMs(
-        this.appConfig.platformTimeoutSecs,
-        requestTimeoutMs,
+        this.appConfig.requestTimeoutSecs,
       );
 
       // Check if explicit type is supported
@@ -89,11 +85,7 @@ export class PostService extends BasePostService {
       const result = await this.executeWithRequestTimeout(
         () =>
           this.retryWithJitter(
-            () =>
-              this.maybeExecuteWithTimeout(
-                () => platform.publish(request, channelConfig),
-                platformTimeoutMs,
-              ),
+            () => platform.publish(request, channelConfig),
             this.appConfig.retryAttempts,
             this.appConfig.retryDelayMs,
           ),
@@ -179,52 +171,23 @@ export class PostService extends BasePostService {
     return ErrorCode.PLATFORM_ERROR;
   }
 
-  private getRequestTimeoutMs(incomingRequestTimeoutSecs: number | undefined): number {
+  private getRequestTimeoutMs(requestTimeoutSecs: number | undefined): number {
     const defaultSecs = PostService.DEFAULT_REQUEST_TIMEOUT_SECS;
     const maxSecs = PostService.MAX_REQUEST_TIMEOUT_SECS;
 
     const normalizedSecs =
-      typeof incomingRequestTimeoutSecs === 'number' && incomingRequestTimeoutSecs > 0
-        ? incomingRequestTimeoutSecs
+      typeof requestTimeoutSecs === 'number' && requestTimeoutSecs > 0
+        ? requestTimeoutSecs
         : defaultSecs;
 
     if (normalizedSecs > maxSecs) {
-      throw new Error(`incomingRequestTimeoutSecs must not exceed ${maxSecs} seconds`);
+      throw new Error(`requestTimeoutSecs must not exceed ${maxSecs} seconds`);
     }
 
     return normalizedSecs * 1000;
   }
 
-  private getPlatformTimeoutMs(
-    platformTimeoutSecs: number | undefined,
-    requestTimeoutMs: number,
-  ): number | undefined {
-    if (typeof platformTimeoutSecs !== 'number' || platformTimeoutSecs <= 0) {
-      return undefined;
-    }
 
-    const platformTimeoutMs = platformTimeoutSecs * 1000;
-
-    if (platformTimeoutMs > requestTimeoutMs) {
-      const effectiveRequestSecs = requestTimeoutMs / 1000;
-      throw new Error(
-        `platformTimeoutSecs must not exceed incomingRequestTimeoutSecs (effective ${effectiveRequestSecs} seconds)`,
-      );
-    }
-
-    return platformTimeoutMs;
-  }
-
-  private maybeExecuteWithTimeout<T>(
-    fn: () => Promise<T>,
-    timeoutMs: number | undefined,
-  ): Promise<T> {
-    if (!timeoutMs) {
-      return fn();
-    }
-
-    return this.executeWithRequestTimeout(fn, timeoutMs);
-  }
 
   private async executeWithRequestTimeout<T>(fn: () => Promise<T>, timeoutMs: number): Promise<T> {
     let timeoutHandle: ReturnType<typeof setTimeout> | undefined;

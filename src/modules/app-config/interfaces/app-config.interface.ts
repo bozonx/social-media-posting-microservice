@@ -2,10 +2,8 @@
  * Application configuration structure from YAML file
  */
 export interface AppConfig {
-  /** Connection timeout with platform (seconds) */
-  platformTimeoutSecs?: number;
   /** Request timeout (seconds) */
-  incomingRequestTimeoutSecs: number;
+  requestTimeoutSecs: number;
   /** Automatic body conversion (default) */
 
   /** Number of retry attempts on error */
@@ -14,11 +12,7 @@ export interface AppConfig {
   retryDelayMs: number;
   /** Time-to-live for idempotency records in cache (minutes) */
   idempotencyTtlMinutes: number;
-  /** Content conversion settings */
-  conversion: {
-    preserveLinks: boolean;
-    stripHtml: boolean;
-  };
+
   /** Default platform configurations */
   platforms: Record<string, PlatformDefaultConfig>;
   /** Named channel configurations */

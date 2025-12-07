@@ -22,8 +22,7 @@ interface ChannelConfig {
 interface CommonConfig {
   retryAttempts: number;
   retryDelayMs: number;
-  incomingRequestTimeoutSecs?: number;
-  platformTimeoutSecs?: number;
+  requestTimeoutSecs?: number;
 }
 
 interface PlatformResult {
@@ -65,11 +64,8 @@ const createPostRequest = (overrides: Partial<PostRequestDto> = {}): PostRequest
 
 const createMockAppConfigService = (channelConfig: ChannelConfig, commonConfig: CommonConfig) => ({
   getChannel: jest.fn().mockReturnValue(channelConfig),
-  get platformTimeoutSecs() {
-    return commonConfig.platformTimeoutSecs;
-  },
-  get incomingRequestTimeoutSecs() {
-    return commonConfig.incomingRequestTimeoutSecs;
+  get requestTimeoutSecs() {
+    return commonConfig.requestTimeoutSecs;
   },
   get retryAttempts() {
     return commonConfig.retryAttempts;
@@ -305,7 +301,7 @@ describe('PostService', () => {
         mockTelegramPlatform.publish.mockImplementation(
           () => new Promise<PlatformResult>(() => { }),
         );
-        jest.spyOn(appConfigService, 'incomingRequestTimeoutSecs', 'get').mockReturnValue(1);
+        jest.spyOn(appConfigService, 'requestTimeoutSecs', 'get').mockReturnValue(1);
 
         const publishPromise = service.publish(request);
 
@@ -326,7 +322,7 @@ describe('PostService', () => {
         mockTelegramPlatform.publish.mockImplementation(
           () => new Promise<PlatformResult>(() => { }),
         );
-        jest.spyOn(appConfigService, 'incomingRequestTimeoutSecs', 'get').mockReturnValue(1000);
+        jest.spyOn(appConfigService, 'requestTimeoutSecs', 'get').mockReturnValue(1000);
 
         const result = await service.publish(request);
 
@@ -336,44 +332,7 @@ describe('PostService', () => {
         }
       });
 
-      it('should apply platform timeout per attempt when configured', async () => {
-        const request = createPostRequest();
 
-        jest.spyOn(appConfigService, 'retryAttempts', 'get').mockReturnValue(3);
-        jest.spyOn(appConfigService, 'retryDelayMs', 'get').mockReturnValue(100);
-        jest.spyOn(appConfigService, 'incomingRequestTimeoutSecs', 'get').mockReturnValue(10);
-        jest.spyOn(appConfigService, 'platformTimeoutSecs', 'get').mockReturnValue(1);
-
-        jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined);
-
-        const executeWithRequestTimeoutSpy = jest
-          .spyOn(service as any, 'executeWithRequestTimeout')
-          .mockImplementation((fn: () => Promise<unknown>, timeoutMs: number) => {
-            if (timeoutMs === 1000) {
-              const error: any = new Error('Platform timeout');
-              error.code = 'ETIMEDOUT';
-              return Promise.reject(error);
-            }
-
-            return fn();
-          });
-
-        const result = await service.publish(request);
-
-        const platformTimeoutCalls = executeWithRequestTimeoutSpy.mock.calls.filter(
-          (call: [unknown, number]) => call[1] === 1000,
-        ).length;
-        const globalTimeoutCalls = executeWithRequestTimeoutSpy.mock.calls.filter(
-          (call: [unknown, number]) => call[1] === 10000,
-        ).length;
-
-        expect(result.success).toBe(false);
-        if (!result.success) {
-          expect(result.error.code).toBe('TIMEOUT_ERROR');
-        }
-        expect(globalTimeoutCalls).toBe(1);
-        expect(platformTimeoutCalls).toBe(3);
-      });
     });
 
     describe('idempotency', () => {

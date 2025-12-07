@@ -134,8 +134,9 @@ See [API Documentation](docs/api.md) for complete reference.
 ### Config File (`config.yaml`)
 
 ```yaml
-platformTimeoutSecs: 45
-incomingRequestTimeoutSecs: 60
+# Request timeout (seconds)
+# Total time limit for processing a request, including all retries and platform delays
+requestTimeoutSecs: 60
 retryAttempts: 3
 retryDelayMs: 1000
 idempotencyTtlMinutes: 10

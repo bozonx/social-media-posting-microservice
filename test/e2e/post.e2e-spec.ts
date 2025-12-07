@@ -69,8 +69,7 @@ describe('PostController (e2e)', () => {
     }),
     get retryAttempts() { return 1; },
     get retryDelayMs() { return 0; },
-    get incomingRequestTimeoutSecs() { return 60; },
-    get platformTimeoutSecs() { return 60; },
+    get requestTimeoutSecs() { return 60; },
     getConversionConfig: jest.fn().mockReturnValue({}),
   };
 

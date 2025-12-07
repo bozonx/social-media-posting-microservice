@@ -4,13 +4,9 @@
 # ============================================
 # COMMON PARAMETERS
 # ============================================
-# Connection timeout with platform (seconds)
-# Maximum time to wait for establishing a connection to the platform API
-# platformTimeoutSecs: 30
-
 # Request timeout (seconds)
-# Maximum time to wait for a complete API request/response cycle
-incomingRequestTimeoutSecs: 60
+# Total time limit for processing a request, including all retries and platform delays
+requestTimeoutSecs: 60
 
 # Number of retry attempts on error
 # How many times to retry a failed request before giving up
@@ -28,16 +24,6 @@ idempotencyTtlMinutes: 10
 
 
 # ============================================
-# MEDIA PROCESSING NOTE
-# ============================================
-# Media processing and conversion are not implemented in the current version
-# Media files are passed to platforms by URL as-is
-# Future versions may include:
-# - Image conversion
-# - Image compression
-# - Video conversion
-
-# ============================================
 # DEFAULT PROVIDER SETTINGS
 # ============================================
 platforms:
@@ -53,13 +39,11 @@ platforms:
 channels:
   # Company Telegram channel
   company_telegram:
-
-    
+  
     # Platform name
     # Must match one of the supported platforms (currently: telegram)
     platform: telegram
-    
-
+  
     # Authentication (API credentials and chat ID)
     # You can use environment variables: ${MY_CUSTOM_VAR}
     auth:
@@ -68,20 +52,13 @@ channels:
       # Chat ID or channel username (with @ prefix for public channels)
       chatId: '@your_channel_username'
 
-    # Parse mode for Telegram
-    # Options: HTML, Markdown, MarkdownV2
-    # Determines how text formatting is interpreted
-    parseMode: HTML
+
     
     # Disable notifications by default
     # If true, posts will be sent silently without notifying subscribers
     disableNotification: false
     
 
-    
-    # Default body format
-    # Format of the body content before conversion (html, markdown, or text)
-    bodyFormat: html
 
     # Maximum text message length
     # Telegram's limit for text-only messages
@@ -91,4 +68,3 @@ channels:
     # Telegram's limit for captions on photos, videos, etc.
     maxCaptionLength: 1024
   
-  # Additional social networks will be added in future versions

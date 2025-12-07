@@ -9,15 +9,11 @@ describe('AppConfigService', () => {
   let configService: ConfigService;
 
   const mockConfig = {
-    platformTimeoutSecs: 45,
-    incomingRequestTimeoutSecs: 60,
+    requestTimeoutSecs: 60,
     retryAttempts: 3,
     retryDelayMs: 1000,
     idempotencyTtlMinutes: 10,
-    conversion: {
-      preserveLinks: true,
-      stripHtml: false,
-    },
+
     platforms: {
       telegram: {
         sdkVersion: 'latest',
@@ -80,8 +76,8 @@ describe('AppConfigService', () => {
     });
 
     it('should get nested config value', () => {
-      const stripHtml = service.get('conversion.stripHtml');
-      expect(stripHtml).toBe(false);
+      const maxRetries = service.get('platforms.telegram.maxRetries');
+      expect(maxRetries).toBe(3);
     });
 
     it('should return undefined for non-existent path', () => {
@@ -125,19 +121,10 @@ describe('AppConfigService', () => {
     it('should return correct values via getters', () => {
       expect(service.retryAttempts).toBe(3);
       expect(service.retryDelayMs).toBe(1000);
-      expect(service.incomingRequestTimeoutSecs).toBe(60);
-      expect(service.platformTimeoutSecs).toBe(45);
+      expect(service.requestTimeoutSecs).toBe(60);
       expect(service.idempotencyTtlMinutes).toBe(10);
     });
   });
 
-  describe('getConversionConfig', () => {
-    it('should return conversion config', () => {
-      const conversion = service.getConversionConfig();
-      expect(conversion).toEqual({
-        preserveLinks: true,
-        stripHtml: false,
-      });
-    });
-  });
+
 });

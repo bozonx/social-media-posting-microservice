@@ -66,18 +66,13 @@ export class AppConfigService {
     return this.config.channels || {};
   }
 
-  /**
-   * Get platform connection timeout
-   */
-  get platformTimeoutSecs(): number | undefined {
-    return this.config.platformTimeoutSecs;
-  }
+
 
   /**
    * Get incoming request timeout
    */
-  get incomingRequestTimeoutSecs(): number {
-    return this.config.incomingRequestTimeoutSecs;
+  get requestTimeoutSecs(): number {
+    return this.config.requestTimeoutSecs;
   }
 
   /**
@@ -106,11 +101,5 @@ export class AppConfigService {
     return this.config.idempotencyTtlMinutes;
   }
 
-  /**
-   * Get conversion configuration section
-   * @returns Conversion settings for body format transformations
-   */
-  getConversionConfig(): AppConfig['conversion'] {
-    return this.config.conversion;
-  }
+
 }

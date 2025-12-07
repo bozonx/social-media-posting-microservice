@@ -31,7 +31,7 @@ Publish content to a social media platform.
 | `type` | string | No | Post type (default: `auto`). See below |
 | `bodyFormat` | string | No | Body format: `text`, `html`, `md`, or platform-specific (e.g., `MarkdownV2`) (default: `text`, max 50 characters) |
 | `title` | string | No | Post title (platform-specific, max 1000 characters) |
-| `description` | string | No | Post description (platform-specific, max 2000 characters) |
+| `description` | string | No | Post description (platform-specific, max 5000 characters) |
 | `cover` | MediaInput | No | Cover image (URL/fileId max 500 characters) |
 | `video` | MediaInput | No | Video file (URL/fileId max 500 characters) |
 | `audio` | MediaInput | No | Audio file (URL/fileId max 500 characters) |

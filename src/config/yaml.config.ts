@@ -3,6 +3,7 @@ import { registerAs } from '@nestjs/config';
 import { readFileSync } from 'fs';
 import * as yaml from 'js-yaml';
 import { join } from 'path';
+import { validateYamlConfig } from './yaml-config.dto.js';
 
 /**
  * Namespace for YAML configuration in NestJS ConfigService
@@ -46,8 +47,9 @@ const substituteEnvVariables = (obj: any): any => {
  * Loads and parses YAML configuration file
  * Reads the file from CONFIG_PATH environment variable or default location
  * Automatically substitutes environment variables in the configuration
- * @returns Parsed configuration object with environment variables resolved
- * @throws Error if the configuration file cannot be loaded or parsed
+ * Validates the configuration structure and values
+ * @returns Parsed and validated configuration object with environment variables resolved
+ * @throws Error if the configuration file cannot be loaded, parsed, or validated
  */
 export default registerAs(YAML_CONFIG_NAMESPACE, () => {
     const configPath = process.env.CONFIG_PATH || join(process.cwd(), 'config.yaml');
@@ -55,7 +57,12 @@ export default registerAs(YAML_CONFIG_NAMESPACE, () => {
     try {
         const fileContent = readFileSync(configPath, 'utf8');
         const rawConfig = yaml.load(fileContent);
-        return substituteEnvVariables(rawConfig);
+        const configWithEnv = substituteEnvVariables(rawConfig);
+
+        // Validate configuration structure and values
+        const validatedConfig = validateYamlConfig(configWithEnv);
+
+        return validatedConfig;
     } catch (error: any) {
         throw new Error(`Failed to load config from ${configPath}: ${error.message}`);
     }

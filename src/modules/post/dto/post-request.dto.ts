@@ -61,10 +61,10 @@ export class PostRequestDto {
   @MaxLength(1000)
   title?: string;
 
-  /** Post description/summary (used by platforms that support it, max 2000 characters) */
+  /** Post description/summary (used by platforms that support it, max 5000 characters) */
   @IsOptional()
   @IsString()
-  @MaxLength(2000)
+  @MaxLength(5000)
   description?: string;
 
   /** Cover image (for image posts or article thumbnails) */

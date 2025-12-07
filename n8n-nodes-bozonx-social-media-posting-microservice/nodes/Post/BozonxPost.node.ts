@@ -123,7 +123,7 @@ export class BozonxPost implements INodeType {
 				name: 'cover',
 				type: 'string',
 				default: '',
-				description: 'Cover image URL or MediaInput object (JSON)',
+				description: 'Cover image URL, file_id (Telegram), or MediaInput object as JSON (URL/fileId max 500 characters)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'post', 'image', 'article', 'story'],
@@ -137,7 +137,7 @@ export class BozonxPost implements INodeType {
 				name: 'video',
 				type: 'string',
 				default: '',
-				description: 'Video URL or MediaInput object (JSON)',
+				description: 'Video URL, file_id (Telegram), or MediaInput object as JSON (URL/fileId max 500 characters)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'video', 'short', 'story'],
@@ -151,7 +151,7 @@ export class BozonxPost implements INodeType {
 				name: 'audio',
 				type: 'string',
 				default: '',
-				description: 'Audio URL or MediaInput object (JSON)',
+				description: 'Audio URL, file_id (Telegram), or MediaInput object as JSON (URL/fileId max 500 characters)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'audio'],
@@ -165,7 +165,7 @@ export class BozonxPost implements INodeType {
 				name: 'document',
 				type: 'string',
 				default: '',
-				description: 'Document URL or MediaInput object (JSON)',
+				description: 'Document URL, file_id (Telegram), or MediaInput object as JSON (URL/fileId max 500 characters)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'document'],
@@ -180,7 +180,7 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				typeOptions: { rows: 3 },
 				default: '',
-				description: 'JSON array of media URLs or MediaInput objects for albums (2-10 items)',
+				description: 'JSON array of media URLs, file_ids (Telegram), or MediaInput objects for albums (2-10 items)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'album'],
@@ -267,7 +267,7 @@ export class BozonxPost implements INodeType {
 							{ name: 'Markdown', value: 'md' },
 						],
 						default: 'text',
-						description: 'Format of the post content',
+						description: 'Format of the post content. Can also be platform-specific (e.g., "MarkdownV2" for Telegram). Max 50 characters.',
 					},
 					{
 						displayName: 'Description',
@@ -275,7 +275,7 @@ export class BozonxPost implements INodeType {
 						type: 'string',
 						typeOptions: { rows: 2 },
 						default: '',
-						description: 'Post description (platform-specific, max 2000 characters)',
+						description: 'Post description/summary (used by platforms that support it, max 5000 characters)',
 					},
 					{
 						displayName: 'Disable Notification',
@@ -293,7 +293,7 @@ export class BozonxPost implements INodeType {
 							{ name: 'Draft', value: 'draft' },
 						],
 						default: 'publish',
-						description: 'Publishing mode',
+						description: 'Publishing mode (only for supported platforms)',
 					},
 					{
 						displayName: 'Platform Options',
@@ -308,7 +308,7 @@ export class BozonxPost implements INodeType {
 						name: 'postLanguage',
 						type: 'string',
 						default: '',
-						description: 'Content language code (e.g., en, ru, max 50 characters)',
+						description: 'Content language code (e.g., en, ru). Passed as-is to supported platforms. Max 50 characters.',
 					},
 					{
 						displayName: 'Scheduled At',
@@ -322,7 +322,7 @@ export class BozonxPost implements INodeType {
 						name: 'tags',
 						type: 'string',
 						default: '',
-						description: 'Comma-separated tags/hashtags (max 200 items, each max 300 characters)',
+						description: 'Comma-separated tags/hashtags without # symbol. Passed as-is to supported platforms. Max 200 items, each max 300 characters.',
 					},
 					{
 						displayName: 'Max Body Length',

@@ -84,9 +84,15 @@ AgACAgIAAxkBAAIC...
 ```
 
 **Properties:**
-- `url`: Media file URL
-- `fileId`: Telegram file_id for reuse
+- `url`: Media file URL (max 500 characters)
+- `fileId`: Telegram file_id for reuse (max 500 characters)
 - `hasSpoiler`: Spoiler flag (Telegram only)
+
+**Notes:**
+- String values are automatically detected as URL or file_id based on format
+- In object format, either `url` or `fileId` must be provided
+- If both are present, `fileId` takes priority
+- URL and fileId strings have a maximum length of 500 characters
 
 **Media Array** (for albums, 2-10 items):
 ```json

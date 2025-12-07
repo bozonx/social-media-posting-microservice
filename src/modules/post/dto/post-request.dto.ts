@@ -47,7 +47,7 @@ export class PostRequestDto {
    */
   @IsOptional()
   @IsBoolean()
-  convertBody?: boolean;
+  convertBodyDefault?: boolean;
 
 
 

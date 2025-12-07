@@ -69,11 +69,45 @@ export class AppConfigService {
   }
 
   /**
-   * Get common configuration section
-   * @returns Common configuration with timeouts, retry settings, etc.
+   * Get provider connection timeout
    */
-  getCommonConfig(): AppConfig['common'] {
-    return this.config.common;
+  get providerTimeoutSecs(): number | undefined {
+    return this.config.providerTimeoutSecs;
+  }
+
+  /**
+   * Get incoming request timeout
+   */
+  get incomingRequestTimeoutSecs(): number {
+    return this.config.incomingRequestTimeoutSecs;
+  }
+
+  /**
+   * Get default body conversion setting
+   */
+  get convertBodyDefault(): boolean {
+    return this.config.convertBodyDefault;
+  }
+
+  /**
+   * Get retry attempts
+   */
+  get retryAttempts(): number {
+    return this.config.retryAttempts;
+  }
+
+  /**
+   * Get retry delay in milliseconds
+   */
+  get retryDelayMs(): number {
+    return this.config.retryDelayMs;
+  }
+
+  /**
+   * Get idempotency TTL in minutes
+   */
+  get idempotencyTtlMinutes(): number {
+    return this.config.idempotencyTtlMinutes;
   }
 
   /**

@@ -29,7 +29,7 @@ export class IdempotencyService {
   constructor(
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
     private readonly appConfig: AppConfigService,
-  ) {}
+  ) { }
 
   /**
    * Try to acquire processing lock for the given key or return existing record state.
@@ -188,10 +188,9 @@ export class IdempotencyService {
    * @returns TTL in milliseconds
    */
   private getTtlMs(): number {
-    const common = this.appConfig.getCommonConfig();
     const minutes =
-      typeof common.idempotencyTtlMinutes === 'number'
-        ? common.idempotencyTtlMinutes
+      typeof this.appConfig.idempotencyTtlMinutes === 'number'
+        ? this.appConfig.idempotencyTtlMinutes
         : IdempotencyService.DEFAULT_IDEMPOTENCY_TTL_MINUTES;
     return minutes * 60_000;
   }

@@ -9,14 +9,12 @@ describe('AppConfigService', () => {
   let configService: ConfigService;
 
   const mockConfig = {
-    common: {
-      providerTimeoutSecs: 45,
-      incomingRequestTimeoutSecs: 60,
-      convertBody: true,
-      retryAttempts: 3,
-      retryDelayMs: 1000,
-      idempotencyTtlMinutes: 10,
-    },
+    providerTimeoutSecs: 45,
+    incomingRequestTimeoutSecs: 60,
+    convertBodyDefault: true,
+    retryAttempts: 3,
+    retryDelayMs: 1000,
+    idempotencyTtlMinutes: 10,
     conversion: {
       preserveLinks: true,
       stripHtml: false,
@@ -85,13 +83,13 @@ describe('AppConfigService', () => {
 
   describe('get', () => {
     it('should get top-level config value', () => {
-      const common = service.get('common');
-      expect(common).toEqual(mockConfig.common);
+      const attempts = service.get('retryAttempts');
+      expect(attempts).toBe(3);
     });
 
     it('should get nested config value', () => {
-      const retryAttempts = service.get('common.retryAttempts');
-      expect(retryAttempts).toBe(3);
+      const stripHtml = service.get('conversion.stripHtml');
+      expect(stripHtml).toBe(false);
     });
 
     it('should return undefined for non-existent path', () => {
@@ -139,15 +137,14 @@ describe('AppConfigService', () => {
     });
   });
 
-  describe('getCommonConfig', () => {
-    it('should return common config', () => {
-      const common = service.getCommonConfig();
-      expect(common).toEqual(
-        expect.objectContaining({
-          retryAttempts: 3,
-          retryDelayMs: 1000,
-        }),
-      );
+  describe('getters', () => {
+    it('should return correct values via getters', () => {
+      expect(service.retryAttempts).toBe(3);
+      expect(service.retryDelayMs).toBe(1000);
+      expect(service.incomingRequestTimeoutSecs).toBe(60);
+      expect(service.providerTimeoutSecs).toBe(45);
+      expect(service.convertBodyDefault).toBe(true);
+      expect(service.idempotencyTtlMinutes).toBe(10);
     });
   });
 

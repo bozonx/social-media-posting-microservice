@@ -103,7 +103,7 @@ Add the **Social Media Post** node to your workflow and configure:
 |-----------|-------------|---------|
 | **Post Type** | Type of post (auto, post, image, video, audio, album, document, article, short, story, poll) | `auto` |
 | **Body Format** | Format of post content (html, md, text) | `html` |
-| **Convert Body** | Convert body to platform-specific format | `true` |
+| **Convert Body Default** | Convert body to platform-specific format | `true` |
 | **Title** | Post title (platform-specific) | - |
 | **Description** | Post description (platform-specific) | - |
 | **Cover Image** | Cover image URL or MediaInput object | - |

@@ -23,6 +23,7 @@ interface CommonConfig {
   retryAttempts: number;
   retryDelayMs: number;
   incomingRequestTimeoutSecs?: number;
+  providerTimeoutSecs?: number;
 }
 
 interface ProviderResult {
@@ -64,7 +65,18 @@ const createPostRequest = (overrides: Partial<PostRequestDto> = {}): PostRequest
 
 const createMockAppConfigService = (channelConfig: ChannelConfig, commonConfig: CommonConfig) => ({
   getChannel: jest.fn().mockReturnValue(channelConfig),
-  getCommonConfig: jest.fn().mockReturnValue(commonConfig),
+  get providerTimeoutSecs() {
+    return commonConfig.providerTimeoutSecs;
+  },
+  get incomingRequestTimeoutSecs() {
+    return commonConfig.incomingRequestTimeoutSecs;
+  },
+  get retryAttempts() {
+    return commonConfig.retryAttempts;
+  },
+  get retryDelayMs() {
+    return commonConfig.retryDelayMs;
+  },
 });
 
 const createMockTelegramProvider = () => ({
@@ -283,12 +295,9 @@ describe('PostService', () => {
 
         const request = createPostRequest();
         mockTelegramProvider.publish.mockImplementation(
-          () => new Promise<ProviderResult>(() => {}),
+          () => new Promise<ProviderResult>(() => { }),
         );
-        appConfigService.getCommonConfig.mockReturnValue({
-          ...commonConfig,
-          incomingRequestTimeoutSecs: 1,
-        } as any);
+        jest.spyOn(appConfigService, 'incomingRequestTimeoutSecs', 'get').mockReturnValue(1);
 
         const publishPromise = service.publish(request);
 
@@ -305,12 +314,9 @@ describe('PostService', () => {
       it('should fail when request timeout exceeds maximum allowed value', async () => {
         const request = createPostRequest();
         mockTelegramProvider.publish.mockImplementation(
-          () => new Promise<ProviderResult>(() => {}),
+          () => new Promise<ProviderResult>(() => { }),
         );
-        appConfigService.getCommonConfig.mockReturnValue({
-          ...commonConfig,
-          incomingRequestTimeoutSecs: 1000,
-        } as any);
+        jest.spyOn(appConfigService, 'incomingRequestTimeoutSecs', 'get').mockReturnValue(1000);
 
         const result = await service.publish(request);
 
@@ -321,13 +327,10 @@ describe('PostService', () => {
       it('should apply provider timeout per attempt when configured', async () => {
         const request = createPostRequest();
 
-        appConfigService.getCommonConfig.mockReturnValue({
-          ...commonConfig,
-          retryAttempts: 3,
-          retryDelayMs: 100,
-          incomingRequestTimeoutSecs: 10,
-          providerTimeoutSecs: 1,
-        } as any);
+        jest.spyOn(appConfigService, 'retryAttempts', 'get').mockReturnValue(3);
+        jest.spyOn(appConfigService, 'retryDelayMs', 'get').mockReturnValue(100);
+        jest.spyOn(appConfigService, 'incomingRequestTimeoutSecs', 'get').mockReturnValue(10);
+        jest.spyOn(appConfigService, 'providerTimeoutSecs', 'get').mockReturnValue(1);
 
         jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined);
 

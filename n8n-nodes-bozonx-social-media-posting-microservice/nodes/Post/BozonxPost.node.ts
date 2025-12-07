@@ -270,8 +270,8 @@ export class BozonxPost implements INodeType {
 						description: 'Format of the post content',
 					},
 					{
-						displayName: 'Convert Body',
-						name: 'convertBody',
+						displayName: 'Convert Body Default',
+						name: 'convertBodyDefault',
 						type: 'boolean',
 						default: true,
 						description: 'Whether to convert body to platform-specific format',

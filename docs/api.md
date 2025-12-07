@@ -30,7 +30,7 @@ Publish content to a social media platform.
 | `auth` | object | No* | Inline authentication credentials |
 | `type` | string | No | Post type (default: `auto`) |
 | `bodyFormat` | string | No | Body format: `text`, `html`, `md` (default: `text`) |
-| `convertBody` | boolean | No | **Reserved.** Not used for Telegram (body is sent as-is) |
+| `convertBodyDefault` | boolean | No | **Reserved.** Not used for Telegram (body is sent as-is) |
 | `title` | string | No | Post title (platform-specific) |
 | `description` | string | No | Post description (platform-specific) |
 | `cover` | MediaInput | No | Cover image |
@@ -494,7 +494,7 @@ curl -X POST http://localhost:8080/api/v1/preview \
 When `idempotencyKey` is provided:
 
 1. Key is combined with payload and hashed
-2. Stored in in-memory cache with TTL (`common.idempotencyTtlMinutes`)
+2. Stored in in-memory cache with TTL (`idempotencyTtlMinutes`)
 3. Duplicate requests within TTL:
    - If processing → `409 Conflict`
    - If completed → cached response returned
@@ -529,9 +529,8 @@ Automatic retries for transient errors:
 Configure in `config.yaml`:
 
 ```yaml
-common:
-  retryAttempts: 3
-  retryDelayMs: 1000
+retryAttempts: 3
+retryDelayMs: 1000
 ```
 
 ---

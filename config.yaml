@@ -4,30 +4,29 @@
 # ============================================
 # COMMON PARAMETERS
 # ============================================
-common:
-  # Connection timeout with provider (seconds)
-  # Maximum time to wait for establishing a connection to the platform API
-  # providerTimeoutSecs: 30
-  
-  # Request timeout (seconds)
-  # Maximum time to wait for a complete API request/response cycle
-  incomingRequestTimeoutSecs: 60
+# Connection timeout with provider (seconds)
+# Maximum time to wait for establishing a connection to the platform API
+# providerTimeoutSecs: 30
 
-  # Automatic body conversion (default)
-  # If true, automatically converts body content to the platform's preferred format
-  convertBody: true
-  
-  # Number of retry attempts on error
-  # How many times to retry a failed request before giving up
-  retryAttempts: 3
-  
-  # Delay between retry attempts (milliseconds)
-  # Base delay before retrying a failed request
-  retryDelayMs: 1000
-  
-  # Time-to-live for idempotency records in cache (minutes)
-  # How long to keep idempotency keys in cache to prevent duplicate posts
-  idempotencyTtlMinutes: 10
+# Request timeout (seconds)
+# Maximum time to wait for a complete API request/response cycle
+incomingRequestTimeoutSecs: 60
+
+# Automatic body conversion (default)
+# If true, automatically converts body content to the platform's preferred format
+convertBodyDefault: true
+
+# Number of retry attempts on error
+# How many times to retry a failed request before giving up
+retryAttempts: 3
+
+# Delay between retry attempts (milliseconds)
+# Base delay before retrying a failed request
+retryDelayMs: 1000
+
+# Time-to-live for idempotency records in cache (minutes)
+# How long to keep idempotency keys in cache to prevent duplicate posts
+idempotencyTtlMinutes: 10
   
   # Note: Jitter for retry (±20%) is hardcoded in the implementation
   # Actual delay will be: retryDelayMs * random(0.8, 1.2)

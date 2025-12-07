@@ -59,10 +59,12 @@ export class PostService extends BasePostService {
 
     try {
       const { provider, channelConfig } = this.validateRequest(request);
-      const commonConfig = this.appConfig.getCommonConfig();
-      const requestTimeoutMs = this.getRequestTimeoutMs(commonConfig?.incomingRequestTimeoutSecs);
+
+      const requestTimeoutMs = this.getRequestTimeoutMs(
+        this.appConfig.incomingRequestTimeoutSecs,
+      );
       const providerTimeoutMs = this.getProviderTimeoutMs(
-        commonConfig?.providerTimeoutSecs,
+        this.appConfig.providerTimeoutSecs,
         requestTimeoutMs,
       );
 
@@ -92,8 +94,8 @@ export class PostService extends BasePostService {
                 () => provider.publish(request, channelConfig),
                 providerTimeoutMs,
               ),
-            commonConfig.retryAttempts,
-            commonConfig.retryDelayMs,
+            this.appConfig.retryAttempts,
+            this.appConfig.retryDelayMs,
           ),
         requestTimeoutMs,
       );

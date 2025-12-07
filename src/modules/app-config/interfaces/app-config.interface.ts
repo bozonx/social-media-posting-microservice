@@ -2,15 +2,18 @@
  * Application configuration structure from YAML file
  */
 export interface AppConfig {
-  /** Common settings for all providers */
-  common: {
-    providerTimeoutSecs?: number;
-    incomingRequestTimeoutSecs: number;
-    convertBody: boolean;
-    retryAttempts: number;
-    retryDelayMs: number;
-    idempotencyTtlMinutes: number;
-  };
+  /** Connection timeout with provider (seconds) */
+  providerTimeoutSecs?: number;
+  /** Request timeout (seconds) */
+  incomingRequestTimeoutSecs: number;
+  /** Automatic body conversion (default) */
+  convertBodyDefault: boolean;
+  /** Number of retry attempts on error */
+  retryAttempts: number;
+  /** Delay between retry attempts (milliseconds) */
+  retryDelayMs: number;
+  /** Time-to-live for idempotency records in cache (minutes) */
+  idempotencyTtlMinutes: number;
   /** Content conversion settings */
   conversion: {
     preserveLinks: boolean;

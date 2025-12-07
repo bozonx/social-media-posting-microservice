@@ -30,7 +30,9 @@ describe('IdempotencyService', () => {
         {
           provide: AppConfigService,
           useValue: {
-            getCommonConfig: jest.fn().mockReturnValue({ idempotencyTtlMinutes: 10 }),
+            get idempotencyTtlMinutes() {
+              return 10;
+            },
           },
         },
       ],
@@ -106,9 +108,7 @@ describe('IdempotencyService', () => {
     });
 
     it('should set processing record with TTL from config', async () => {
-      (appConfigService.getCommonConfig as jest.Mock).mockReturnValue({
-        idempotencyTtlMinutes: 5,
-      });
+      jest.spyOn(appConfigService, 'idempotencyTtlMinutes', 'get').mockReturnValue(5);
 
       await service.setProcessing('key');
 
@@ -135,7 +135,7 @@ describe('IdempotencyService', () => {
     });
 
     it('should use default TTL when config does not define idempotencyTtlMinutes', async () => {
-      (appConfigService.getCommonConfig as jest.Mock).mockReturnValue({});
+      jest.spyOn(appConfigService, 'idempotencyTtlMinutes', 'get').mockReturnValue(undefined as any);
 
       await service.setProcessing('default-key');
 

@@ -156,13 +156,12 @@ src/
 ### Config File (`config.yaml`)
 
 ```yaml
-common:
-  providerTimeoutSecs: 45
-  incomingRequestTimeoutSecs: 60
-  retryAttempts: 3
-  retryDelayMs: 1000
-  idempotencyTtlMinutes: 10
-  convertBody: true # Not used for Telegram
+providerTimeoutSecs: 45
+incomingRequestTimeoutSecs: 60
+retryAttempts: 3
+retryDelayMs: 1000
+idempotencyTtlMinutes: 10
+convertBodyDefault: true # Not used for Telegram
 
 conversion:
   preserveLinks: true

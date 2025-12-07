@@ -38,29 +38,25 @@ export class IsMediaInputConstraint implements ValidatorConstraintInterface {
       return trimmed.length > 0 && trimmed.length <= MAX_MEDIA_STRING_LENGTH;
     }
 
-    // If it's an object, it should have either url or fileId
+    // If it's an object, it should have src property
     if (typeof value === 'object' && value !== null) {
-      const hasUrl = typeof value.url === 'string';
-      const hasFileId = typeof value.fileId === 'string';
+      const hasSrc = typeof value.src === 'string';
       const hasSpoiler = value.hasSpoiler === undefined || typeof value.hasSpoiler === 'boolean';
 
-      // Validate string lengths
-      if (hasUrl && value.url.length > MAX_MEDIA_STRING_LENGTH) {
-        return false;
-      }
-      if (hasFileId && value.fileId.length > MAX_MEDIA_STRING_LENGTH) {
+      // Validate string length
+      if (hasSrc && value.src.length > MAX_MEDIA_STRING_LENGTH) {
         return false;
       }
 
-      // Must have at least url or fileId, and hasSpoiler must be boolean if present
-      return (hasUrl || hasFileId) && hasSpoiler;
+      // Must have src, and hasSpoiler must be boolean if present
+      return hasSrc && value.src.length > 0 && hasSpoiler;
     }
 
     return false;
   }
 
   defaultMessage(args: ValidationArguments) {
-    return `MediaInput must be a string (URL or file_id, max ${MAX_MEDIA_STRING_LENGTH} characters) or an object with url/fileId (max ${MAX_MEDIA_STRING_LENGTH} characters each) and optional hasSpoiler boolean`;
+    return `MediaInput must be a string (URL or file_id, max ${MAX_MEDIA_STRING_LENGTH} characters) or an object with src (max ${MAX_MEDIA_STRING_LENGTH} characters) and optional hasSpoiler boolean`;
   }
 }
 
@@ -108,7 +104,7 @@ export class IsMediaInputArrayConstraint implements ValidatorConstraintInterface
   }
 
   defaultMessage(args: ValidationArguments) {
-    return `Each item in media array must be a string (URL or file_id, max ${MAX_MEDIA_STRING_LENGTH} characters) or an object with url/fileId (max ${MAX_MEDIA_STRING_LENGTH} characters each) and optional hasSpoiler boolean`;
+    return `Each item in media array must be a string (URL or file_id, max ${MAX_MEDIA_STRING_LENGTH} characters) or an object with src (max ${MAX_MEDIA_STRING_LENGTH} characters) and optional hasSpoiler boolean`;
   }
 }
 

@@ -33,11 +33,11 @@ Publish content to a social media platform.
 | `bodyFormat` | string | No | Body format: `text`, `html`, `md`, or platform-specific (e.g., `MarkdownV2`) (default: `text`, max 50 characters) |
 | `title` | string | No | Post title (platform-specific, max 1000 characters) |
 | `description` | string | No | Post description (platform-specific, max 5000 characters) |
-| `cover` | MediaInput | No | Cover image (URL/fileId max 500 characters) |
-| `video` | MediaInput | No | Video file (URL/fileId max 500 characters) |
-| `audio` | MediaInput | No | Audio file (URL/fileId max 500 characters) |
-| `document` | MediaInput | No | Document file (URL/fileId max 500 characters) |
-| `media` | MediaInput[] | No | Media array for albums (2-10 items, each URL/fileId max 500 characters) |
+| `cover` | MediaInput | No | Cover image (URL/fileId string or object with `src`, max 500 characters) |
+| `video` | MediaInput | No | Video file (URL/fileId string or object with `src`, max 500 characters) |
+| `audio` | MediaInput | No | Audio file (URL/fileId string or object with `src`, max 500 characters) |
+| `document` | MediaInput | No | Document file (URL/fileId string or object with `src`, max 500 characters) |
+| `media` | MediaInput[] | No | Media array for albums (2-10 items, each URL/fileId string or object with `src`, max 500 characters) |
 | `options` | object | No | Platform-specific options (passed directly to platform API) |
 | `disableNotification` | boolean | No | Send message silently (defaults to config value) |
 | `tags` | string[] | No | Tags without # symbol. Passed as-is to supported platforms (max 200 items, each max 300 characters) |
@@ -142,7 +142,7 @@ In addition to the fields listed in the table, the `auth` object may contain **a
 
 Media fields accept:
 - **String**: URL or Telegram file_id
-- **Object**: With additional options
+- **Object**: With `src` and additional options
 
 ```json
 // String URL
@@ -151,15 +151,15 @@ Media fields accept:
 // String file_id (Telegram)
 "cover": "AgACAgIAAxkBAAIC..."
 
-// Object with URL
+// Object with URL src
 "cover": {
-  "url": "https://example.com/image.jpg",
+  "src": "https://example.com/image.jpg",
   "hasSpoiler": true
 }
 
-// Object with file_id
+// Object with file_id src
 "cover": {
-  "fileId": "AgACAgIAAxkBAAIC...",
+  "src": "AgACAgIAAxkBAAIC...",
   "hasSpoiler": true
 }
 ```
@@ -168,14 +168,12 @@ Media fields accept:
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `url` | string | Media file URL (max 500 characters) |
-| `fileId` | string | Telegram file_id (reuse uploaded files, max 500 characters) |
+| `src` | string | Media source (URL or Telegram file_id, max 500 characters) |
 | `hasSpoiler` | boolean | Hide under spoiler |
 | `type` | string | Explicit media type: `image`, `video`, `audio`, `document` |
 
 **Notes:**
-- Either `url` or `fileId` must be provided in object format
-- If both `url` and `fileId` are present, `fileId` takes priority
+- `src` is required in object format
 - String values are automatically detected as URL or file_id based on format
 - URL and fileId strings have a maximum length of 500 characters
 - The `type` property is only used in `media[]` arrays to override auto-detection by URL extension
@@ -535,7 +533,7 @@ curl -X POST http://localhost:8080/api/v1/post \
     "channel": "my_channel",
     "body": "Sensitive content",
     "cover": {
-      "url": "https://example.com/image.jpg",
+      "src": "https://example.com/image.jpg",
       "hasSpoiler": true
     }
   }'
@@ -552,7 +550,7 @@ curl -X POST http://localhost:8080/api/v1/post \
     "channel": "my_channel",
     "body": "Reposting video",
     "video": {
-      "fileId": "BAACAgIAAxkBAAIC4mF9..."
+      "src": "BAACAgIAAxkBAAIC4mF9..."
     }
   }'
 

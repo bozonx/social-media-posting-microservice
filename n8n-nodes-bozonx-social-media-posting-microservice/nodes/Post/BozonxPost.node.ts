@@ -156,7 +156,7 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				default: '',
 				description:
-					'Cover image URL, file_id (Telegram), or MediaInput object as JSON (URL/fileId max 500 characters)',
+					'Cover image URL, file_id (Telegram), or MediaInput object as JSON with "src" property (max 500 characters)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'post', 'image', 'article', 'story'],
@@ -171,7 +171,7 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				default: '',
 				description:
-					'Video URL, file_id (Telegram), or MediaInput object as JSON (URL/fileId max 500 characters)',
+					'Video URL, file_id (Telegram), or MediaInput object as JSON with "src" property (max 500 characters)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'video', 'short', 'story'],
@@ -186,7 +186,7 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				default: '',
 				description:
-					'Audio URL, file_id (Telegram), or MediaInput object as JSON (URL/fileId max 500 characters)',
+					'Audio URL, file_id (Telegram), or MediaInput object as JSON with "src" property (max 500 characters)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'audio'],
@@ -201,7 +201,7 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				default: '',
 				description:
-					'Document URL, file_id (Telegram), or MediaInput object as JSON (URL/fileId max 500 characters)',
+					'Document URL, file_id (Telegram), or MediaInput object as JSON with "src" property (max 500 characters)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'document'],
@@ -217,7 +217,7 @@ export class BozonxPost implements INodeType {
 				typeOptions: { rows: 3 },
 				default: '',
 				description:
-					'JSON array of media URLs, file_ids (Telegram), or MediaInput objects for albums (2-10 items)',
+					'JSON array of media URLs, file_ids (Telegram), or MediaInput objects with "src" property for albums (2-10 items)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'album'],

@@ -29,7 +29,7 @@ export class MediaInputHelper {
   }
 
   /**
-   * Type guard to check if MediaInput is an object with url/fileId properties
+   * Type guard to check if MediaInput is an object with src property
    * @param input - MediaInput to check
    * @returns True if input is a MediaInputObject
    */
@@ -39,8 +39,8 @@ export class MediaInputHelper {
 
   /**
    * Extract URL from MediaInput
-   * Handles both string URLs and object format with url property
-   * If input is a string, checks if it's a valid URL
+   * Handles both string URLs and object format with src property
+   * Checks if the value is a valid URL
    * @param input - MediaInput to extract URL from
    * @returns URL string if available, undefined otherwise
    */
@@ -50,7 +50,7 @@ export class MediaInputHelper {
       return this.isValidUrl(input) ? input : undefined;
     }
     if (this.isObject(input)) {
-      return input.url;
+      return this.isValidUrl(input.src) ? input.src : undefined;
     }
     return undefined;
   }
@@ -67,7 +67,7 @@ export class MediaInputHelper {
       return this.isValidUrl(input) ? undefined : input;
     }
     if (this.isObject(input)) {
-      return input.fileId;
+      return this.isValidUrl(input.src) ? undefined : input.src;
     }
     return undefined;
   }
@@ -103,7 +103,7 @@ export class MediaInputHelper {
    * Prioritizes file_id over URL for better performance and reliability
    * @param input - MediaInput to convert
    * @returns Telegram file_id string or URL string
-   * @throws Error if neither url nor fileId is provided
+   * @throws Error if src is missing or invalid
    */
   static toTelegramInput(input: MediaInput): string | InputFile {
     const fileId = this.getFileId(input);
@@ -116,22 +116,20 @@ export class MediaInputHelper {
       return url;
     }
 
-    throw new Error('MediaInput must have either url or fileId');
+    throw new Error('MediaInput must be either a string or an object with src property');
   }
 
   /**
    * Check if input has valid MediaInput structure
    * @param input - Input to check
-   * @returns True if input is a string or object with url/fileId
+   * @returns True if input is a string or object with src
    */
   static isValidShape(input: any): boolean {
     if (this.isString(input)) {
       return true;
     }
     if (typeof input === 'object' && input !== null) {
-      const hasUrl = typeof input.url === 'string';
-      const hasFileId = typeof input.fileId === 'string';
-      return hasUrl || hasFileId;
+      return typeof input.src === 'string' && input.src.length > 0;
     }
     return false;
   }

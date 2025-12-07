@@ -8,20 +8,15 @@ export type MediaType = 'image' | 'video' | 'audio' | 'document';
  * MediaInput type
  * Supports:
  * - String: URL or Telegram file_id
- * - Object: With url/fileId and optional parameters
+ * - Object: With src and optional parameters
  */
 export type MediaInput = string | MediaInputObject;
 
 export interface MediaInputObject {
   /**
-   * URL of the media file
+   * Media source (URL or Telegram file_id)
    */
-  url?: string;
-
-  /**
-   * Telegram file_id for reusing already uploaded files
-   */
-  fileId?: string;
+  src: string;
 
   /**
    * Hide media with spoiler animation (for shocking content)

@@ -5,7 +5,11 @@ import type {
 	INodeTypeDescription,
 	IDataObject,
 } from 'n8n-workflow';
-import { ApplicationError, NodeOperationError } from 'n8n-workflow';
+import {
+	ApplicationError,
+	NodeConnectionTypes,
+	NodeOperationError,
+} from 'n8n-workflow';
 import * as yaml from 'js-yaml';
 
 function parsePlatformOptions(value: string): Record<string, unknown> {
@@ -49,15 +53,15 @@ export class BozonxPost implements INodeType {
 		name: 'bozonxPost',
 		icon: 'file:post.svg',
 		group: ['transform'],
-		version: 1.3,
+		version: 1,
 		subtitle: '={{$parameter["platform"]}}',
 		description:
 			'Publish content to social media platforms (Telegram, VK, Instagram) via Social Media Posting microservice.',
 		defaults: {
 			name: 'Social Media Post',
 		},
-		inputs: ['main'],
-		outputs: ['main'],
+		inputs: [NodeConnectionTypes.Main],
+		outputs: [NodeConnectionTypes.Main],
 		credentials: [
 			{
 				name: 'bozonxSocialMediaPostingApi',

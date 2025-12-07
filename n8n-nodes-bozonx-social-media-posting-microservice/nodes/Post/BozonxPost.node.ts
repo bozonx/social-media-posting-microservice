@@ -69,6 +69,8 @@ export class BozonxPost implements INodeType {
 				displayOptions: {
 					show: {
 						channel: [''],
+						platform: ['telegram'],
+						authType: ['telegramApi'],
 					},
 				},
 			},
@@ -102,6 +104,31 @@ export class BozonxPost implements INodeType {
 				displayOptions: {
 					show: {
 						channel: [''],
+					},
+				},
+			},
+
+			// Auth Type
+			{
+				displayName: 'Authentication',
+				name: 'authType',
+				type: 'options',
+				options: [
+					{
+						name: 'None',
+						value: 'none',
+					},
+					{
+						name: 'Telegram API',
+						value: 'telegramApi',
+					},
+				],
+				default: 'none',
+				description: 'Authentication method for Telegram',
+				displayOptions: {
+					show: {
+						channel: [''],
+						platform: ['telegram'],
 					},
 				},
 			},

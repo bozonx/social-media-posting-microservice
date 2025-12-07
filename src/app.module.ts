@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
 import { HealthModule } from './modules/health/health.module.js';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
+import { ShutdownService } from './common/services/shutdown.service.js';
+import { ShutdownInterceptor } from './common/interceptors/shutdown.interceptor.js';
 import appConfig from './config/app.config.js';
 import type { AppConfig } from './config/app.config.js';
 import yamlConfig from './config/yaml.config.js';
@@ -101,9 +103,14 @@ import { AppConfigModule } from './modules/app-config/app-config.module.js';
   ],
   controllers: [],
   providers: [
+    ShutdownService,
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ShutdownInterceptor,
     },
   ],
 })

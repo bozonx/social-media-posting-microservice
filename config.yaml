@@ -12,9 +12,7 @@
 # Maximum time to wait for a complete API request/response cycle
 incomingRequestTimeoutSecs: 60
 
-# Automatic body conversion (default)
-# If true, automatically converts body content to the platform's preferred format
-convertBodyDefault: true
+
 
 # Number of retry attempts on error
 # How many times to retry a failed request before giving up
@@ -31,17 +29,7 @@ idempotencyTtlMinutes: 10
   # Note: Jitter for retry (±20%) is hardcoded in the implementation
   # Actual delay will be: retryDelayMs * random(0.8, 1.2)
 
-# ============================================
-# CONVERSION SETTINGS
-# ============================================
-conversion:
-  # Preserve links during conversion
-  # If true, keeps hyperlinks intact when converting between formats
-  preserveLinks: true
-  
-  # Strip HTML tags when converting to text
-  # If true, removes all HTML tags; if false, keeps safe HTML tags
-  stripHtml: false
+
 
 # ============================================
 # MEDIA PROCESSING NOTE
@@ -93,9 +81,7 @@ channels:
     # If true, posts will be sent silently without notifying subscribers
     disableNotification: false
     
-    # Convert body automatically
-    # If true, converts body to the format specified by parseMode
-    convertBody: true
+
     
     # Default body format
     # Format of the body content before conversion (html, markdown, or text)

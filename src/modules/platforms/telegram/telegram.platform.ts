@@ -1,7 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { Bot } from 'grammy';
 import { IPlatform, PlatformPublishResponse } from '../base/platform.interface.js';
-import { PostType, BodyFormat } from '../../../common/enums/index.js';
+import { PostType } from '../../../common/enums/index.js';
 import {
   PostRequestDto,
   PreviewResponseDto,
@@ -200,7 +200,7 @@ export class TelegramPlatform implements IPlatform {
         valid: true,
         detectedType: actualType,
         convertedBody: processedBody,
-        targetFormat,
+        targetFormat: targetFormat as string,
         convertedBodyLength: processedBody.length,
         warnings,
       },
@@ -235,29 +235,40 @@ export class TelegramPlatform implements IPlatform {
    * Prepares message data for sending to Telegram.
    * Maps bodyFormat to parse_mode without converting the body content.
    * Body is sent as-is to Telegram API.
+   * 
+   * Standard formats (text, html, md) are mapped to Telegram parse_mode.
+   * Custom values (e.g., MarkdownV2) are passed as-is.
+   * If parse_mode is specified in options, it overrides bodyFormat mapping.
    */
   private prepareMessageData(request: PostRequestDto, channelConfig: TelegramChannelConfig) {
     const processedBody = request.body;
 
     // Map bodyFormat to Telegram parse_mode
-    // text → no parse_mode (plain text)
-    // html → parse_mode: HTML
-    // md → parse_mode: Markdown
     let parseMode: string | undefined;
-    const bodyFormat = request.bodyFormat || BodyFormat.TEXT;
+    const bodyFormat = request.bodyFormat || 'text';
 
-    if (bodyFormat === BodyFormat.HTML) {
+    // Standard format mappings
+    if (bodyFormat === 'html') {
       parseMode = 'HTML';
-    } else if (bodyFormat === BodyFormat.MARKDOWN) {
+    } else if (bodyFormat === 'md') {
       parseMode = 'Markdown';
+    } else if (bodyFormat === 'text') {
+      // Plain text - no parse_mode
+      parseMode = undefined;
+    } else {
+      // Any other value is passed as-is (e.g., 'MarkdownV2' → parse_mode: 'MarkdownV2')
+      parseMode = bodyFormat;
     }
-    // For TEXT or any other format, parseMode remains undefined (plain text)
 
     const disableNotification = channelConfig.disableNotification ?? false;
 
     // Options are passed directly to Telegram API
-    // If parse_mode is specified in options, it will override our mapping
     const options = request.options || {};
+
+    // If parse_mode is specified in options, it overrides our mapping
+    if (options.parse_mode !== undefined) {
+      parseMode = options.parse_mode;
+    }
 
     return { processedBody, targetFormat: bodyFormat, parseMode, disableNotification, options };
   }

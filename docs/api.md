@@ -29,8 +29,7 @@ Publish content to a social media platform.
 | `channel` | string | No* | Channel name from `config.yaml` |
 | `auth` | object | No* | Inline authentication credentials. See [Auth Field](#auth-field) below |
 | `type` | string | No | Post type (default: `auto`). See below |
-| `bodyFormat` | string | No | Body format: `text`, `html`, `md` (default: `text`) |
-| `convertBodyDefault` | boolean | No | **Reserved.** Not used for Telegram (body is sent as-is) |
+| `bodyFormat` | string | No | Body format: `text`, `html`, `md`, or platform-specific (e.g., `MarkdownV2`) (default: `text`) |
 | `title` | string | No | Post title (platform-specific) |
 | `description` | string | No | Post description (platform-specific) |
 | `cover` | MediaInput | No | Cover image |
@@ -316,7 +315,9 @@ Other providers may allow combining `cover` with other media (e.g. video + cover
 
 ### Body Format Handling
 
-The `bodyFormat` field specifies the format of the `body` content. For Telegram, the body is **sent as-is** without any conversion. The `bodyFormat` value is mapped directly to Telegram's `parse_mode` parameter:
+The `bodyFormat` field specifies the format of the `body` content. For Telegram, the body is **sent as-is** without any conversion. The `bodyFormat` value is used to determine the appropriate `parse_mode` parameter for Telegram's API.
+
+**Standard format mappings:**
 
 | `bodyFormat` | Telegram `parse_mode` | Description |
 |--------------|----------------------|-------------|
@@ -324,11 +325,19 @@ The `bodyFormat` field specifies the format of the `body` content. For Telegram,
 | `html` | `HTML` | HTML formatting |
 | `md` | `Markdown` | Markdown formatting |
 
+**Custom format support:**
+
+Any other `bodyFormat` value is passed directly as-is to the `parse_mode` parameter. This allows you to use platform-specific formats like Telegram's `MarkdownV2`:
+
+| `bodyFormat` | Telegram `parse_mode` | Description |
+|--------------|----------------------|-------------|
+| `MarkdownV2` | `MarkdownV2` | Telegram's MarkdownV2 format (passed as-is) |
+| *any other* | *passed as-is* | Custom value for the platform |
+
 **Important Notes:**
 
 - **No conversion is performed** - the body content you provide must already be in the format specified by `bodyFormat`
-- **MarkdownV2 support** - To use Telegram's `MarkdownV2` format, set `bodyFormat: "md"` and add `parse_mode: "MarkdownV2"` in the `options` field (see example below)
-- **Options override** - If you specify `parse_mode` in the `options` field, it will override the automatic mapping from `bodyFormat`
+- **Options override** - If you specify `parse_mode` in the `options` field, it will **always override** the automatic mapping from `bodyFormat`
 
 **Examples:**
 
@@ -351,10 +360,16 @@ The `bodyFormat` field specifies the format of the `body` content. For Telegram,
   "bodyFormat": "md"
 }
 
-// MarkdownV2 formatting (advanced)
+// MarkdownV2 formatting - now can be specified directly in bodyFormat
 {
   "body": "*Hello* _world_\\!",
-  "bodyFormat": "md",
+  "bodyFormat": "MarkdownV2"
+}
+
+// Override bodyFormat with options.parse_mode
+{
+  "body": "*Hello* _world_\\!",
+  "bodyFormat": "html",
   "options": {
     "parse_mode": "MarkdownV2"
   }
@@ -594,12 +609,11 @@ When `idempotencyKey` is provided:
 
 ## Content Conversion
 
-The microservice supports content format conversion between:
+**The microservice does NOT perform any content conversion.** The `body` content is always sent as-is to the platform API.
 
-- HTML → Markdown, Plain Text
-- Markdown → HTML, Plain Text
+The `bodyFormat` field is used only to specify the format of the content you're providing, which is then mapped to the appropriate platform-specific parameter (e.g., `parse_mode` for Telegram).
 
-**Note:** For Telegram, body content is **not converted** - it is sent as-is to the Telegram API. The `bodyFormat` field simply maps to the appropriate `parse_mode` parameter. Content conversion may be used by other platform providers in the future.
+**Your responsibility:** Ensure that the `body` content is already formatted according to the `bodyFormat` you specify.
 
 ---
 

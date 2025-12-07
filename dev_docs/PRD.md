@@ -89,7 +89,7 @@ interface PostRequest {
    * @default "text"
    * @example "text" | "html" | "md"
    */
-  bodyFormat?: BodyFormat;
+  bodyFormat?: string; // 'text', 'html', 'md', or platform-specific (e.g., 'MarkdownV2')
   
   /**
    * Флаг автоматической конвертации контента
@@ -97,7 +97,7 @@ interface PostRequest {
    * Используется для будущих платформ
    * @default true
    */
-  convertBody?: boolean;
+
   
   /**
    * Заголовок публикации (для платформ, требующих отдельный заголовок)

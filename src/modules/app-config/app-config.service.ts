@@ -83,9 +83,7 @@ export class AppConfigService {
   /**
    * Get default body conversion setting
    */
-  get convertBodyDefault(): boolean {
-    return this.config.convertBodyDefault;
-  }
+
 
   /**
    * Get retry attempts

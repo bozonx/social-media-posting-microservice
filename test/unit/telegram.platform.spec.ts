@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import { Test, type TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
 import type { PostRequestDto } from '@/modules/post/dto/index.js';
-import { PostType, BodyFormat } from '@/common/enums/index.js';
+import { PostType } from '@/common/enums/index.js';
 
 // Create mock API before mocking grammy
 const mockApi = {
@@ -170,7 +170,7 @@ describe('TelegramPlatform', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: '**Markdown** text',
-        bodyFormat: BodyFormat.MARKDOWN,
+        bodyFormat: 'md',
         type: PostType.POST,
       };
 
@@ -193,7 +193,7 @@ describe('TelegramPlatform', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: '<b>HTML</b> text',
-        bodyFormat: BodyFormat.HTML,
+        bodyFormat: 'html',
         type: PostType.POST,
       };
 
@@ -208,6 +208,48 @@ describe('TelegramPlatform', () => {
         'test-chat-id',
         '<b>HTML</b> text',
         expect.objectContaining({ parse_mode: 'HTML' }),
+      );
+    });
+
+    it('should support MarkdownV2 format directly via bodyFormat', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: '*Hello* _world_\\!',
+        bodyFormat: 'MarkdownV2',
+        type: PostType.POST,
+      };
+
+      mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
+
+      await platform.publish(request, mockChannelConfig);
+
+      expect(mockApi.sendMessage).toHaveBeenCalledWith(
+        'test-chat-id',
+        '*Hello* _world_\\!',
+        expect.objectContaining({ parse_mode: 'MarkdownV2' }),
+      );
+    });
+
+    it('should allow options.parse_mode to override bodyFormat', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: '*Hello* _world_\\!',
+        bodyFormat: 'html',
+        type: PostType.POST,
+        options: {
+          parse_mode: 'MarkdownV2',
+        },
+      };
+
+      mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
+
+      await platform.publish(request, mockChannelConfig);
+
+      // options.parse_mode should override bodyFormat
+      expect(mockApi.sendMessage).toHaveBeenCalledWith(
+        'test-chat-id',
+        '*Hello* _world_\\!',
+        expect.objectContaining({ parse_mode: 'MarkdownV2' }),
       );
     });
 
@@ -268,7 +310,7 @@ describe('TelegramPlatform', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Image caption',
-        bodyFormat: BodyFormat.HTML,
+        bodyFormat: 'html',
         cover: 'https://example.com/image.jpg',
         type: PostType.IMAGE,
       };
@@ -309,7 +351,7 @@ describe('TelegramPlatform', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Video caption',
-        bodyFormat: BodyFormat.HTML,
+        bodyFormat: 'html',
         video: 'https://example.com/video.mp4',
         type: PostType.VIDEO,
       };
@@ -350,7 +392,7 @@ describe('TelegramPlatform', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Album caption',
-        bodyFormat: BodyFormat.HTML,
+        bodyFormat: 'html',
         media: [
           'https://example.com/image1.jpg',
           'https://example.com/image2.jpg',
@@ -418,7 +460,7 @@ describe('TelegramPlatform', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Document caption',
-        bodyFormat: BodyFormat.HTML,
+        bodyFormat: 'html',
         document: 'https://example.com/document.pdf',
         type: PostType.DOCUMENT,
       };
@@ -460,7 +502,7 @@ describe('TelegramPlatform', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Audio caption',
-        bodyFormat: BodyFormat.HTML,
+        bodyFormat: 'html',
         audio: 'https://example.com/audio.mp3',
         type: PostType.AUDIO,
       };

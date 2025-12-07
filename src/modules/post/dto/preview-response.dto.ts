@@ -1,4 +1,4 @@
-import type { PostType, BodyFormat } from '../../../common/enums/index.js';
+import type { PostType } from '../../../common/enums/index.js';
 
 /**
  * Successful preview response
@@ -12,7 +12,7 @@ export interface PreviewResponseDto {
     /** Body content after conversion */
     convertedBody: string;
     /** Target format after conversion */
-    targetFormat: BodyFormat;
+    targetFormat: string;
     /** Length of converted body */
     convertedBodyLength: number;
     /** Validation warnings (non-blocking) */

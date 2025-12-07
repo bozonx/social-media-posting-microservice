@@ -7,7 +7,7 @@ export interface AppConfig {
   /** Request timeout (seconds) */
   incomingRequestTimeoutSecs: number;
   /** Automatic body conversion (default) */
-  convertBodyDefault: boolean;
+
   /** Number of retry attempts on error */
   retryAttempts: number;
   /** Delay between retry attempts (milliseconds) */

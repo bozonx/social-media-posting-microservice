@@ -11,7 +11,6 @@ describe('AppConfigService', () => {
   const mockConfig = {
     platformTimeoutSecs: 45,
     incomingRequestTimeoutSecs: 60,
-    convertBodyDefault: true,
     retryAttempts: 3,
     retryDelayMs: 1000,
     idempotencyTtlMinutes: 10,
@@ -128,7 +127,6 @@ describe('AppConfigService', () => {
       expect(service.retryDelayMs).toBe(1000);
       expect(service.incomingRequestTimeoutSecs).toBe(60);
       expect(service.platformTimeoutSecs).toBe(45);
-      expect(service.convertBodyDefault).toBe(true);
       expect(service.idempotencyTtlMinutes).toBe(10);
     });
   });

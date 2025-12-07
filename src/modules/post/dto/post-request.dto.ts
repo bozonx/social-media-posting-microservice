@@ -38,18 +38,14 @@ export class PostRequestDto {
   @IsEnum(PostType)
   type?: PostType = PostType.AUTO;
 
-  /** Format of the body content (html, markdown, or text) */
-  @IsOptional()
-  @IsEnum(BodyFormat)
-  bodyFormat?: BodyFormat = BodyFormat.TEXT;
-
   /** 
-   * Whether to convert body to platform's preferred format 
-   * @note Currently not used for Telegram (body is sent as-is)
+   * Format of the body content.
+   * Standard values: 'text', 'html', 'md'
+   * Platform-specific values (e.g., 'MarkdownV2' for Telegram) are also supported
    */
   @IsOptional()
-  @IsBoolean()
-  convertBodyDefault?: boolean;
+  @IsString()
+  bodyFormat?: string = 'text';
 
 
 

@@ -15,6 +15,7 @@ import { TelegramTypeDetector } from './telegram-type-detector.service.js';
 import type { ChannelConfig } from '../../app-config/interfaces/app-config.interface.js';
 
 export interface TelegramChannelConfig extends ChannelConfig {
+  /** Whether to disable notifications for this channel by default */
   disableNotification?: boolean;
 }
 
@@ -63,8 +64,9 @@ export class TelegramPlatform implements IPlatform {
       });
     }
 
-    const { apiKey, chatId } = channelConfig.auth;
+    const { apiKey } = channelConfig.auth;
     const bot = new Bot(apiKey);
+    const chatId = this.resolveChatId(request, channelConfig);
 
     const { processedBody, parseMode, disableNotification, options } = this.prepareMessageData(
       request,
@@ -152,7 +154,7 @@ export class TelegramPlatform implements IPlatform {
       message: `Published to Telegram`,
       metadata: {
         platform: request.platform,
-        chatId,
+        channelId: chatId,
         type: actualType,
       },
     });
@@ -261,6 +263,37 @@ export class TelegramPlatform implements IPlatform {
     }
 
     return { processedBody, targetFormat: bodyFormat, parseMode, disableNotification, options };
+  }
+
+  /**
+   * Resolve Telegram chat identifier from request and channel configuration.
+   *
+   * Priority:
+   * 1. request.channelId
+   * 2. channelConfig.channelId (from config.yaml)
+   * 3. channelConfig.auth.chatId (legacy, for backward compatibility)
+   */
+  private resolveChatId(
+    request: PostRequestDto,
+    channelConfig: TelegramChannelConfig,
+  ): string | number {
+    const requestChannelId = request.channelId;
+    const configChannelId = (channelConfig as any).channelId;
+    const legacyChatId = (channelConfig.auth as any)?.chatId;
+
+    const finalId = requestChannelId ?? configChannelId ?? legacyChatId;
+
+    if (finalId === undefined || finalId === null || finalId === '') {
+      throw new BadRequestException(
+        'Field "channelId" is required for Telegram (provide via request.channelId, channel config channelId, or legacy auth.chatId)',
+      );
+    }
+
+    if (typeof finalId !== 'string' && typeof finalId !== 'number') {
+      throw new BadRequestException('Field "channelId" must be a string or number');
+    }
+
+    return finalId;
   }
 
   private async sendMessage(

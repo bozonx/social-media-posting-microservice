@@ -43,7 +43,7 @@ export class PostRequestDto {
   @IsEnum(PostType)
   type?: PostType = PostType.AUTO;
 
-  /** 
+  /**
    * Format of the body content.
    * Standard values: 'text', 'html', 'md'
    * Platform-specific values (e.g., 'MarkdownV2' for Telegram) are also supported
@@ -52,8 +52,6 @@ export class PostRequestDto {
   @IsString()
   @MaxLength(50)
   bodyFormat?: string = 'text';
-
-
 
   /** Post title (used by platforms that support it, max 1000 characters) */
   @IsOptional()
@@ -102,12 +100,15 @@ export class PostRequestDto {
   @IsString()
   channel?: string;
 
+  /** Platform-agnostic channel/chat identifier (e.g., @mychannel or -100123456789) */
+  @IsOptional()
+  @IsString()
+  channelId?: string;
+
   /** Inline authentication credentials (alternative to channel) */
   @IsOptional()
   @IsObject()
   auth?: Record<string, any>;
-
-
 
   /** Platform-specific options */
   @IsOptional()

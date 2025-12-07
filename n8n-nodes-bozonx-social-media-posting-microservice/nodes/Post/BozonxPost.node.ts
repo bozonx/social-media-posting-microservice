@@ -66,6 +66,11 @@ export class BozonxPost implements INodeType {
 			{
 				name: 'telegramApi',
 				required: false,
+				displayOptions: {
+					show: {
+						channel: [''],
+					},
+				},
 			},
 		],
 		usableAsTool: true,

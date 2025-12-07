@@ -19,8 +19,6 @@ export interface AppConfig {
   channels: Record<string, ChannelConfig>;
 }
 
-
-
 /**
  * Channel configuration
  * Represents a named channel with platform and authentication details
@@ -31,6 +29,9 @@ export interface ChannelConfig {
 
   /** Authentication credentials */
   auth: Record<string, string>;
+
+  /** Platform-specific channel/chat identifier (e.g., Telegram channel username or chat ID) */
+  channelId?: string | number;
   /** Additional provider-specific settings */
   [key: string]: any;
 }

@@ -3,7 +3,7 @@ import { IAuthValidator } from '../base/auth-validator.interface.js';
 
 /**
  * Telegram-specific auth validator
- * Validates apiKey and chatId presence and format
+ * Validates apiKey presence and format
  */
 @Injectable()
 export class TelegramAuthValidator implements IAuthValidator {
@@ -11,7 +11,7 @@ export class TelegramAuthValidator implements IAuthValidator {
 
   /**
    * Validate Telegram auth object
-   * @param auth - Auth object with apiKey and chatId
+   * @param auth - Auth object with apiKey
    * @returns Array of error messages (empty if valid)
    */
   validate(auth: Record<string, any>): string[] {
@@ -31,11 +31,9 @@ export class TelegramAuthValidator implements IAuthValidator {
       errors.push("Field 'apiKey' has invalid format (expected: 123456789:ABC-DEF...)");
     }
 
-    // Validate chatId
-    if (!auth.chatId) {
-      errors.push("Field 'chatId' is required for Telegram auth");
-    } else if (typeof auth.chatId !== 'string' && typeof auth.chatId !== 'number') {
-      errors.push("Field 'chatId' must be a string or number");
+    // Validate channelId
+    if (typeof channelId !== 'string' && typeof channelId !== 'number') {
+      errors.push("Field 'channelId' must be a string or number");
     }
 
     return errors;

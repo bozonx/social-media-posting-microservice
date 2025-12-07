@@ -7,7 +7,6 @@ A stateless microservice for publishing content to social media platforms throug
 - **Unified API** — Single endpoint for all platforms
 - **Telegram Support** — Posts, images, videos, albums, documents, audio
 - **Auto Type Detection** — Automatically determines post type from media fields
-- **Content Conversion** — HTML ↔ Markdown ↔ Plain Text
 - **Idempotency** — Prevents duplicate posts with `idempotencyKey`
 - **Retry Logic** — Automatic retries with jitter for transient errors
 - **YAML Config** — Environment variable substitution support

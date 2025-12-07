@@ -262,10 +262,11 @@ Same as `/post`. The `idempotencyKey` field is ignored.
   "success": true,
   "data": {
     "valid": true,
+    "valid": true,
     "detectedType": "post",
-    "convertedBody": "<b>Hello</b> world",
-    "targetFormat": "html",
-    "convertedBodyLength": 19,
+    "convertedBody": "# Hello\n\nThis is **bold**",
+    "targetFormat": "md",
+    "convertedBodyLength": 22,
     "warnings": []
   }
 }
@@ -630,9 +631,9 @@ When `idempotencyKey` is provided:
 
 ---
 
-## Content Conversion
+## Body Content Handling
 
-**The microservice does NOT perform any content conversion.** The `body` content is always sent as-is to the platform API.
+**The microservice does not perform content conversion.** The `body` content is always sent as-is to the platform API.
 
 The `bodyFormat` field is used only to specify the format of the content you're providing, which is then mapped to the appropriate platform-specific parameter (e.g., `parse_mode` for Telegram).
 

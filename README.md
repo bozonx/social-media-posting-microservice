@@ -145,8 +145,23 @@ accounts:
     auth:
       apiKey: ${MY_TELEGRAM_TOKEN}
     channelId: "@my_channel"
-    maxBody: 100000  # Optional: account-specific limit (can be overridden in request)
+    maxBody: 100000  # Optional: account-specific limit; request maxBody can override it (up to hard limit 500000)
 ```
+
+#### Limits
+
+- **Request timeout**
+  - Config field: `requestTimeoutSecs`
+  - Range: **1–600 seconds** (up to 10 minutes)
+  - Applied to the whole processing of a request, including retries and platform API calls.
+
+- **Body length**
+  - Hard service limit: **500,000 characters** (cannot be exceeded).
+  - Effective limit is calculated as:
+    - Request `maxBody` (if provided) →
+    - otherwise account `maxBody` from `config.yaml` (if provided) →
+    - otherwise the hard service limit `500000`.
+  - If the body is longer than the effective limit, validation fails with a `VALIDATION_ERROR`.
 
 ## Docker
 

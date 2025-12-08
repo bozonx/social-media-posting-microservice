@@ -140,34 +140,6 @@ describe('YamlConfigDto', () => {
       expect(() => validateYamlConfig(config)).toThrow(/idempotencyTtlMinutes/);
     });
 
-    it('should reject maxBodyLimit below minimum', () => {
-      const config = {
-        requestTimeoutSecs: 60,
-        retryAttempts: 3,
-        retryDelayMs: 1000,
-        idempotencyTtlMinutes: 10,
-        maxBodyLimit: 0,
-
-        accounts: {},
-      };
-
-      expect(() => validateYamlConfig(config)).toThrow(/maxBodyLimit/);
-    });
-
-    it('should reject maxBodyLimit above maximum', () => {
-      const config = {
-        requestTimeoutSecs: 60,
-        retryAttempts: 3,
-        retryDelayMs: 1000,
-        idempotencyTtlMinutes: 10,
-        maxBodyLimit: 500001,
-
-        accounts: {},
-      };
-
-      expect(() => validateYamlConfig(config)).toThrow(/maxBodyLimit/);
-    });
-
     it('should reject missing required fields', () => {
       const config = {
         requestTimeoutSecs: 60,

@@ -12,8 +12,6 @@ export interface AppConfig {
   retryDelayMs: number;
   /** Time-to-live for idempotency records in cache (minutes) */
   idempotencyTtlMinutes: number;
-  /** Absolute maximum body length limit (characters) */
-  maxBodyLimit: number;
 
   /** Named account configurations */
   accounts: Record<string, AccountConfig>;

@@ -456,7 +456,7 @@ Telegram API enforces the following limits:
 | Album items | Telegram limit: 2-10 files |
 | File size (URL) | 50 MB |
 
-**Note:** The microservice validates body length based on `maxBody` parameter. Priority order: request `maxBody` > account `maxBody` > `maxBodyLimit` (absolute limit, default 500,000 characters). Telegram's specific limits (4096 for text, 1024 for captions) are enforced by Telegram API itself.
+**Note:** The microservice validates body length based on `maxBody` parameter. Priority order: request `maxBody` > account `maxBody`, with a hard service limit of 500,000 characters. Telegram's specific limits (4096 for text, 1024 for captions) are enforced by Telegram API itself.
 
 ### Ignored Fields
 

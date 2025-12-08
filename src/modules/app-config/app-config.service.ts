@@ -96,11 +96,4 @@ export class AppConfigService {
   get idempotencyTtlMinutes(): number {
     return this.config.idempotencyTtlMinutes;
   }
-
-  /**
-   * Get absolute maximum body length limit
-   */
-  get maxBodyLimit(): number {
-    return this.config.maxBodyLimit;
-  }
 }

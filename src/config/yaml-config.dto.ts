@@ -74,16 +74,6 @@ export class YamlConfigDto {
   idempotencyTtlMinutes!: number;
 
   /**
-   * Absolute maximum body length limit in characters
-   * Cannot be exceeded by account or request settings
-   * Must be between 1 and 500000
-   */
-  @IsInt()
-  @Min(1)
-  @Max(500000)
-  maxBodyLimit!: number;
-
-  /**
    * Named account configurations
    */
   @IsObject()

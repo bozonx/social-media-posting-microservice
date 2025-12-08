@@ -139,8 +139,6 @@ requestTimeoutSecs: 60
 retryAttempts: 3
 retryDelayMs: 1000
 idempotencyTtlMinutes: 10
-maxBodyLimit: 500000
-
 accounts:
   my_account:
     platform: telegram

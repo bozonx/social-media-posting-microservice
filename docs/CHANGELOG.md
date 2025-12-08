@@ -52,10 +52,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **`maxBody` Configuration Refactoring**:
-  - Renamed global `maxBodyDefault` to `maxBodyLimit` (absolute maximum, cannot be exceeded)
   - Added `maxBody` parameter to account configuration (optional, per-account limit)
-  - Request `maxBody` now overrides account's `maxBody` (up to `maxBodyLimit`)
-  - Priority order: request `maxBody` > account `maxBody` > `maxBodyLimit`
+  - Request `maxBody` overrides account's `maxBody`
+  - Introduced a hard service limit of 500,000 characters for body length (not configurable)
 
 - **Media Validation Refactoring**:
   - Replaced strict validation errors for multiple media fields with soft priority-based logic

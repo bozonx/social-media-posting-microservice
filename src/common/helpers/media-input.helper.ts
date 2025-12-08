@@ -1,4 +1,5 @@
 import { MediaInput, MediaInputObject, MediaType } from '../types/media-input.type.js';
+import { BadRequestException } from '@nestjs/common';
 import { InputFile } from 'grammy';
 
 /**
@@ -100,7 +101,7 @@ export class MediaInputHelper {
       return url;
     }
 
-    throw new Error('MediaInput must be either a string or an object with src property');
+    throw new BadRequestException('MediaInput must be either a string or an object with src property');
   }
 
   /**

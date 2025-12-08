@@ -1,5 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import { MediaInputHelper } from '@/common/helpers/media-input.helper.js';
+import { BadRequestException } from '@nestjs/common';
 
 describe('MediaInputHelper', () => {
 
@@ -95,10 +96,8 @@ describe('MediaInputHelper', () => {
       expect(result).toBe('https://example.com/image.jpg');
     });
 
-    it('should throw error when src is missing', () => {
-      expect(() => MediaInputHelper.toTelegramInput({} as any)).toThrow(
-        'MediaInput must be either a string or an object with src property',
-      );
+    it('should throw BadRequestException when src is missing', () => {
+      expect(() => MediaInputHelper.toTelegramInput({} as any)).toThrow(BadRequestException);
     });
   });
 

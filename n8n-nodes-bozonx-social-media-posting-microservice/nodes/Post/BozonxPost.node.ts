@@ -66,19 +66,20 @@ function parseUniversalField(
 function parseMediaField(value: unknown): Record<string, unknown> | unknown[] | undefined {
 	if (!value) return undefined;
 
-	// If it's a string that doesn't look like JSON/YAML, wrap it
-	// Check for JSON array/object or YAML array (starts with -)
+	// If it's a string, try to parse as YAML/JSON first
 	if (typeof value === 'string') {
-		const trimmed = value.trim();
-		// If it looks like JSON or YAML structure, parse it
-		if (trimmed.startsWith('{') || trimmed.startsWith('[') || trimmed.startsWith('-')) {
-			return parseUniversalField(value, 'Media');
+		try {
+			// Try to parse as structured data (YAML/JSON)
+			const parsed = parseUniversalField(value, 'Media');
+			// If parsing succeeded and result is object/array, return it
+			return parsed;
+		} catch {
+			// Parsing failed - it's a plain URL or file_id, wrap it
+			return { src: value };
 		}
-		// Otherwise it's a plain URL or file_id, wrap it
-		return { src: value };
 	}
 
-	// Otherwise use universal parser
+	// Otherwise use universal parser for non-string values
 	return parseUniversalField(value, 'Media');
 }
 

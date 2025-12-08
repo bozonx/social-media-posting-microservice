@@ -61,7 +61,7 @@ describe('IdempotencyService', () => {
     it('should build deterministic key with prefix and hash', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
-        channel: 'test',
+        account: 'test',
         body: 'test-body',
         idempotencyKey: 'idem-1',
       } as PostRequestDto;
@@ -77,7 +77,7 @@ describe('IdempotencyService', () => {
     it('should produce different keys for different payloads', () => {
       const base: Omit<PostRequestDto, 'body'> = {
         platform: 'telegram',
-        channel: 'test',
+        account: 'test',
         idempotencyKey: 'idem-1',
       } as any;
 

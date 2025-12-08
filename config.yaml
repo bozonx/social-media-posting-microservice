@@ -27,12 +27,12 @@ idempotencyTtlMinutes: 10
 maxBodyDefault: 500000
 
 
-
-
 # ============================================
-# CHANNELS (NAMED CONFIGURATIONS)
+# ACCOUNTS (NAMED CONFIGURATIONS)
 # ============================================
-channels:
+# Named account configurations with platform and authentication
+# Each account represents a pre-configured destination with credentials
+accounts:
   # Company Telegram channel
   company_telegram:
   

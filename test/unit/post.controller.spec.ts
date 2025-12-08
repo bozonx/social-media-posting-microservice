@@ -49,7 +49,7 @@ describe('PostController', () => {
     it('should call service.publish with correct parameters', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',
-        channel: 'test-channel',
+        account: 'test-channel',
         body: 'Test message',
         type: PostType.POST,
       };
@@ -103,7 +103,7 @@ describe('PostController', () => {
     it('should call previewService.preview with correct parameters', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',
-        channel: 'test-channel',
+        account: 'test-channel',
         body: 'Test message',
       };
 
@@ -137,7 +137,7 @@ describe('PostController', () => {
         success: false,
         data: {
           valid: false,
-          errors: ["Either 'channel' or 'auth' must be provided"],
+          errors: ["Either 'account' or 'auth' must be provided"],
           warnings: [],
         },
       };

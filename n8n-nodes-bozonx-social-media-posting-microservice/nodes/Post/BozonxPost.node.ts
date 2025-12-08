@@ -83,7 +83,7 @@ export class BozonxPost implements INodeType {
 			// Channel
 			{
 				displayName: 'Channel',
-				name: 'channel',
+				name: 'account',
 				type: 'string',
 				default: '',
 				placeholder: 'e.g., my-telegram-channel',
@@ -368,7 +368,7 @@ export class BozonxPost implements INodeType {
 			try {
 				const endpoint = '/post';
 
-				const channel = this.getNodeParameter('channel', i, '') as string;
+				const channel = this.getNodeParameter('account', i, '') as string;
 				const platform = this.getNodeParameter('platform', i, '') as string;
 				const channelId = this.getNodeParameter('channelId', i, '') as string;
 				const body = this.getNodeParameter('body', i) as string;

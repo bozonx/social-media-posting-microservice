@@ -25,17 +25,17 @@ export class PreviewService extends BasePostService {
    */
   async preview(request: PostRequestDto): Promise<PreviewResponseDto | PreviewErrorResponseDto> {
     try {
-      const { platform, channelConfig } = this.validateRequest(request);
+      const { platform, accountConfig } = this.validateRequest(request);
 
       // Delegate to platform
-      return await platform.preview(request, channelConfig);
+      return await platform.preview(request, accountConfig);
     } catch (error: any) {
       // Log error with full stack trace for debugging
       this.logger.warn({
         message: `Preview validation failed: ${error?.message ?? 'Unknown error'}`,
         metadata: {
           platform: request.platform,
-          channel: request.channel,
+          account: request.account,
         },
         err: error,
       });

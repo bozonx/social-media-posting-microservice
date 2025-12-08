@@ -15,8 +15,8 @@ describe('AppConfigService', () => {
     idempotencyTtlMinutes: 10,
 
 
-    channels: {
-      'test-channel': {
+    accounts: {
+      'test-account': {
         platform: 'telegram',
 
         auth: {
@@ -71,7 +71,7 @@ describe('AppConfigService', () => {
     });
 
     it('should get nested config value', () => {
-      const platform = service.get('channels.test-channel.platform');
+      const platform = service.get('accounts.test-account.platform');
       expect(platform).toBe('telegram');
     });
 
@@ -81,15 +81,15 @@ describe('AppConfigService', () => {
     });
 
     it('should handle deeply nested paths', () => {
-      const apiKey = service.get('channels.test-channel.auth.apiKey');
+      const apiKey = service.get('accounts.test-account.auth.apiKey');
       expect(apiKey).toBe('test-token');
     });
   });
 
-  describe('getChannel', () => {
-    it('should return enabled channel config', () => {
-      const channel = service.getChannel('test-channel');
-      expect(channel).toEqual({
+  describe('getAccount', () => {
+    it('should return enabled account config', () => {
+      const account = service.getAccount('test-account');
+      expect(account).toEqual({
         platform: 'telegram',
         auth: {
           apiKey: 'test-token',
@@ -98,17 +98,17 @@ describe('AppConfigService', () => {
       });
     });
 
-    it('should throw error for non-existent channel', () => {
-      expect(() => service.getChannel('non-existent')).toThrow(
-        'Channel "non-existent" not found in config',
+    it('should throw error for non-existent account', () => {
+      expect(() => service.getAccount('non-existent')).toThrow(
+        'Account "non-existent" not found in configuration',
       );
     });
   });
 
-  describe('getAllChannels', () => {
+  describe('getAllAccounts', () => {
     it('should return all channels', () => {
-      const channels = service.getAllChannels();
-      expect(channels).toHaveProperty('test-channel');
+      const channels = service.getAllAccounts();
+      expect(channels).toHaveProperty('test-account');
     });
   });
 

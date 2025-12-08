@@ -76,7 +76,7 @@ export class YamlConfigDto {
    * Named channel configurations
    */
   @IsObject()
-  channels!: Record<string, any>;
+  accounts!: Record<string, any>;
 }
 
 /**
@@ -90,7 +90,7 @@ export function validateYamlConfig(config: any): YamlConfigDto {
 
   const errors = validateSync(dto, {
     skipMissingProperties: false,
-    whitelist: false, // Allow additional properties in channels
+    whitelist: false, // Allow additional properties in accounts
   });
 
   const errorMessages: string[] = [];
@@ -104,9 +104,9 @@ export function validateYamlConfig(config: any): YamlConfigDto {
 
   const channelErrorMessages: string[] = [];
 
-  if (dto.channels && typeof dto.channels === 'object') {
-    for (const [channelName, channelConfig] of Object.entries(dto.channels)) {
-      const channelDto = plainToClass(ChannelConfigValidationDto, channelConfig);
+  if (dto.accounts && typeof dto.accounts === 'object') {
+    for (const [accountName, accountConfig] of Object.entries(dto.accounts)) {
+      const channelDto = plainToClass(ChannelConfigValidationDto, accountConfig);
       const channelErrors = validateSync(channelDto, {
         skipMissingProperties: false,
         whitelist: false,
@@ -120,7 +120,7 @@ export function validateYamlConfig(config: any): YamlConfigDto {
           })
           .join('; ');
 
-        channelErrorMessages.push(`channel "${channelName}": ${constraints}`);
+        channelErrorMessages.push(`account "${accountName}": ${constraints}`);
       }
     }
   }

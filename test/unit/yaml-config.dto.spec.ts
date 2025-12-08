@@ -11,7 +11,7 @@ describe('YamlConfigDto', () => {
         idempotencyTtlMinutes: 10,
         maxBodyDefault: 500000,
 
-        channels: {
+        accounts: {
           test_channel: {
             platform: 'telegram',
             auth: {
@@ -36,7 +36,7 @@ describe('YamlConfigDto', () => {
         idempotencyTtlMinutes: 10,
         maxBodyDefault: 500000,
         platforms: {},
-        channels: {},
+        accounts: {},
       };
 
       expect(() => validateYamlConfig(config)).toThrow(/requestTimeoutSecs/);
@@ -50,7 +50,7 @@ describe('YamlConfigDto', () => {
         idempotencyTtlMinutes: 10,
         maxBodyDefault: 500000,
 
-        channels: {},
+        accounts: {},
       };
 
       expect(() => validateYamlConfig(config)).toThrow(/requestTimeoutSecs/);
@@ -64,7 +64,7 @@ describe('YamlConfigDto', () => {
         idempotencyTtlMinutes: 10,
         maxBodyDefault: 500000,
 
-        channels: {},
+        accounts: {},
       };
 
       expect(() => validateYamlConfig(config)).toThrow(/retryAttempts/);
@@ -78,7 +78,7 @@ describe('YamlConfigDto', () => {
         idempotencyTtlMinutes: 10,
         maxBodyDefault: 500000,
 
-        channels: {},
+        accounts: {},
       };
 
       expect(() => validateYamlConfig(config)).toThrow(/retryAttempts/);
@@ -92,7 +92,7 @@ describe('YamlConfigDto', () => {
         idempotencyTtlMinutes: 10,
         maxBodyDefault: 500000,
 
-        channels: {},
+        accounts: {},
       };
 
       expect(() => validateYamlConfig(config)).toThrow(/retryDelayMs/);
@@ -106,7 +106,7 @@ describe('YamlConfigDto', () => {
         idempotencyTtlMinutes: 10,
         maxBodyDefault: 500000,
 
-        channels: {},
+        accounts: {},
       };
 
       expect(() => validateYamlConfig(config)).toThrow(/retryDelayMs/);
@@ -120,7 +120,7 @@ describe('YamlConfigDto', () => {
         idempotencyTtlMinutes: 0,
         maxBodyDefault: 500000,
 
-        channels: {},
+        accounts: {},
       };
 
       expect(() => validateYamlConfig(config)).toThrow(/idempotencyTtlMinutes/);
@@ -134,7 +134,7 @@ describe('YamlConfigDto', () => {
         idempotencyTtlMinutes: 1441,
         maxBodyDefault: 500000,
 
-        channels: {},
+        accounts: {},
       };
 
       expect(() => validateYamlConfig(config)).toThrow(/idempotencyTtlMinutes/);
@@ -148,7 +148,7 @@ describe('YamlConfigDto', () => {
         idempotencyTtlMinutes: 10,
         maxBodyDefault: 0,
 
-        channels: {},
+        accounts: {},
       };
 
       expect(() => validateYamlConfig(config)).toThrow(/maxBodyDefault/);
@@ -162,7 +162,7 @@ describe('YamlConfigDto', () => {
         idempotencyTtlMinutes: 10,
         maxBodyDefault: 500001,
 
-        channels: {},
+        accounts: {},
       };
 
       expect(() => validateYamlConfig(config)).toThrow(/maxBodyDefault/);
@@ -185,7 +185,7 @@ describe('YamlConfigDto', () => {
         idempotencyTtlMinutes: 1, // Min
         maxBodyDefault: 1, // Min
 
-        channels: {},
+        accounts: {},
       };
 
       const result = validateYamlConfig(config);
@@ -201,7 +201,7 @@ describe('YamlConfigDto', () => {
         idempotencyTtlMinutes: 1440, // Max
         maxBodyDefault: 500000, // Max
 
-        channels: {},
+        accounts: {},
       };
 
       const result = validateYamlConfig(config);
@@ -216,7 +216,7 @@ describe('YamlConfigDto', () => {
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
         maxBodyDefault: 500000,
-        channels: {
+        accounts: {
           broken_channel: {
             // Missing platform
             auth: {
@@ -238,7 +238,7 @@ describe('YamlConfigDto', () => {
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
         maxBodyDefault: 500000,
-        channels: {
+        accounts: {
           broken_channel: {
             platform: 123,
             auth: {

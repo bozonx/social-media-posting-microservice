@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { YAML_CONFIG_NAMESPACE } from '../../config/yaml.config.js';
-import type { AppConfig, ChannelConfig } from './interfaces/app-config.interface.js';
+import type { AppConfig, AccountConfig } from './interfaces/app-config.interface.js';
 
 @Injectable()
 export class AppConfigService {
@@ -44,26 +44,25 @@ export class AppConfigService {
   }
 
   /**
-   * Get channel configuration by name
-   * @param channelName - Name of the channel as defined in config.yaml
-   * @returns Channel configuration object
-   * @throws Error if channel is not found or is disabled
+   * Get a specific account configuration by name
+   * @param accountName - Name of the account from config
+   * @returns Account configuration object
+   * @throws NotFoundException if account is not found
    */
-  getChannel(channelName: string): ChannelConfig {
-    const channel = this.config.channels?.[channelName];
-    if (!channel) {
-      throw new Error(`Channel "${channelName}" not found in config`);
+  getAccount(accountName: string): AccountConfig {
+    const account = this.config.accounts?.[accountName];
+    if (!account) {
+      throw new NotFoundException(`Account "${accountName}" not found in configuration`);
     }
-
-    return channel;
+    return account;
   }
 
   /**
-   * Get all configured channels
-   * @returns Record of all channels indexed by name
+   * Get all configured accounts
+   * @returns Record of all accounts indexed by name
    */
-  getAllChannels(): AppConfig['channels'] {
-    return this.config.channels || {};
+  getAllAccounts(): AppConfig['accounts'] {
+    return this.config.accounts || {};
   }
 
 

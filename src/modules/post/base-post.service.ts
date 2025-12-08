@@ -4,19 +4,19 @@ import { PlatformRegistry } from '../platforms/base/platform-registry.service.js
 import { AuthValidatorRegistry } from '../platforms/base/auth-validator-registry.service.js';
 import { IPlatform } from '../platforms/base/platform.interface.js';
 import { PostRequestDto } from './dto/index.js';
-import type { ChannelConfig } from '../app-config/interfaces/app-config.interface.js';
+import type { AccountConfig } from '../app-config/interfaces/app-config.interface.js';
 
 /**
- * Channel configuration with inline auth support
+ * Account configuration with inline auth support
  */
-export interface ResolvedChannelConfig extends ChannelConfig {
-  /** Source of the config: 'channel' or 'inline' */
-  source: 'channel' | 'inline';
+export interface ResolvedAccountConfig extends AccountConfig {
+  /** Source of the config: 'account' or 'inline' */
+  source: 'account' | 'inline';
 }
 
 /**
  * Base service with shared logic for PostService and PreviewService
- * Handles platform resolution, channel config, and auth validation
+ * Handles platform resolution, account config, and auth validation
  */
 export abstract class BasePostService {
   protected abstract readonly logger: Logger;
@@ -38,20 +38,20 @@ export abstract class BasePostService {
   }
 
   /**
-   * Get channel configuration from request
-   * Supports both named channels from config and inline auth
+   * Get account configuration from request
+   * Supports both named accounts from config and inline auth
    * @param request - Post request
-   * @returns Channel configuration object with source indicator
-   * @throws BadRequestException if neither channel nor auth is provided
+   * @returns Account configuration object with source indicator
+   * @throws BadRequestException if neither account nor auth is provided
    */
-  protected getChannelConfig(request: PostRequestDto): ResolvedChannelConfig {
-    // Get base config from channel or create inline config
-    let baseConfig: ChannelConfig;
-    let source: 'channel' | 'inline';
+  protected getAccountConfig(request: PostRequestDto): ResolvedAccountConfig {
+    // Get base config from account or create inline config
+    let baseConfig: AccountConfig;
+    let source: 'account' | 'inline';
 
-    if (request.channel) {
-      baseConfig = this.appConfig.getChannel(request.channel);
-      source = 'channel';
+    if (request.account) {
+      baseConfig = this.appConfig.getAccount(request.account);
+      source = 'account';
     } else if (request.auth) {
       // Create inline config with auth from request
       baseConfig = {
@@ -60,10 +60,10 @@ export abstract class BasePostService {
       };
       source = 'inline';
     } else {
-      throw new BadRequestException('Either "channel" or "auth" must be provided');
+      throw new BadRequestException('Either "account" or "auth" must be provided');
     }
 
-    // Merge auth: request.auth fields override channel auth fields
+    // Merge auth: request.auth fields override account auth fields
     const mergedAuth = {
       ...baseConfig.auth,
       ...(request.auth || {}),
@@ -77,15 +77,15 @@ export abstract class BasePostService {
   }
 
   /**
-   * Validate that platform matches channel platform
+   * Validate that platform matches account platform
    * @param platformName - Requested platform
-   * @param channelConfig - Channel configuration
+   * @param accountConfig - Account configuration
    * @throws BadRequestException if platform doesn't match
    */
-  protected validatePlatformMatch(platformName: string, channelConfig: ChannelConfig): void {
-    if (String(channelConfig.platform).toLowerCase() !== platformName.toLowerCase()) {
+  protected validatePlatformMatch(platformName: string, accountConfig: AccountConfig): void {
+    if (String(accountConfig.platform).toLowerCase() !== platformName.toLowerCase()) {
       throw new BadRequestException(
-        `Channel platform "${channelConfig.platform}" does not match requested platform "${platformName}"`,
+        `Account platform "${accountConfig.platform}" does not match requested platform "${platformName}"`,
       );
     }
   }
@@ -105,12 +105,12 @@ export abstract class BasePostService {
   /**
    * Full validation chain for request
    * @param request - Post request
-   * @returns Object with platform and channelConfig
+   * @returns Object with platform and accountConfig
    * @throws BadRequestException on validation failure
    */
   protected validateRequest(request: PostRequestDto): {
     platform: IPlatform;
-    channelConfig: ResolvedChannelConfig;
+    accountConfig: ResolvedAccountConfig;
   } {
     const platformName = request.platform?.toLowerCase();
     if (!platformName) {
@@ -118,12 +118,12 @@ export abstract class BasePostService {
     }
 
     const platform = this.getPlatform(platformName);
-    const channelConfig = this.getChannelConfig(request);
+    const accountConfig = this.getAccountConfig(request);
 
-    this.validatePlatformMatch(platformName, channelConfig);
+    this.validatePlatformMatch(platformName, accountConfig);
 
-    this.validateAuth(platformName, channelConfig.auth);
+    this.validateAuth(platformName, accountConfig.auth);
 
-    return { platform, channelConfig };
+    return { platform, accountConfig };
   }
 }

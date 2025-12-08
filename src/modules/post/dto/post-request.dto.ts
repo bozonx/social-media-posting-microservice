@@ -88,10 +88,10 @@ export class PostRequestDto {
   @IsMediaInputArray()
   media?: MediaInput[];
 
-  /** Named channel from configuration */
+  /** Named account from configuration */
   @IsOptional()
   @IsString()
-  channel?: string;
+  account?: string;
 
   /** Platform-agnostic channel/chat identifier (e.g., @mychannel or -100123456789) */
   @IsOptional()

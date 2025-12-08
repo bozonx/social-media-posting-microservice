@@ -12,10 +12,10 @@ import { MediaService } from '../../media/media.service.js';
 import { MediaInputHelper } from '../../../common/helpers/media-input.helper.js';
 
 import { TelegramTypeDetector } from './telegram-type-detector.service.js';
-import type { ChannelConfig } from '../../app-config/interfaces/app-config.interface.js';
+import type { AccountConfig } from '../../app-config/interfaces/app-config.interface.js';
 
-export interface TelegramChannelConfig extends ChannelConfig {
-  /** Whether to disable notifications for this channel by default */
+export interface TelegramAccountConfig extends AccountConfig {
+  /** Whether to disable notifications for this account by default */
   disableNotification?: boolean;
 }
 
@@ -41,11 +41,11 @@ export class TelegramPlatform implements IPlatform {
   constructor(
     private readonly mediaService: MediaService,
     private readonly typeDetector: TelegramTypeDetector,
-  ) {}
+  ) { }
 
   async publish(
     request: PostRequestDto,
-    channelConfig: TelegramChannelConfig,
+    accountConfig: TelegramAccountConfig,
   ): Promise<PlatformPublishResponse> {
     const { errors, warnings, actualType } = this.validateRequest(request);
 
@@ -64,13 +64,13 @@ export class TelegramPlatform implements IPlatform {
       });
     }
 
-    const { apiKey } = channelConfig.auth;
+    const { apiKey } = accountConfig.auth;
     const bot = new Bot(apiKey);
-    const chatId = this.resolveChatId(request, channelConfig);
+    const chatId = this.resolveChatId(request, accountConfig);
 
     const { processedBody, parseMode, disableNotification, options } = this.prepareMessageData(
       request,
-      channelConfig,
+      accountConfig,
     );
 
     let result: any;
@@ -168,7 +168,7 @@ export class TelegramPlatform implements IPlatform {
 
   async preview(
     request: PostRequestDto,
-    channelConfig: TelegramChannelConfig,
+    accountConfig: TelegramAccountConfig,
   ): Promise<PreviewResponseDto | PreviewErrorResponseDto> {
     const { errors, warnings, actualType } = this.validateRequest(request);
 
@@ -183,7 +183,7 @@ export class TelegramPlatform implements IPlatform {
       };
     }
 
-    const { processedBody, targetFormat } = this.prepareMessageData(request, channelConfig);
+    const { processedBody, targetFormat } = this.prepareMessageData(request, accountConfig);
 
     return {
       success: true,
@@ -231,7 +231,7 @@ export class TelegramPlatform implements IPlatform {
    * Custom values (e.g., MarkdownV2) are passed as-is.
    * If parse_mode is specified in options, it overrides bodyFormat mapping.
    */
-  private prepareMessageData(request: PostRequestDto, channelConfig: TelegramChannelConfig) {
+  private prepareMessageData(request: PostRequestDto, accountConfig: TelegramAccountConfig) {
     const processedBody = request.body;
 
     // Map bodyFormat to Telegram parse_mode
@@ -252,7 +252,7 @@ export class TelegramPlatform implements IPlatform {
     }
 
     const disableNotification =
-      request.disableNotification ?? channelConfig.disableNotification ?? false;
+      request.disableNotification ?? accountConfig.disableNotification ?? false;
 
     // Options are passed directly to Telegram API
     const options = request.options || {};
@@ -275,11 +275,11 @@ export class TelegramPlatform implements IPlatform {
    */
   private resolveChatId(
     request: PostRequestDto,
-    channelConfig: TelegramChannelConfig,
+    accountConfig: TelegramAccountConfig,
   ): string | number {
     const requestChannelId = request.channelId;
-    const configChannelId = (channelConfig as any).channelId;
-    const legacyChatId = (channelConfig.auth as any)?.chatId;
+    const configChannelId = (accountConfig as any).channelId;
+    const legacyChatId = (accountConfig.auth as any)?.chatId;
 
     const finalId = requestChannelId ?? configChannelId ?? legacyChatId;
 

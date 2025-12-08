@@ -24,8 +24,8 @@ jest.unstable_mockModule('grammy', () => ({
 
 // Dynamic imports after mocking
 const { TelegramPlatform } = await import('@/modules/platforms/telegram/telegram.platform.js');
-type TelegramChannelConfig =
-  import('@/modules/platforms/telegram/telegram.platform.js').TelegramChannelConfig;
+type TelegramAccountConfig =
+  import('@/modules/platforms/telegram/telegram.platform.js').TelegramAccountConfig;
 
 const { MediaService } = await import('@/modules/media/media.service.js');
 const { TelegramTypeDetector } =
@@ -36,7 +36,7 @@ describe('TelegramPlatform', () => {
 
   let mediaService: MediaService;
 
-  const mockChannelConfig: TelegramChannelConfig = {
+  const mockAccountConfig: TelegramAccountConfig = {
     platform: 'telegram',
     enabled: true,
     auth: {
@@ -112,7 +112,7 @@ describe('TelegramPlatform', () => {
         chat: { id: 'test-chat-id' },
       });
 
-      const result = await platform.publish(request, mockChannelConfig);
+      const result = await platform.publish(request, mockAccountConfig);
 
       expect(result).toEqual({
         postId: '12345',
@@ -141,7 +141,7 @@ describe('TelegramPlatform', () => {
 
       mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
 
-      const result = await platform.publish(request, mockChannelConfig);
+      const result = await platform.publish(request, mockAccountConfig);
 
       expect(result.postId).toBe('12345');
       expect(mockApi.sendMessage).toHaveBeenCalledWith(
@@ -161,7 +161,7 @@ describe('TelegramPlatform', () => {
 
       mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
 
-      await platform.publish(request, mockChannelConfig);
+      await platform.publish(request, mockAccountConfig);
 
       // Body should not be converted
 
@@ -183,7 +183,7 @@ describe('TelegramPlatform', () => {
 
       mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
 
-      await platform.publish(request, mockChannelConfig);
+      await platform.publish(request, mockAccountConfig);
 
       expect(mockApi.sendMessage).toHaveBeenCalledWith(
         'test-chat-id',
@@ -202,7 +202,7 @@ describe('TelegramPlatform', () => {
 
       mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
 
-      await platform.publish(request, mockChannelConfig);
+      await platform.publish(request, mockAccountConfig);
 
       expect(mockApi.sendMessage).toHaveBeenCalledWith(
         'test-chat-id',
@@ -224,7 +224,7 @@ describe('TelegramPlatform', () => {
 
       mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
 
-      await platform.publish(request, mockChannelConfig);
+      await platform.publish(request, mockAccountConfig);
 
       // options.parse_mode should override bodyFormat
       expect(mockApi.sendMessage).toHaveBeenCalledWith(
@@ -253,7 +253,7 @@ describe('TelegramPlatform', () => {
 
       mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
 
-      await platform.publish(request, mockChannelConfig);
+      await platform.publish(request, mockAccountConfig);
 
       expect(mockApi.sendMessage).toHaveBeenCalledWith('test-chat-id', 'Test message', {
         disable_notification: false,
@@ -273,7 +273,7 @@ describe('TelegramPlatform', () => {
       mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
 
       // Config has disableNotification: false
-      await platform.publish(request, mockChannelConfig);
+      await platform.publish(request, mockAccountConfig);
 
       expect(mockApi.sendMessage).toHaveBeenCalledWith('test-chat-id', 'Test message', {
         disable_notification: true,
@@ -281,7 +281,7 @@ describe('TelegramPlatform', () => {
     });
 
     it('should build URL for public channels', async () => {
-      const publicChannelConfig: TelegramChannelConfig = {
+      const publicAccountConfig: TelegramAccountConfig = {
         platform: 'telegram',
         enabled: true,
         auth: {
@@ -298,7 +298,7 @@ describe('TelegramPlatform', () => {
 
       mockApi.sendMessage.mockResolvedValue({ message_id: 12345 });
 
-      const result = await platform.publish(request, publicChannelConfig);
+      const result = await platform.publish(request, publicAccountConfig);
 
       expect(result.url).toBe('https://t.me/publicchannel/12345');
     });
@@ -316,7 +316,7 @@ describe('TelegramPlatform', () => {
 
       mockApi.sendPhoto.mockResolvedValue({ message_id: 12345 });
 
-      const result = await platform.publish(request, mockChannelConfig);
+      const result = await platform.publish(request, mockAccountConfig);
 
       expect(result.postId).toBe('12345');
       expect(mediaService.validateMediaUrl).toHaveBeenCalledWith('https://example.com/image.jpg');
@@ -339,7 +339,7 @@ describe('TelegramPlatform', () => {
         type: PostType.IMAGE,
       };
 
-      await expect(platform.publish(request, mockChannelConfig)).rejects.toThrow(
+      await expect(platform.publish(request, mockAccountConfig)).rejects.toThrow(
         "Field 'cover' is required for type 'image'",
       );
     });
@@ -357,7 +357,7 @@ describe('TelegramPlatform', () => {
 
       mockApi.sendVideo.mockResolvedValue({ message_id: 12345 });
 
-      const result = await platform.publish(request, mockChannelConfig);
+      const result = await platform.publish(request, mockAccountConfig);
 
       expect(result.postId).toBe('12345');
       expect(mediaService.validateMediaUrl).toHaveBeenCalledWith('https://example.com/video.mp4');
@@ -380,7 +380,7 @@ describe('TelegramPlatform', () => {
         type: PostType.VIDEO,
       };
 
-      await expect(platform.publish(request, mockChannelConfig)).rejects.toThrow(
+      await expect(platform.publish(request, mockAccountConfig)).rejects.toThrow(
         "Field 'video' is required for type 'video'",
       );
     });
@@ -406,7 +406,7 @@ describe('TelegramPlatform', () => {
         { message_id: 12347 },
       ]);
 
-      const result = await platform.publish(request, mockChannelConfig);
+      const result = await platform.publish(request, mockAccountConfig);
 
       expect(result.postId).toBe('12345');
       expect(mediaService.validateMediaUrl).toHaveBeenCalledTimes(3);
@@ -459,7 +459,7 @@ describe('TelegramPlatform', () => {
         { message_id: 12347 },
       ]);
 
-      await platform.publish(request, mockChannelConfig);
+      await platform.publish(request, mockAccountConfig);
 
       expect(mockApi.sendMediaGroup).toHaveBeenCalledWith(
         'test-chat-id',
@@ -481,7 +481,7 @@ describe('TelegramPlatform', () => {
         type: PostType.ALBUM,
       };
 
-      await expect(platform.publish(request, mockChannelConfig)).rejects.toThrow(
+      await expect(platform.publish(request, mockAccountConfig)).rejects.toThrow(
         "Field 'media' is required for type 'album'",
       );
     });
@@ -499,7 +499,7 @@ describe('TelegramPlatform', () => {
 
       mockApi.sendDocument.mockResolvedValue({ message_id: 12345 });
 
-      const result = await platform.publish(request, mockChannelConfig);
+      const result = await platform.publish(request, mockAccountConfig);
 
       expect(result.postId).toBe('12345');
       expect(mediaService.validateMediaUrl).toHaveBeenCalledWith(
@@ -523,7 +523,7 @@ describe('TelegramPlatform', () => {
         type: PostType.DOCUMENT,
       };
 
-      await expect(platform.publish(request, mockChannelConfig)).rejects.toThrow(
+      await expect(platform.publish(request, mockAccountConfig)).rejects.toThrow(
         "Field 'document' is required for type 'document'",
       );
     });
@@ -541,7 +541,7 @@ describe('TelegramPlatform', () => {
 
       mockApi.sendAudio.mockResolvedValue({ message_id: 12345 });
 
-      const result = await platform.publish(request, mockChannelConfig);
+      const result = await platform.publish(request, mockAccountConfig);
 
       expect(result.postId).toBe('12345');
       expect(mediaService.validateMediaUrl).toHaveBeenCalledWith('https://example.com/audio.mp3');
@@ -563,7 +563,7 @@ describe('TelegramPlatform', () => {
         type: PostType.AUDIO,
       };
 
-      await expect(platform.publish(request, mockChannelConfig)).rejects.toThrow(
+      await expect(platform.publish(request, mockAccountConfig)).rejects.toThrow(
         "Field 'audio' is required for type 'audio'",
       );
     });
@@ -580,7 +580,7 @@ describe('TelegramPlatform', () => {
 
       mockApi.sendPhoto.mockResolvedValue({ message_id: 12345 });
 
-      await platform.publish(request, mockChannelConfig);
+      await platform.publish(request, mockAccountConfig);
 
       expect(mockApi.sendPhoto).toHaveBeenCalledWith(
         'test-chat-id',
@@ -601,7 +601,7 @@ describe('TelegramPlatform', () => {
 
       mockApi.sendPhoto.mockResolvedValue({ message_id: 12345 });
 
-      await platform.publish(request, mockChannelConfig);
+      await platform.publish(request, mockAccountConfig);
 
       expect(mockApi.sendPhoto).toHaveBeenCalledWith(
         'test-chat-id',
@@ -622,7 +622,7 @@ describe('TelegramPlatform', () => {
 
       mockApi.sendVideo.mockResolvedValue({ message_id: 12345 });
 
-      await platform.publish(request, mockChannelConfig);
+      await platform.publish(request, mockAccountConfig);
 
       expect(mockApi.sendVideo).toHaveBeenCalledWith(
         'test-chat-id',
@@ -643,7 +643,7 @@ describe('TelegramPlatform', () => {
 
       mockApi.sendDocument.mockResolvedValue({ message_id: 12345 });
 
-      await platform.publish(request, mockChannelConfig);
+      await platform.publish(request, mockAccountConfig);
 
       expect(mockApi.sendDocument).toHaveBeenCalledWith(
         'test-chat-id',
@@ -664,7 +664,7 @@ describe('TelegramPlatform', () => {
         type: PostType.POST,
       };
 
-      await expect(platform.publish(request, mockChannelConfig)).rejects.toThrow(
+      await expect(platform.publish(request, mockAccountConfig)).rejects.toThrow(
         "For type 'post', media fields must not be provided",
       );
     });
@@ -676,7 +676,7 @@ describe('TelegramPlatform', () => {
         type: PostType.ARTICLE,
       };
 
-      await expect(platform.publish(request, mockChannelConfig)).rejects.toThrow(
+      await expect(platform.publish(request, mockAccountConfig)).rejects.toThrow(
         "Post type 'article' is not supported for Telegram",
       );
     });
@@ -719,7 +719,7 @@ describe('TelegramPlatform', () => {
         type: PostType.ARTICLE,
       };
 
-      const result = await platform.preview(request, mockChannelConfig as any);
+      const result = await platform.preview(request, mockAccountConfig as any);
 
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -736,7 +736,7 @@ describe('TelegramPlatform', () => {
         type: PostType.POST,
       };
 
-      const result = await platform.preview(request, mockChannelConfig);
+      const result = await platform.preview(request, mockAccountConfig);
 
       expect(result.success).toBe(true);
       if (result.success) {

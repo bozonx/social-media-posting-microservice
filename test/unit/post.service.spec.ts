@@ -13,7 +13,7 @@ import { PostType } from '@/common/enums/index.js';
 // Mock Factories
 // =============================================================================
 
-interface ChannelConfig {
+interface AccountConfig {
   platform: string;
 
   auth: { apiKey: string; chatId: string };
@@ -31,7 +31,7 @@ interface PlatformResult {
   raw: Record<string, unknown>;
 }
 
-const createChannelConfig = (overrides: Partial<ChannelConfig> = {}): ChannelConfig => ({
+const createAccountConfig = (overrides: Partial<AccountConfig> = {}): AccountConfig => ({
   platform: 'telegram',
 
   auth: {
@@ -56,14 +56,14 @@ const createPlatformResult = (overrides: Partial<PlatformResult> = {}): Platform
 
 const createPostRequest = (overrides: Partial<PostRequestDto> = {}): PostRequestDto => ({
   platform: 'telegram',
-  channel: 'test-channel',
+  account: 'test-channel',
   body: 'Test message',
   type: PostType.POST,
   ...overrides,
 });
 
-const createMockAppConfigService = (channelConfig: ChannelConfig, commonConfig: CommonConfig) => ({
-  getChannel: jest.fn().mockReturnValue(channelConfig),
+const createMockAppConfigService = (accountConfig: AccountConfig, commonConfig: CommonConfig) => ({
+  getAccount: jest.fn().mockReturnValue(accountConfig),
   get requestTimeoutSecs() {
     return commonConfig.requestTimeoutSecs;
   },
@@ -123,11 +123,11 @@ describe('PostService', () => {
   let idempotencyService: jest.Mocked<IdempotencyService>;
   let mockTelegramPlatform: ReturnType<typeof createMockTelegramPlatform>;
 
-  const channelConfig = createChannelConfig();
+  const accountConfig = createAccountConfig();
   const commonConfig = createCommonConfig();
 
   beforeEach(async () => {
-    const mockAppConfig = createMockAppConfigService(channelConfig, commonConfig);
+    const mockAppConfig = createMockAppConfigService(accountConfig, commonConfig);
     mockTelegramPlatform = createMockTelegramPlatform();
     const mockIdempotency = createMockIdempotencyService();
     const mockPlatformReg = createMockPlatformRegistry(mockTelegramPlatform);
@@ -183,16 +183,16 @@ describe('PostService', () => {
         });
         expect((result as PostResponseDto).data?.requestId).toBeDefined();
         expect((result as PostResponseDto).data?.publishedAt).toBeDefined();
-        expect(appConfigService.getChannel).toHaveBeenCalledWith('test-channel');
+        expect(appConfigService.getAccount).toHaveBeenCalledWith('test-channel');
         expect(mockTelegramPlatform.publish).toHaveBeenCalledWith(request, {
-          ...channelConfig,
-          source: 'channel',
+          ...accountConfig,
+          source: 'account',
         });
       });
 
       it('should publish using inline auth', async () => {
         const request = createPostRequest({
-          channel: undefined,
+          account: undefined,
           auth: { apiKey: 'inline-token', chatId: 'inline-chat-id' },
         });
         const platformResult = createPlatformResult();
@@ -202,21 +202,21 @@ describe('PostService', () => {
         const result = await service.publish(request);
 
         expect(result.success).toBe(true);
-        expect(appConfigService.getChannel).not.toHaveBeenCalled();
+        expect(appConfigService.getAccount).not.toHaveBeenCalled();
         expect(mockTelegramPlatform.publish).toHaveBeenCalled();
       });
     });
 
     describe('validation errors', () => {
-      it('should fail when neither channel nor auth is provided', async () => {
-        const request = createPostRequest({ channel: undefined });
+      it('should fail when neither account nor auth is provided', async () => {
+        const request = createPostRequest({ account: undefined });
 
         const result = await service.publish(request);
 
         expect(result.success).toBe(false);
         if (!result.success) {
           expect(result.error.code).toBe('VALIDATION_ERROR');
-          expect(result.error.message).toContain('Either "channel" or "auth" must be provided');
+          expect(result.error.message).toContain('Either "account" or "auth" must be provided');
         }
       });
 
@@ -301,7 +301,7 @@ describe('PostService', () => {
 
         const request = createPostRequest();
         mockTelegramPlatform.publish.mockImplementation(
-          () => new Promise<PlatformResult>(() => {}),
+          () => new Promise<PlatformResult>(() => { }),
         );
         jest.spyOn(appConfigService, 'requestTimeoutSecs', 'get').mockReturnValue(1);
 
@@ -322,7 +322,7 @@ describe('PostService', () => {
       it('should fail when request timeout exceeds maximum allowed value', async () => {
         const request = createPostRequest();
         mockTelegramPlatform.publish.mockImplementation(
-          () => new Promise<PlatformResult>(() => {}),
+          () => new Promise<PlatformResult>(() => { }),
         );
         jest.spyOn(appConfigService, 'requestTimeoutSecs', 'get').mockReturnValue(1000);
 

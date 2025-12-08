@@ -12,7 +12,7 @@ describe('PreviewService', () => {
   let appConfigService: AppConfigService;
   let mockTelegramPlatform: any;
 
-  const mockChannelConfig = {
+  const mockAccountConfig = {
     platform: 'telegram',
 
     auth: {
@@ -51,7 +51,7 @@ describe('PreviewService', () => {
         {
           provide: AppConfigService,
           useValue: {
-            getChannel: jest.fn(),
+            getAccount: jest.fn(),
           },
         },
         {
@@ -81,7 +81,7 @@ describe('PreviewService', () => {
     it('should return error when platform is missing', async () => {
       const request = {
         body: 'Test message',
-        channel: 'test-channel',
+        account: 'test-channel',
       } as PostRequestDto;
 
       const result = await service.preview(request);
@@ -97,7 +97,7 @@ describe('PreviewService', () => {
       const request: PostRequestDto = {
         platform: 'unsupported',
         body: 'Test message',
-        channel: 'test-channel',
+        account: 'test-channel',
       };
 
       const result = await service.preview(request);
@@ -108,7 +108,7 @@ describe('PreviewService', () => {
       }
     });
 
-    it('should return error when neither channel nor auth is provided', async () => {
+    it('should return error when neither account nor auth is provided', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Test message',
@@ -118,7 +118,7 @@ describe('PreviewService', () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.data.errors).toContain('Either "channel" or "auth" must be provided');
+        expect(result.data.errors).toContain('Either "account" or "auth" must be provided');
       }
     });
 
@@ -126,10 +126,10 @@ describe('PreviewService', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Test message',
-        channel: 'non-existent',
+        account: 'non-existent',
       };
 
-      (appConfigService.getChannel as jest.Mock).mockImplementation(() => {
+      (appConfigService.getAccount as jest.Mock).mockImplementation(() => {
         throw new Error('Channel not found');
       });
 
@@ -141,14 +141,14 @@ describe('PreviewService', () => {
       }
     });
 
-    it('should return error when channel platform does not match platform', async () => {
+    it('should return error when account platform does not match platform', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Test message',
-        channel: 'vk-channel',
+        account: 'vk-channel',
       };
 
-      (appConfigService.getChannel as jest.Mock).mockReturnValue({
+      (appConfigService.getAccount as jest.Mock).mockReturnValue({
         platform: 'vk',
 
         auth: { apiKey: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11', chatId: 'test' },
@@ -159,7 +159,7 @@ describe('PreviewService', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.data.errors).toContain(
-          'Channel platform "vk" does not match requested platform "telegram"',
+          'Account platform "vk" does not match requested platform "telegram"',
         );
       }
     });
@@ -170,7 +170,7 @@ describe('PreviewService', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Test message',
-        channel: 'test-channel',
+        account: 'test-channel',
       };
 
       const previewResult: PreviewResponseDto = {
@@ -185,15 +185,15 @@ describe('PreviewService', () => {
         },
       };
 
-      (appConfigService.getChannel as jest.Mock).mockReturnValue(mockChannelConfig);
+      (appConfigService.getAccount as jest.Mock).mockReturnValue(mockAccountConfig);
       (mockTelegramPlatform.preview as jest.Mock).mockResolvedValue(previewResult);
 
       const result = await service.preview(request);
 
-      expect(appConfigService.getChannel).toHaveBeenCalledWith('test-channel');
+      expect(appConfigService.getAccount).toHaveBeenCalledWith('test-channel');
       expect(mockTelegramPlatform.preview).toHaveBeenCalledWith(request, {
-        ...mockChannelConfig,
-        source: 'channel',
+        ...mockAccountConfig,
+        source: 'account',
       });
       expect(result).toBe(previewResult);
     });
@@ -224,7 +224,7 @@ describe('PreviewService', () => {
 
       const result = await service.preview(request);
 
-      expect(appConfigService.getChannel).not.toHaveBeenCalled();
+      expect(appConfigService.getAccount).not.toHaveBeenCalled();
       expect(mockTelegramPlatform.preview).toHaveBeenCalledWith(request, {
         platform: 'telegram',
 

@@ -91,7 +91,7 @@ export class IdempotencyService {
       .update(
         JSON.stringify({
           platform: request.platform,
-          channel: request.channel,
+          account: request.account,
           auth: request.auth,
           body: request.body,
           type: request.type,

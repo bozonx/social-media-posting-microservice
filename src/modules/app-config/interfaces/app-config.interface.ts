@@ -15,15 +15,15 @@ export interface AppConfig {
   /** Default maximum body length (characters) */
   maxBodyDefault: number;
 
-  /** Named channel configurations */
-  channels: Record<string, ChannelConfig>;
+  /** Named account configurations */
+  accounts: Record<string, AccountConfig>;
 }
 
 /**
- * Channel configuration
- * Represents a named channel with platform and authentication details
+ * Account configuration
+ * Represents a named account with platform and authentication details
  */
-export interface ChannelConfig {
+export interface AccountConfig {
   /** Platform name (e.g., 'telegram') */
   platform: string;
 

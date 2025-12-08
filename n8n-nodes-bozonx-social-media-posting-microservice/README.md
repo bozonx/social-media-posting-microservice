@@ -53,13 +53,13 @@ There are two authentication modes:
 
 #### Channel Mode (Recommended)
 
-Use pre-configured channels from microservice `config.yaml`. Platform and auth are stored on the server.
+Use pre-configured accounts from microservice `config.yaml`. Platform and auth are stored on the server.
 
 - **Channel**: `my_channel` (channel name from config)
 - **Platform**: Select platform (informational, not sent to server)
 - **Post Content**: Your message
 
-The node sends only `channel` and content. Server uses auth from `config.yaml`.
+The node sends only `account` and content. Server uses auth from `config.yaml`.
 
 #### Inline Mode
 
@@ -219,7 +219,7 @@ Example `config.yaml`:
 
 ```yaml
 channels:
-  my_channel:
+  my_account:
     platform: telegram
     auth:
       apiKey: ${TELEGRAM_BOT_TOKEN}

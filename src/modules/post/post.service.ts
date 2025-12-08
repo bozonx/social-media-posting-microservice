@@ -6,7 +6,7 @@ import { AppConfigService } from '../app-config/app-config.service.js';
 import { IdempotencyService } from './idempotency.service.js';
 import { PlatformRegistry } from '../platforms/base/platform-registry.service.js';
 import { AuthValidatorRegistry } from '../platforms/base/auth-validator-registry.service.js';
-import { BasePostService, ResolvedChannelConfig } from './base-post.service.js';
+import { BasePostService, ResolvedAccountConfig } from './base-post.service.js';
 
 @Injectable()
 export class PostService extends BasePostService {
@@ -62,7 +62,7 @@ export class PostService extends BasePostService {
     }
 
     try {
-      const { platform, channelConfig } = this.validateRequest(request);
+      const { platform, accountConfig } = this.validateRequest(request);
 
       const requestTimeoutMs = this.getRequestTimeoutMs(this.appConfig.requestTimeoutSecs);
 
@@ -75,11 +75,11 @@ export class PostService extends BasePostService {
       }
 
       this.logger.log({
-        message: `Publishing to ${request.platform} via ${channelConfig.source === 'channel' ? request.channel : 'inline auth'}, type: ${postType}`,
+        message: `Publishing to ${request.platform} via ${accountConfig.source === 'account' ? request.account : 'inline auth'}, type: ${postType}`,
         metadata: {
           requestId,
           platform: request.platform,
-          channel: request.channel,
+          account: request.account,
           type: postType,
         },
       });
@@ -87,7 +87,7 @@ export class PostService extends BasePostService {
       const result = await this.executeWithRequestTimeout(
         () =>
           this.retryWithJitter(
-            () => platform.publish(request, channelConfig),
+            () => platform.publish(request, accountConfig),
             this.appConfig.retryAttempts,
             this.appConfig.retryDelayMs,
           ),
@@ -119,7 +119,7 @@ export class PostService extends BasePostService {
         metadata: {
           requestId,
           platform: request.platform,
-          channel: request.channel,
+          account: request.account,
           type: request.type,
         },
         err: error, // Full error object with stack trace

@@ -4,6 +4,7 @@ import type {
   PreviewResponseDto,
   PreviewErrorResponseDto,
 } from '../../post/dto/index.js';
+import type { AccountConfig } from '../../app-config/interfaces/app-config.interface.js';
 
 /**
  * Response from platform after successful publication
@@ -32,19 +33,19 @@ export interface IPlatform {
   /**
    * Publish a post to the platform
    * @param request - Post request data
-   * @param channelConfig - Channel configuration
+   * @param accountConfig - Account configuration
    * @returns Publication result with post ID and URL
    */
-  publish(request: PostRequestDto, channelConfig: any): Promise<PlatformPublishResponse>;
+  publish(request: PostRequestDto, accountConfig: any): Promise<PlatformPublishResponse>;
 
   /**
    * Preview a post without publishing
    * @param request - Post request data
-   * @param channelConfig - Channel configuration
+   * @param accountConfig - Account configuration
    * @returns Preview result with validation and conversion details
    */
   preview(
     request: PostRequestDto,
-    channelConfig: any,
+    accountConfig: any,
   ): Promise<PreviewResponseDto | PreviewErrorResponseDto>;
 }

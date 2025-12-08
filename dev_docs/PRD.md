@@ -229,7 +229,7 @@ enum BodyFormat {
 
 **Базовая идея реализации (best-effort, без внешнего хранилища):**
 - Ввести сервис `IdempotencyService`, использующий in-memory кэш с поддержкой TTL и авто-очистки (например, через `@nestjs/cache-manager` с memory store или легкую LRU/TTL-библиотеку).
-- Ключ: комбинация `idempotencyKey`, `platform`, `channel`/`auth` и хеша полезной нагрузки (`body`, медиа, `options`).
+- Ключ: комбинация `idempotencyKey`, `platform`, `account`/`auth` и хеша полезной нагрузки (`body`, медиа, `options`).
 - Значение: структура вида:
   - `status: 'processing' | 'completed'`
   - `response: PostResponse | ErrorResponse`
@@ -522,7 +522,7 @@ conversion:
 
 
 # Каналы (именованные конфигурации)
-channels:
+accounts:
   # Telegram канал компании
   company_telegram:
     platform: telegram
@@ -620,7 +620,7 @@ interface TelegramAdditional {
 {
   "platform": "telegram",
   "type": "post",
-  "channel": "company_telegram",
+  "account": "company_telegram",
   "body": "<b>Привет!</b> Это тестовый пост с <a href='https://example.com'>ссылкой</a>",
   "bodyFormat": "html",
   "options": {

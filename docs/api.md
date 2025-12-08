@@ -26,7 +26,7 @@ Publish content to a social media platform.
 |-------|------|----------|-------------|
 | `platform` | string | Yes | Platform name (`telegram`) |
 | `body` | string | Yes | Post content (max length determined by `maxBody` or config default) |
-| `channel` | string | No* | Channel name from `config.yaml` |
+| `account` | string | No* | Channel name from `config.yaml` |
 | `channelId` | string | No | Channel/chat ID (e.g., @mychannel or -100123456789 for Telegram). Can override channel config |
 | `auth` | object | No* | Inline authentication credentials. See [Auth Field](#auth-field) below |
 | `type` | string | No | Post type (default: `auto`). See below |
@@ -37,7 +37,7 @@ Publish content to a social media platform.
 | `video` | MediaInput | No | Video file (object with `src` and optional `hasSpoiler`, max 500 characters for src) |
 | `audio` | MediaInput | No | Audio file (object with `src`, max 500 characters) |
 | `document` | MediaInput | No | Document file (object with `src`, max 500 characters) |
-| `media` | MediaInput[] | No | Media array for albums (2-10 items, each object with `src` and optional `type`, max 500 characters for src) |
+| `media` | MediaInput[] | No | Media array for albums (2-10 items, each object with `src` and optional `type`, `hasSpoiler`) |
 | `options` | object | No | Platform-specific options (passed directly to platform API) |
 | `disableNotification` | boolean | No | Send message silently (defaults to config value) |
 | `tags` | string[] | No | Tags without # symbol. Passed as-is to supported platforms (max 200 items, each max 300 characters) |
@@ -47,7 +47,7 @@ Publish content to a social media platform.
 | `idempotencyKey` | string | No | Key to prevent duplicates (max 1000 characters) |
 | `maxBody` | number | No | Override default max body length (max 500,000 characters) |
 
-**Note:** Either `channel` or `auth` must be provided.
+**Note:** Either `account` or `auth` must be provided.
 
 ### Auth Field
 
@@ -86,7 +86,7 @@ In addition to the fields listed in the table, the `auth` object may contain **a
 
 **Auth Merging Behavior:**
 
-- If `channel` is provided, the base auth is taken from the channel configuration in `config.yaml`
+- If `account` is provided, the base auth is taken from the account configuration in `config.yaml`
 - If `auth` is also provided in the request, its fields **override** the channel's auth fields
 - All auth fields in the request are optional - they only override specific fields from the channel config
 - Final validation checks that all required fields for the platform are present after merging
@@ -97,14 +97,14 @@ In addition to the fields listed in the table, the `auth` object may contain **a
 // Use channel config entirely
 {
   "platform": "telegram",
-  "channel": "my_channel",
+  "account": "my_channel",
   "body": "Hello"
 }
 
 // Override only channelId
 {
   "platform": "telegram",
-  "channel": "my_channel",
+  "account": "my_channel",
   "channelId": "@different_channel",
   "body": "Hello"
 }
@@ -442,7 +442,7 @@ Common options:
 }
 ```
 
-**Note:** If `parse_mode` or `disable_notification` are specified in `options`, they will override the values derived from `bodyFormat` or channel configuration.
+**Note:** If `parse_mode` or `disable_notification` are specified in `options`, they will override the values derived from `bodyFormat` or account configuration.
 
 
 ### Telegram Limits
@@ -475,7 +475,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "channel": "my_channel",
+    "account": "my_channel",
     "body": "<b>Hello!</b> Test post",
     "bodyFormat": "html"
   }'
@@ -488,7 +488,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "channel": "my_channel",
+    "account": "my_channel",
     "body": "Image caption",
     "cover": {
       "src": "https://example.com/image.jpg"
@@ -503,7 +503,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "channel": "my_channel",
+    "account": "my_channel",
     "body": "Photo gallery",
     "media": [
       { "src": "https://example.com/photo1.jpg" },
@@ -519,7 +519,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "channel": "my_channel",
+    "account": "my_channel",
     "body": "New podcast",
     "audio": {
       "src": "https://example.com/podcast.mp3"
@@ -534,7 +534,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "channel": "my_channel",
+    "account": "my_channel",
     "body": "Monthly report",
     "document": {
       "src": "https://example.com/report.pdf"
@@ -549,7 +549,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "channel": "my_channel",
+    "account": "my_channel",
     "body": "Sensitive content",
     "cover": {
       "src": "https://example.com/image.jpg",
@@ -566,7 +566,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "channel": "my_channel",
+    "account": "my_channel",
     "body": "Reposting video",
     "video": {
       "src": "BAACAgIAAxkBAAIC4mF9..."
@@ -581,7 +581,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "channel": "my_channel",
+    "account": "my_channel",
     "body": "Check our website!",
     "options": {
       "reply_markup": {
@@ -616,7 +616,7 @@ curl -X POST http://localhost:8080/api/v1/preview \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "channel": "my_channel",
+    "account": "my_channel",
     "body": "# Hello\n\nThis is **bold**",
     "bodyFormat": "md"
   }'

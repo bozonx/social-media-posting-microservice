@@ -28,8 +28,8 @@ cp env.production.example .env.production
 Edit `config.yaml` with your Telegram credentials:
 
 ```yaml
-channels:
-  my_channel:
+accounts:
+  my_account:
     platform: telegram
 
     auth:
@@ -56,7 +56,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "channel": "my_channel",
+    "account": "my_channel",
     "body": "<b>Hello!</b> This is a test post",
     "bodyFormat": "html"
   }'
@@ -69,7 +69,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "channel": "my_channel",
+    "account": "my_channel",
     "body": "Check out this image!",
     "cover": "https://example.com/image.jpg"
   }'
@@ -82,7 +82,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "channel": "my_channel",
+    "account": "my_channel",
     "body": "Photo gallery",
     "media": [
       "https://example.com/photo1.jpg",
@@ -98,7 +98,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "channel": "my_channel",
+    "account": "my_channel",
     "body": "Sensitive content",
     "cover": {
       "src": "https://example.com/image.jpg",
@@ -141,8 +141,8 @@ retryDelayMs: 1000
 idempotencyTtlMinutes: 10
 maxBodyDefault: 500000
 
-channels:
-  my_channel:
+accounts:
+  my_account:
     platform: telegram
 
     auth:

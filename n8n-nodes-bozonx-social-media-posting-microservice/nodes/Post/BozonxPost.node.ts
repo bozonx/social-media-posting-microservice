@@ -110,6 +110,21 @@ function parseMediaField(value: unknown): Record<string, unknown> | unknown[] | 
 	return parseUniversalField(value, 'Media');
 }
 
+/**
+ * Add Telegram auth from credentials if needed
+ */
+function addTelegramAuthIfNeeded(
+	requestBody: IDataObject,
+	platform: string,
+	telegramBotToken: string | undefined,
+): void {
+	if (!requestBody.account && !requestBody.auth && platform === 'telegram' && telegramBotToken) {
+		requestBody.auth = {
+			apiKey: telegramBotToken,
+		};
+	}
+}
+
 export class BozonxPost implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Social Media Post',
@@ -510,15 +525,18 @@ export class BozonxPost implements INodeType {
 						requestBody.platform = platform;
 					}
 
-					// Add auth if no account and no auth in jsonConfig
-					if (!requestBody.account && !requestBody.auth && platform === 'telegram') {
-						const telegramBotToken = credentials.telegramBotToken as string;
-						if (telegramBotToken) {
-							requestBody.auth = {
-								apiKey: telegramBotToken,
-							};
-						}
+					// Validate that platform is set
+					if (!requestBody.platform) {
+						throw new NodeOperationError(
+							this.getNode(),
+							'Platform must be specified either in JSON config or in the Platform field',
+							{ itemIndex: i },
+						);
 					}
+
+					// Add auth if needed
+					const telegramBotToken = credentials.telegramBotToken as string;
+					addTelegramAuthIfNeeded(requestBody, requestBody.platform as string, telegramBotToken)
 				} else {
 					// UI mode - existing logic
 					const account = this.getNodeParameter('account', i, '') as string;
@@ -546,14 +564,8 @@ export class BozonxPost implements INodeType {
 					}
 
 					// Add platform auth from credentials when using inline mode (no account)
-					if (!account && platform === 'telegram') {
-						const telegramBotToken = credentials.telegramBotToken as string;
-						if (telegramBotToken) {
-							requestBody.auth = {
-								apiKey: telegramBotToken,
-							};
-						}
-					}
+					const telegramBotToken = credentials.telegramBotToken as string;
+					addTelegramAuthIfNeeded(requestBody, platform, telegramBotToken)
 
 					// Add main fields
 					if (type) requestBody.type = type;
@@ -679,8 +691,8 @@ export class BozonxPost implements INodeType {
 
 						// If response has error details, throw a more informative error
 						if (response.success === false && response.error) {
-							const errorMsg = response.error.message as string || 'Request failed';
-							const errorCode = response.error.code as string || 'ERROR';
+							const errorMsg = (response.error.message as string) || 'Request failed';
+							const errorCode = (response.error.code as string) || 'ERROR';
 							const errorDetails = response.error.details as Record<string, unknown> | undefined;
 
 							let detailsStr = '';
@@ -695,13 +707,12 @@ export class BozonxPost implements INodeType {
 								{ itemIndex: i },
 							);
 						}
-					} else {
-						throw new NodeOperationError(
-							this.getNode(),
-							`HTTP request failed: ${err.message || 'Unknown error'}`,
-							{ itemIndex: i },
-						);
 					}
+					throw new NodeOperationError(
+						this.getNode(),
+						`HTTP request failed: ${err.message || 'Unknown error'}`,
+						{ itemIndex: i },
+					);
 				}
 
 				// Handle response

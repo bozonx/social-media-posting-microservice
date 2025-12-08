@@ -2,10 +2,10 @@ import { IsInt, IsString, IsObject, IsOptional, Min, Max, validateSync } from 'c
 import { plainToClass } from 'class-transformer';
 
 /**
- * Channel configuration validation class
- * Validates the structure and values of channel configurations
+ * Account configuration validation class
+ * Validates the structure and values of account configurations
  */
-class ChannelConfigValidationDto {
+class AccountConfigValidationDto {
   /**
    * Platform name
    * Must be a non-empty string
@@ -73,7 +73,7 @@ export class YamlConfigDto {
   maxBodyDefault!: number;
 
   /**
-   * Named channel configurations
+   * Named account configurations
    */
   @IsObject()
   accounts!: Record<string, any>;
@@ -102,30 +102,30 @@ export function validateYamlConfig(config: any): YamlConfigDto {
     }
   }
 
-  const channelErrorMessages: string[] = [];
+  const accountErrorMessages: string[] = [];
 
   if (dto.accounts && typeof dto.accounts === 'object') {
     for (const [accountName, accountConfig] of Object.entries(dto.accounts)) {
-      const channelDto = plainToClass(ChannelConfigValidationDto, accountConfig);
-      const channelErrors = validateSync(channelDto, {
+      const accountDto = plainToClass(AccountConfigValidationDto, accountConfig);
+      const accountErrors = validateSync(accountDto, {
         skipMissingProperties: false,
         whitelist: false,
       });
 
-      if (channelErrors.length > 0) {
-        const constraints = channelErrors
+      if (accountErrors.length > 0) {
+        const constraints = accountErrors
           .map(err => {
             const msg = err.constraints ? Object.values(err.constraints).join(', ') : '';
             return `${err.property}: ${msg}`;
           })
           .join('; ');
 
-        channelErrorMessages.push(`account "${accountName}": ${constraints}`);
+        accountErrorMessages.push(`account "${accountName}": ${constraints}`);
       }
     }
   }
 
-  const allErrors = [...errorMessages, ...channelErrorMessages];
+  const allErrors = [...errorMessages, ...accountErrorMessages];
 
   if (allErrors.length > 0) {
     throw new Error(`YAML config validation error: ${allErrors.join('; ')}`);

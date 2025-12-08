@@ -122,7 +122,7 @@ describe('PreviewService', () => {
       }
     });
 
-    it('should return error when channel is not found', async () => {
+    it('should return error when account is not found', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Test message',
@@ -130,14 +130,14 @@ describe('PreviewService', () => {
       };
 
       (appConfigService.getAccount as jest.Mock).mockImplementation(() => {
-        throw new Error('Channel not found');
+        throw new Error('Account not found');
       });
 
       const result = await service.preview(request);
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.data.errors).toContain('Channel not found');
+        expect(result.data.errors).toContain('Account not found');
       }
     });
 

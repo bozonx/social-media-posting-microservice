@@ -295,7 +295,7 @@ Same as `/post`. The `idempotencyKey` field is ignored.
   "success": false,
   "data": {
     "valid": false,
-    "errors": ["Either 'channel' or 'auth' must be provided"],
+    "errors": ["Either 'account' or 'auth' must be provided"],
     "warnings": []
   }
 }

@@ -41,7 +41,7 @@ export class TelegramPlatform implements IPlatform {
   constructor(
     private readonly mediaService: MediaService,
     private readonly typeDetector: TelegramTypeDetector,
-  ) { }
+  ) {}
 
   async publish(
     request: PostRequestDto,
@@ -266,12 +266,12 @@ export class TelegramPlatform implements IPlatform {
   }
 
   /**
-   * Resolve Telegram chat identifier from request and channel configuration.
+   * Resolve Telegram chat identifier from request and account configuration.
    *
    * Priority:
    * 1. request.channelId
-   * 2. channelConfig.channelId (from config.yaml)
-   * 3. channelConfig.auth.chatId (legacy, for backward compatibility)
+   * 2. accountConfig.channelId (from config.yaml)
+   * 3. accountConfig.auth.chatId (legacy, for backward compatibility)
    */
   private resolveChatId(
     request: PostRequestDto,
@@ -285,7 +285,7 @@ export class TelegramPlatform implements IPlatform {
 
     if (finalId === undefined || finalId === null || finalId === '') {
       throw new BadRequestException(
-        'Field "channelId" is required for Telegram (provide via request.channelId, channel config channelId, or legacy auth.chatId)',
+        'Field "channelId" is required for Telegram (provide via request.channelId, account config channelId, or legacy auth.chatId)',
       );
     }
 

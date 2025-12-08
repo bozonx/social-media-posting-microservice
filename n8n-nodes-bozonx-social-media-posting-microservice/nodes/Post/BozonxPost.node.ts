@@ -98,16 +98,16 @@ export class BozonxPost implements INodeType {
 		],
 		usableAsTool: true,
 		properties: [
-			// Channel
+			// Account
 			{
-				displayName: 'Channel',
+				displayName: 'Account',
 				name: 'account',
 				type: 'string',
 				default: '',
-				placeholder: 'e.g., my-telegram-channel',
+				placeholder: 'e.g., my-telegram-account',
 				hint: 'Leave empty to configure platform and auth manually',
 				description:
-					'Channel name from microservice config.yaml. If specified, platform and auth are taken from server config.',
+					'Account name from microservice config.yaml. If specified, platform and auth are taken from server config.',
 			},
 
 			// Platform
@@ -385,7 +385,7 @@ export class BozonxPost implements INodeType {
 			try {
 				const endpoint = '/post';
 
-				const channel = this.getNodeParameter('account', i, '') as string;
+				const account = this.getNodeParameter('account', i, '') as string;
 				const platform = this.getNodeParameter('platform', i, '') as string;
 				const channelId = this.getNodeParameter('channelId', i, '') as string;
 				const body = this.getNodeParameter('body', i) as string;
@@ -400,11 +400,11 @@ export class BozonxPost implements INodeType {
 					body,
 				};
 
-				// Add channel or platform (platform is only sent when no channel specified)
-				if (channel) {
-					requestBody.channel = channel;
+				// Add account or platform (platform is only sent when no account specified)
+				if (account) {
+					requestBody.account = account;
 				} else {
-					// Only add platform and auth when using inline mode (no channel)
+					// Only add platform and auth when using inline mode (no account)
 					if (platform) {
 						requestBody.platform = platform;
 					}

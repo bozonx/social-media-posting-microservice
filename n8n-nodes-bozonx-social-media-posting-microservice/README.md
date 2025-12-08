@@ -51,11 +51,11 @@ curl http://localhost:8080/api/v1/health
 
 There are two authentication modes:
 
-#### Channel Mode (Recommended)
+#### Account Mode (Recommended)
 
 Use pre-configured accounts from microservice `config.yaml`. Platform and auth are stored on the server.
 
-- **Channel**: `my_channel` (channel name from config)
+- **Account**: `my_account` (account name from config)
 - **Platform**: Select platform (informational, not sent to server)
 - **Post Content**: Your message
 
@@ -63,16 +63,16 @@ The node sends only `account` and content. Server uses auth from `config.yaml`.
 
 #### Inline Mode
 
-Use credentials from n8n. Leave **Channel** empty.
+Use credentials from n8n. Leave **Account** empty.
 
-- **Channel**: *(empty)*
+- **Account**: *(empty)*
 - **Platform**: `Telegram`
 - **Post Content**: Your message
 - **Channel ID**: `@mychannel` or `-100123456789`
 
 The node sends `platform`, `auth.apiKey` (from Telegram Bot Token), and content.
 
-> **Note**: If both Channel and Telegram Bot Token are specified, Channel takes priority (auth from credentials is ignored).
+> **Note**: If both Account and Telegram Bot Token are specified, Account takes priority (auth from credentials is ignored).
 
 ## Media Input Format
 
@@ -192,8 +192,8 @@ The microservice automatically retries requests on temporary errors.
 
 ### Authentication Error
 
-**Channel Mode:**
-- Verify channel exists in microservice `config.yaml`
+**Account Mode:**
+- Verify account exists in microservice `config.yaml`
 - Check environment variable substitution
 
 **Inline Auth:**
@@ -218,7 +218,7 @@ The microservice automatically retries requests on temporary errors.
 Example `config.yaml`:
 
 ```yaml
-channels:
+accounts:
   my_account:
     platform: telegram
     auth:

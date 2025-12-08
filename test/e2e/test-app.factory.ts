@@ -12,8 +12,8 @@ export async function createTestApp(): Promise<NestFastifyApplication> {
   const mockAppConfigService = {
     onModuleInit: jest.fn(),
     get: jest.fn(),
-    getChannel: jest.fn(),
-    getAllChannels: jest.fn(),
+    getAccount: jest.fn(),
+    getAllAccounts: jest.fn(),
     getCommonConfig: jest.fn().mockReturnValue({
       retryAttempts: 1,
       retryDelayMs: 0,

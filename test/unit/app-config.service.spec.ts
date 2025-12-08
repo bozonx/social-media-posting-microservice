@@ -14,7 +14,6 @@ describe('AppConfigService', () => {
     retryDelayMs: 1000,
     idempotencyTtlMinutes: 10,
 
-
     accounts: {
       'test-account': {
         platform: 'telegram',
@@ -24,7 +23,6 @@ describe('AppConfigService', () => {
           chatId: 'test-chat-id',
         },
       },
-
     },
   };
 
@@ -106,9 +104,9 @@ describe('AppConfigService', () => {
   });
 
   describe('getAllAccounts', () => {
-    it('should return all channels', () => {
-      const channels = service.getAllAccounts();
-      expect(channels).toHaveProperty('test-account');
+    it('should return all accounts', () => {
+      const accounts = service.getAllAccounts();
+      expect(accounts).toHaveProperty('test-account');
     });
   });
 
@@ -120,6 +118,4 @@ describe('AppConfigService', () => {
       expect(service.idempotencyTtlMinutes).toBe(10);
     });
   });
-
-
 });

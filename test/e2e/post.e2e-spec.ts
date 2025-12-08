@@ -50,26 +50,32 @@ describe('PostController (e2e)', () => {
   const mockAppConfigService = {
     onModuleInit: jest.fn(),
     get: jest.fn(),
-    getAllChannels: jest.fn().mockReturnValue({}),
-    getChannel: jest.fn().mockImplementation(name => {
-      if (name === 'test_channel') {
+    getAllAccounts: jest.fn().mockReturnValue({}),
+    getAccount: jest.fn().mockImplementation(name => {
+      if (name === 'test_account') {
         return {
           platform: 'telegram',
           auth: {
             apiKey: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
-            chatId: 'channel-chat-id',
+            chatId: 'account-chat-id',
           },
         };
       }
-      throw new Error(`Channel "${name}" not found`);
+      throw new Error(`Account "${name}" not found`);
     }),
     getCommonConfig: jest.fn().mockReturnValue({
       retryAttempts: 1,
       retryDelayMs: 0,
     }),
-    get retryAttempts() { return 1; },
-    get retryDelayMs() { return 0; },
-    get requestTimeoutSecs() { return 60; },
+    get retryAttempts() {
+      return 1;
+    },
+    get retryDelayMs() {
+      return 0;
+    },
+    get requestTimeoutSecs() {
+      return 60;
+    },
     getConversionConfig: jest.fn().mockReturnValue({}),
   };
 
@@ -262,11 +268,11 @@ describe('PostController (e2e)', () => {
       expect(body.error.message).toMatch(/Post type "post" is not supported by telegram/i);
     });
 
-    it('should publish using channel config', async () => {
+    it('should publish using account config', async () => {
       const payload = {
         platform: 'telegram',
-        channel: 'test_channel',
-        body: 'Message via channel',
+        account: 'test_account',
+        body: 'Message via account',
         type: PostType.POST,
       };
 
@@ -295,9 +301,9 @@ describe('PostController (e2e)', () => {
           platform: 'telegram',
           auth: {
             apiKey: '123456789:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
-            chatId: 'channel-chat-id',
+            chatId: 'account-chat-id',
           },
-          source: 'channel',
+          source: 'account',
         }),
       );
     });
@@ -380,7 +386,7 @@ describe('PostController (e2e)', () => {
         platform: 'telegram',
         body: '**Bold text**',
         bodyFormat: 'md',
-        channel: 'test_channel',
+        account: 'test_account',
       };
 
       const mockPreviewData = {

@@ -5,11 +5,7 @@ import type {
 	INodeTypeDescription,
 	IDataObject,
 } from 'n8n-workflow';
-import {
-	ApplicationError,
-	NodeConnectionTypes,
-	NodeOperationError,
-} from 'n8n-workflow';
+import { ApplicationError, NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 import * as yaml from 'js-yaml';
 
 /**
@@ -17,7 +13,10 @@ import * as yaml from 'js-yaml';
  * - If value is a string: try YAML first, then JSON validation
  * - If any other type: convert to JSON using JSON.stringify
  */
-function parseUniversalField(value: unknown, fieldName: string): Record<string, unknown> | unknown[] {
+function parseUniversalField(
+	value: unknown,
+	fieldName: string,
+): Record<string, unknown> | unknown[] {
 	if (!value) return {};
 
 	// If value is a string, try YAML first, then JSON
@@ -185,7 +184,7 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				default: '',
 				description:
-					'Cover image as JSON object with "src" property (URL or file_id). Example: {"src": "https://example.com/image.jpg"} or just URL/file_id string (will be auto-wrapped)',
+					'Cover image URL or Telegram file_id. Use "Cover has Spoiler" option to add spoiler effect.',
 				displayOptions: {
 					show: {
 						type: ['auto', 'post', 'image', 'article', 'story'],
@@ -200,7 +199,7 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				default: '',
 				description:
-					'Video as JSON object with "src" property (URL or file_id). Example: {"src": "https://example.com/video.mp4"} or just URL/file_id string (will be auto-wrapped)',
+					'Video URL or Telegram file_id. Use "Video has Spoiler" option to add spoiler effect.',
 				displayOptions: {
 					show: {
 						type: ['auto', 'video', 'short', 'story'],
@@ -214,8 +213,7 @@ export class BozonxPost implements INodeType {
 				name: 'audio',
 				type: 'string',
 				default: '',
-				description:
-					'Audio as JSON object with "src" property (URL or file_id). Example: {"src": "https://example.com/audio.mp3"} or just URL/file_id string (will be auto-wrapped)',
+				description: 'Audio URL or Telegram file_id.',
 				displayOptions: {
 					show: {
 						type: ['auto', 'audio'],
@@ -229,8 +227,7 @@ export class BozonxPost implements INodeType {
 				name: 'document',
 				type: 'string',
 				default: '',
-				description:
-					'Document as JSON object with "src" property (URL or file_id). Example: {"src": "https://example.com/doc.pdf"} or just URL/file_id string (will be auto-wrapped)',
+				description: 'Document URL or Telegram file_id.',
 				displayOptions: {
 					show: {
 						type: ['auto', 'document'],
@@ -246,7 +243,7 @@ export class BozonxPost implements INodeType {
 				typeOptions: { rows: 3 },
 				default: '',
 				description:
-					'JSON array of media objects with "src" property for albums (2-10 items). Example: [{"src": "url1"}, {"src": "url2"}]',
+					'Array of media objects for albums. Accepts YAML or JSON (YAML is tried first). Each item can have: "src" (URL or file_id), "type" (image/video), "hasSpoiler" (boolean). Example: [{"src": "url1", "type": "image"}, {"src": "url2"}]',
 				displayOptions: {
 					show: {
 						type: ['auto', 'album'],
@@ -325,7 +322,8 @@ export class BozonxPost implements INodeType {
 						type: 'string',
 						typeOptions: { rows: 3 },
 						default: '',
-						description: 'Platform-specific options as JSON or YAML object',
+						description:
+							'Platform-specific options. Accepts YAML or JSON (YAML is tried first, then JSON).',
 					},
 					{
 						displayName: 'Post Language',
@@ -438,7 +436,11 @@ export class BozonxPost implements INodeType {
 					if (additionalOptions.coverHasSpoiler) {
 						if (typeof coverVal === 'string') {
 							coverVal = { src: coverVal, hasSpoiler: true };
-						} else if (typeof coverVal === 'object' && coverVal !== null && !Array.isArray(coverVal)) {
+						} else if (
+							typeof coverVal === 'object' &&
+							coverVal !== null &&
+							!Array.isArray(coverVal)
+						) {
 							coverVal = { ...coverVal, hasSpoiler: true };
 						}
 					}
@@ -449,7 +451,11 @@ export class BozonxPost implements INodeType {
 					if (additionalOptions.videoHasSpoiler) {
 						if (typeof videoVal === 'string') {
 							videoVal = { src: videoVal, hasSpoiler: true };
-						} else if (typeof videoVal === 'object' && videoVal !== null && !Array.isArray(videoVal)) {
+						} else if (
+							typeof videoVal === 'object' &&
+							videoVal !== null &&
+							!Array.isArray(videoVal)
+						) {
 							videoVal = { ...videoVal, hasSpoiler: true };
 						}
 					}

@@ -37,7 +37,7 @@ Publish content to a social media platform.
 | `video` | MediaInput | No | Video file (object with `src` and optional `hasSpoiler`, max 500 characters for src) |
 | `audio` | MediaInput | No | Audio file (object with `src`, max 500 characters) |
 | `document` | MediaInput | No | Document file (object with `src`, max 500 characters) |
-| `media` | MediaInput[] | No | Media array for albums (2-10 items, each object with `src` and optional `type`, `hasSpoiler`) |
+| `media` | MediaInput[] | No | Media array for albums (each object with `src` and optional `type`, `hasSpoiler`) |
 | `options` | object | No | Platform-specific options (passed directly to platform API) |
 | `disableNotification` | boolean | No | Send message silently (defaults to config value) |
 | `tags` | string[] | No | Tags without # symbol. Passed as-is to supported platforms (max 200 items, each max 300 characters) |
@@ -129,7 +129,7 @@ In addition to the fields listed in the table, the `auth` object may contain **a
 | `image` | Single image with caption |
 | `video` | Video with caption |
 | `audio` | Audio file with caption |
-| `album` | Media group (2-10 items) |
+| `album` | Media group |
 | `document` | Document/file |
 | `article` | Long-form article |
 | `short` | Short-form video |
@@ -453,7 +453,7 @@ Telegram API enforces the following limits:
 |------|-------|
 | Text message | 4096 characters |
 | Caption | 1024 characters |
-| Album items | 2-10 files |
+| Album items | Telegram limit: 2-10 files |
 | File size (URL) | 50 MB |
 
 **Note:** The microservice validates body length based on `maxBody` parameter (or `maxBodyDefault` from config, default 500,000 characters). Telegram's specific limits (4096 for text, 1024 for captions) are enforced by Telegram API itself.

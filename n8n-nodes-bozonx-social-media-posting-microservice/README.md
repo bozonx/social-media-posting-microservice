@@ -105,7 +105,7 @@ AgACAgIAAxkBAAIC...
 - You can use the **Cover has Spoiler** and **Video has Spoiler** switches in *Additional Options* to enable the spoiler effect for simple string inputs
 - `src` has a maximum length of 500 characters
 
-**Media Array** (for albums, 2-10 items):
+**Media Array** (for albums):
 ```json
 ["https://example.com/1.jpg", "https://example.com/2.jpg"]
 ```
@@ -207,7 +207,7 @@ The microservice automatically retries requests on temporary errors.
 2. Telegram limits:
    - Text: 4096 characters
    - Caption: 1024 characters
-   - Album: 2-10 items
+   - Album: Telegram limit 2-10 items
    - File size: 50 MB (via URL)
 3. Media URLs must be publicly accessible
 4. Check supported formats (JPEG, PNG, MP4)

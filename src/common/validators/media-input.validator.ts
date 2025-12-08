@@ -96,7 +96,7 @@ export class IsMediaInputArrayConstraint implements ValidatorConstraintInterface
   }
 
   defaultMessage(args: ValidationArguments) {
-    return `Each item in media array must be an object with src (max ${MAX_MEDIA_STRING_LENGTH} characters), optional hasSpoiler boolean, and optional type string`;
+    return `Property "media" must be an array of objects. Example: [{"src": "https://example.com/image.jpg", "type": "image"}]. Each item must have src (max ${MAX_MEDIA_STRING_LENGTH} characters), optional hasSpoiler boolean, and optional type string`;
   }
 }
 

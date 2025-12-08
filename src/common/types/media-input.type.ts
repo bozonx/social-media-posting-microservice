@@ -6,11 +6,11 @@ export type MediaType = 'image' | 'video' | 'audio' | 'document';
 
 /**
  * MediaInput type
- * Supports:
- * - String: URL or Telegram file_id
- * - Object: With src and optional parameters
+ * Always an object with src and optional parameters
+ * For single media fields (cover, video, audio, document): hasSpoiler is optional
+ * For media arrays: type should be specified to override auto-detection
  */
-export type MediaInput = string | MediaInputObject;
+export type MediaInput = MediaInputObject;
 
 export interface MediaInputObject {
   /**

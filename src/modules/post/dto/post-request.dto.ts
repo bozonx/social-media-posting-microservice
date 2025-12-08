@@ -21,8 +21,6 @@ import {
   IsValidBodyLength,
   DEFAULT_MAX_BODY_LENGTH,
 } from '../../../common/validators/body-length.validator.js';
-import { Transform } from 'class-transformer';
-import { MediaInputHelper } from '../../../common/helpers/media-input.helper.js';
 
 /**
  * Post request DTO
@@ -67,31 +65,26 @@ export class PostRequestDto {
 
   /** Cover image (for image posts or article thumbnails) */
   @IsOptional()
-  @Transform(({ value }) => MediaInputHelper.sanitize(value))
   @IsMediaInput()
   cover?: MediaInput;
 
   /** Video file (for video posts) */
   @IsOptional()
-  @Transform(({ value }) => MediaInputHelper.sanitize(value))
   @IsMediaInput()
   video?: MediaInput;
 
   /** Audio file (for audio posts) */
   @IsOptional()
-  @Transform(({ value }) => MediaInputHelper.sanitize(value))
   @IsMediaInput()
   audio?: MediaInput;
 
   /** Document file (for document posts) */
   @IsOptional()
-  @Transform(({ value }) => MediaInputHelper.sanitize(value))
   @IsMediaInput()
   document?: MediaInput;
 
   /** Multiple media files (for album/gallery posts) */
   @IsOptional()
-  @Transform(({ value }) => MediaInputHelper.sanitizeArray(value))
   @IsMediaInputArray()
   media?: MediaInput[];
 

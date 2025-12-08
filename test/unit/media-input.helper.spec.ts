@@ -3,11 +3,7 @@ import { MediaInputHelper } from '@/common/helpers/media-input.helper.js';
 
 describe('MediaInputHelper', () => {
   describe('isString', () => {
-    it('should return true for string URL', () => {
-      expect(MediaInputHelper.isString('https://example.com/image.jpg')).toBe(true);
-    });
-
-    it('should return false for object', () => {
+    it('should return false for object (deprecated method)', () => {
       expect(MediaInputHelper.isString({ src: 'https://example.com/image.jpg' })).toBe(false);
     });
 
@@ -25,30 +21,16 @@ describe('MediaInputHelper', () => {
       expect(MediaInputHelper.isObject({ src: 'AgACAgIAAxkBAAIC...' })).toBe(true);
     });
 
-    it('should return false for string', () => {
-      expect(MediaInputHelper.isObject('https://example.com/image.jpg')).toBe(false);
-    });
-
     it('should return false for null', () => {
       expect(MediaInputHelper.isObject(null as any)).toBe(false);
     });
   });
 
   describe('getUrl', () => {
-    it('should return URL from string input', () => {
-      expect(MediaInputHelper.getUrl('https://example.com/image.jpg')).toBe(
-        'https://example.com/image.jpg',
-      );
-    });
-
     it('should return URL from object input', () => {
       expect(MediaInputHelper.getUrl({ src: 'https://example.com/image.jpg' })).toBe(
         'https://example.com/image.jpg',
       );
-    });
-
-    it('should return undefined for file_id string (non-URL)', () => {
-      expect(MediaInputHelper.getUrl('AgACAgIAAxkBAAIC...')).toBeUndefined();
     });
 
     it('should return undefined for object with fileId src', () => {
@@ -65,14 +47,6 @@ describe('MediaInputHelper', () => {
       expect(MediaInputHelper.getFileId({ src: 'AgACAgIAAxkBAAIC...' })).toBe(
         'AgACAgIAAxkBAAIC...',
       );
-    });
-
-    it('should return fileId from string input (non-URL)', () => {
-      expect(MediaInputHelper.getFileId('AgACAgIAAxkBAAIC...')).toBe('AgACAgIAAxkBAAIC...');
-    });
-
-    it('should return undefined for URL string', () => {
-      expect(MediaInputHelper.getFileId('https://example.com/image.jpg')).toBeUndefined();
     });
 
     it('should return undefined for object with URL src', () => {
@@ -96,10 +70,6 @@ describe('MediaInputHelper', () => {
     it('should return false when hasSpoiler is not set', () => {
       expect(MediaInputHelper.getHasSpoiler({ src: 'https://example.com/image.jpg' })).toBe(false);
     });
-
-    it('should return false for string input', () => {
-      expect(MediaInputHelper.getHasSpoiler('https://example.com/image.jpg')).toBe(false);
-    });
   });
 
   describe('getType', () => {
@@ -119,10 +89,6 @@ describe('MediaInputHelper', () => {
         } as any),
       ).toBeUndefined();
     });
-
-    it('should return undefined for string input', () => {
-      expect(MediaInputHelper.getType('https://example.com/image.jpg' as any)).toBeUndefined();
-    });
   });
 
   describe('toTelegramInput', () => {
@@ -138,16 +104,6 @@ describe('MediaInputHelper', () => {
       expect(result).toBe('https://example.com/image.jpg');
     });
 
-    it('should return URL for URL string input', () => {
-      const result = MediaInputHelper.toTelegramInput('https://example.com/image.jpg');
-      expect(result).toBe('https://example.com/image.jpg');
-    });
-
-    it('should return fileId for file_id string input (non-URL)', () => {
-      const result = MediaInputHelper.toTelegramInput('AgACAgIAAxkBAAIC...');
-      expect(result).toBe('AgACAgIAAxkBAAIC...');
-    });
-
     it('should throw error when src is missing', () => {
       expect(() => MediaInputHelper.toTelegramInput({} as any)).toThrow(
         'MediaInput must be either a string or an object with src property',
@@ -156,14 +112,17 @@ describe('MediaInputHelper', () => {
   });
 
   describe('isNotEmpty', () => {
-    it('should return true for non-empty array', () => {
+    it('should return true for non-empty array with objects', () => {
       expect(
-        MediaInputHelper.isNotEmpty(['https://example.com/1.jpg', 'https://example.com/2.jpg']),
+        MediaInputHelper.isNotEmpty([
+          { src: 'https://example.com/1.jpg' },
+          { src: 'https://example.com/2.jpg' },
+        ]),
       ).toBe(true);
     });
 
     it('should return true for array with single item', () => {
-      expect(MediaInputHelper.isNotEmpty(['https://example.com/1.jpg'])).toBe(true);
+      expect(MediaInputHelper.isNotEmpty([{ src: 'https://example.com/1.jpg' }])).toBe(true);
     });
 
     it('should return false for empty array', () => {
@@ -180,10 +139,6 @@ describe('MediaInputHelper', () => {
   });
 
   describe('isDefined', () => {
-    it('should return true for string', () => {
-      expect(MediaInputHelper.isDefined('https://example.com/image.jpg')).toBe(true);
-    });
-
     it('should return true for object', () => {
       expect(MediaInputHelper.isDefined({ src: 'https://example.com/image.jpg' })).toBe(true);
     });

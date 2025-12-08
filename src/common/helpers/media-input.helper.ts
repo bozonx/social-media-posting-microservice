@@ -21,11 +21,12 @@ export class MediaInputHelper {
 
   /**
    * Type guard to check if MediaInput is a string URL or file_id
+   * @deprecated MediaInput is now always an object, this method is kept for backward compatibility
    * @param input - MediaInput to check
-   * @returns True if input is a string
+   * @returns Always false as MediaInput is now always an object
    */
-  static isString(input: MediaInput): input is string {
-    return typeof input === 'string';
+  static isString(input: MediaInput): input is never {
+    return false;
   }
 
   /**
@@ -39,16 +40,11 @@ export class MediaInputHelper {
 
   /**
    * Extract URL from MediaInput
-   * Handles both string URLs and object format with src property
-   * Checks if the value is a valid URL
+   * Checks if the src value is a valid URL
    * @param input - MediaInput to extract URL from
    * @returns URL string if available, undefined otherwise
    */
   static getUrl(input: MediaInput): string | undefined {
-    if (this.isString(input)) {
-      // Only return as URL if it's a valid URL format
-      return this.isValidUrl(input) ? input : undefined;
-    }
     if (this.isObject(input)) {
       return this.isValidUrl(input.src) ? input.src : undefined;
     }
@@ -57,15 +53,11 @@ export class MediaInputHelper {
 
   /**
    * Extract Telegram file_id from MediaInput
-   * Available when MediaInput is in object format or a non-URL string
+   * Available when src is not a valid URL
    * @param input - MediaInput to extract file_id from
    * @returns Telegram file_id if available, undefined otherwise
    */
   static getFileId(input: MediaInput): string | undefined {
-    if (this.isString(input)) {
-      // If it's not a valid URL, treat it as file_id
-      return this.isValidUrl(input) ? undefined : input;
-    }
     if (this.isObject(input)) {
       return this.isValidUrl(input.src) ? undefined : input.src;
     }
@@ -122,12 +114,9 @@ export class MediaInputHelper {
   /**
    * Check if input has valid MediaInput structure
    * @param input - Input to check
-   * @returns True if input is a string or object with src
+   * @returns True if input is an object with src
    */
   static isValidShape(input: any): boolean {
-    if (this.isString(input)) {
-      return true;
-    }
     if (typeof input === 'object' && input !== null) {
       return typeof input.src === 'string' && input.src.length > 0;
     }
@@ -136,6 +125,7 @@ export class MediaInputHelper {
 
   /**
    * Sanitize media input
+   * @deprecated No longer needed as MediaInput is always an object
    * @param input - Input to sanitize
    * @returns MediaInput if valid, undefined otherwise
    */
@@ -148,6 +138,7 @@ export class MediaInputHelper {
 
   /**
    * Sanitize media input array
+   * @deprecated No longer needed as MediaInput is always an object
    * @param input - Input array to sanitize
    * @returns Array of valid MediaInput items or undefined if empty/invalid
    */

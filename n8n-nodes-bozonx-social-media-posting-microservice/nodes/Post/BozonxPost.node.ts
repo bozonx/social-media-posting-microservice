@@ -31,19 +31,29 @@ function parsePlatformOptions(value: string): Record<string, unknown> {
 	throw new ApplicationError('Platform Options must be an object');
 }
 
-function parseMediaField(value: string): string | Record<string, unknown> | unknown[] {
-	if (!value) return value;
+function parseMediaField(value: string): Record<string, unknown> | unknown[] | undefined {
+	if (!value) return undefined;
 	try {
-		// Try to parse as JSON, if fails - treat as string
+		// Try to parse as JSON
 		if (
 			typeof value === 'string' &&
 			(value.trim().startsWith('{') || value.trim().startsWith('['))
 		) {
-			return JSON.parse(value);
+			const parsed = JSON.parse(value);
+			// If it's an array, return as is (for media field)
+			if (Array.isArray(parsed)) {
+				return parsed;
+			}
+			// If it's an object, return as is
+			if (typeof parsed === 'object' && parsed !== null) {
+				return parsed;
+			}
 		}
-		return value;
+		// If it's a plain string (URL or file_id), wrap it in an object with src
+		return { src: value };
 	} catch {
-		return value;
+		// If parsing fails, treat as URL or file_id and wrap in object
+		return { src: value };
 	}
 }
 
@@ -156,7 +166,7 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				default: '',
 				description:
-					'Cover image URL, file_id (Telegram), or MediaInput object as JSON with "src" property (max 500 characters)',
+					'Cover image as JSON object with "src" property (URL or file_id). Example: {"src": "https://example.com/image.jpg"} or just URL/file_id string (will be auto-wrapped)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'post', 'image', 'article', 'story'],
@@ -171,7 +181,7 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				default: '',
 				description:
-					'Video URL, file_id (Telegram), or MediaInput object as JSON with "src" property (max 500 characters)',
+					'Video as JSON object with "src" property (URL or file_id). Example: {"src": "https://example.com/video.mp4"} or just URL/file_id string (will be auto-wrapped)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'video', 'short', 'story'],
@@ -186,7 +196,7 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				default: '',
 				description:
-					'Audio URL, file_id (Telegram), or MediaInput object as JSON with "src" property (max 500 characters)',
+					'Audio as JSON object with "src" property (URL or file_id). Example: {"src": "https://example.com/audio.mp3"} or just URL/file_id string (will be auto-wrapped)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'audio'],
@@ -201,7 +211,7 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				default: '',
 				description:
-					'Document URL, file_id (Telegram), or MediaInput object as JSON with "src" property (max 500 characters)',
+					'Document as JSON object with "src" property (URL or file_id). Example: {"src": "https://example.com/doc.pdf"} or just URL/file_id string (will be auto-wrapped)',
 				displayOptions: {
 					show: {
 						type: ['auto', 'document'],
@@ -217,7 +227,7 @@ export class BozonxPost implements INodeType {
 				typeOptions: { rows: 3 },
 				default: '',
 				description:
-					'JSON array of media URLs, file_ids (Telegram), or MediaInput objects with "src" property for albums (2-10 items)',
+					'JSON array of media objects with "src" property for albums (2-10 items). Example: [{"src": "url1"}, {"src": "url2"}]',
 				displayOptions: {
 					show: {
 						type: ['auto', 'album'],

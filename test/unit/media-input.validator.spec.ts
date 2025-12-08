@@ -19,25 +19,6 @@ describe('IsMediaInputConstraint', () => {
       expect(validator.validate(undefined, mockArgs)).toBe(true);
     });
 
-    it('should return true for valid URL string', () => {
-      expect(validator.validate('https://example.com/image.jpg', mockArgs)).toBe(true);
-    });
-
-    it('should return true for valid URL with different protocols', () => {
-      expect(validator.validate('http://example.com/image.jpg', mockArgs)).toBe(true);
-      expect(validator.validate('https://example.com/path/to/file.pdf', mockArgs)).toBe(true);
-    });
-
-    it('should return true for file_id string (non-URL)', () => {
-      expect(validator.validate('AgACAgIAAxkBAAIC...', mockArgs)).toBe(true);
-      expect(validator.validate('BAACAgIAAxkBAAIC...', mockArgs)).toBe(true);
-    });
-
-    it('should return false for empty string', () => {
-      expect(validator.validate('', mockArgs)).toBe(false);
-      expect(validator.validate('   ', mockArgs)).toBe(false);
-    });
-
     it('should return true for object with src (url)', () => {
       expect(validator.validate({ src: 'https://example.com/image.jpg' }, mockArgs)).toBe(true);
     });
@@ -55,6 +36,12 @@ describe('IsMediaInputConstraint', () => {
       ).toBe(true);
     });
 
+    it('should return true for object with type string', () => {
+      expect(
+        validator.validate({ src: 'https://example.com/image.jpg', type: 'image' }, mockArgs),
+      ).toBe(true);
+    });
+
     it('should return false for object without src', () => {
       expect(validator.validate({}, mockArgs)).toBe(false);
       expect(validator.validate({ hasSpoiler: true }, mockArgs)).toBe(false);
@@ -69,32 +56,38 @@ describe('IsMediaInputConstraint', () => {
       ).toBe(false);
     });
 
-    it('should return false for non-string, non-object values', () => {
+    it('should return false for object with non-string type', () => {
+      expect(
+        validator.validate({ src: 'https://example.com/image.jpg', type: 123 }, mockArgs),
+      ).toBe(false);
+    });
+
+    it('should return false for non-object values', () => {
+      expect(validator.validate('https://example.com/image.jpg', mockArgs)).toBe(false);
       expect(validator.validate(123, mockArgs)).toBe(false);
       expect(validator.validate(true, mockArgs)).toBe(false);
       expect(validator.validate([], mockArgs)).toBe(false);
-    });
-
-    it('should return false for strings exceeding max length (500 chars)', () => {
-      const longString = 'a'.repeat(501);
-      expect(validator.validate(longString, mockArgs)).toBe(false);
-    });
-
-    it('should return true for strings at max length (500 chars)', () => {
-      const maxLengthString = 'a'.repeat(500);
-      expect(validator.validate(maxLengthString, mockArgs)).toBe(true);
     });
 
     it('should return false for object with src exceeding max length', () => {
       const longUrl = 'https://example.com/' + 'a'.repeat(500);
       expect(validator.validate({ src: longUrl }, mockArgs)).toBe(false);
     });
+
+    it('should return true for object with src at max length (500 chars)', () => {
+      const maxLengthUrl = 'https://example.com/' + 'a'.repeat(480);
+      expect(validator.validate({ src: maxLengthUrl }, mockArgs)).toBe(true);
+    });
+
+    it('should return false for object with empty src', () => {
+      expect(validator.validate({ src: '' }, mockArgs)).toBe(false);
+    });
   });
 
   describe('defaultMessage', () => {
     it('should return correct error message', () => {
       expect(validator.defaultMessage(mockArgs)).toBe(
-        'MediaInput must be a string (URL or file_id, max 500 characters) or an object with src (max 500 characters) and optional hasSpoiler boolean',
+        'MediaInput must be an object with src (max 500 characters), optional hasSpoiler boolean, and optional type string',
       );
     });
   });
@@ -114,12 +107,6 @@ describe('IsMediaInputArrayConstraint', () => {
       expect(validator.validate(undefined, mockArgs)).toBe(true);
     });
 
-    it('should return true for array of valid URL strings', () => {
-      expect(
-        validator.validate(['https://example.com/1.jpg', 'https://example.com/2.jpg'], mockArgs),
-      ).toBe(true);
-    });
-
     it('should return true for array of valid objects', () => {
       expect(
         validator.validate(
@@ -133,13 +120,12 @@ describe('IsMediaInputArrayConstraint', () => {
       ).toBe(true);
     });
 
-    it('should return true for mixed array of strings and objects', () => {
+    it('should return true for array of objects with type', () => {
       expect(
         validator.validate(
           [
-            'https://example.com/1.jpg',
-            { src: 'https://example.com/2.jpg' },
-            { src: 'AgACAgIAAxkBAAIC...' },
+            { src: 'https://example.com/1.jpg', type: 'image' },
+            { src: 'https://example.com/2.mp4', type: 'video' },
           ],
           mockArgs,
         ),
@@ -155,22 +141,29 @@ describe('IsMediaInputArrayConstraint', () => {
       expect(validator.validate({ src: 'https://example.com/image.jpg' }, mockArgs)).toBe(false);
     });
 
-    it('should return true for array with file_id strings', () => {
-      expect(validator.validate(['https://example.com/1.jpg', 'AgACAgIAAxkBAAIC...'], mockArgs)).toBe(true);
-      expect(validator.validate(['AgACAgIAAxkBAAIC...', 'BAACAgIAAxkBAAIC...'], mockArgs)).toBe(true);
+    it('should return false if any item is invalid', () => {
+      expect(
+        validator.validate([{ src: 'https://example.com/1.jpg' }, ''], mockArgs),
+      ).toBe(false);
+      expect(
+        validator.validate([{ src: 'https://example.com/1.jpg' }, {}], mockArgs),
+      ).toBe(false);
+      expect(
+        validator.validate([{ src: 'https://example.com/1.jpg' }, 123], mockArgs),
+      ).toBe(false);
     });
 
-    it('should return false if success is invalid', () => {
-      expect(validator.validate(['https://example.com/1.jpg', ''], mockArgs)).toBe(false);
-      expect(validator.validate(['https://example.com/1.jpg', {}], mockArgs)).toBe(false);
-      expect(validator.validate(['https://example.com/1.jpg', 123], mockArgs)).toBe(false);
+    it('should return false for array with string items', () => {
+      expect(
+        validator.validate(['https://example.com/1.jpg', 'https://example.com/2.jpg'], mockArgs),
+      ).toBe(false);
     });
   });
 
   describe('defaultMessage', () => {
     it('should return correct error message', () => {
       expect(validator.defaultMessage(mockArgs)).toBe(
-        'Each item in media array must be a string (URL or file_id, max 500 characters) or an object with src (max 500 characters) and optional hasSpoiler boolean',
+        'Each item in media array must be an object with src (max 500 characters), optional hasSpoiler boolean, and optional type string',
       );
     });
   });

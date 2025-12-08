@@ -19,7 +19,7 @@ describe('TelegramTypeDetector', () => {
     const request: PostRequestDto = {
       ...baseRequest,
       type: PostType.VIDEO,
-      cover: 'https://example.com/image.jpg',
+      cover: { src: 'https://example.com/image.jpg' },
     };
 
     const result = detector.detectType(request);
@@ -31,7 +31,7 @@ describe('TelegramTypeDetector', () => {
     const request: PostRequestDto = {
       ...baseRequest,
       type: PostType.AUTO,
-      media: ['https://example.com/1.jpg', 'https://example.com/2.jpg'],
+      media: [{ src: 'https://example.com/1.jpg' }, { src: 'https://example.com/2.jpg' }],
     };
 
     const result = detector.detectType(request);
@@ -43,7 +43,7 @@ describe('TelegramTypeDetector', () => {
     const request: PostRequestDto = {
       ...baseRequest,
       type: PostType.AUTO,
-      document: 'https://example.com/file.pdf',
+      document: { src: 'https://example.com/file.pdf' },
     };
 
     const result = detector.detectType(request);
@@ -55,7 +55,7 @@ describe('TelegramTypeDetector', () => {
     const request: PostRequestDto = {
       ...baseRequest,
       type: PostType.AUTO,
-      audio: 'https://example.com/audio.mp3',
+      audio: { src: 'https://example.com/audio.mp3' },
     };
 
     const result = detector.detectType(request);
@@ -67,7 +67,7 @@ describe('TelegramTypeDetector', () => {
     const request: PostRequestDto = {
       ...baseRequest,
       type: PostType.AUTO,
-      video: 'https://example.com/video.mp4',
+      video: { src: 'https://example.com/video.mp4' },
     };
 
     const result = detector.detectType(request);
@@ -79,7 +79,7 @@ describe('TelegramTypeDetector', () => {
     const request: PostRequestDto = {
       ...baseRequest,
       type: PostType.AUTO,
-      cover: 'https://example.com/image.jpg',
+      cover: { src: 'https://example.com/image.jpg' },
     };
 
     const result = detector.detectType(request);
@@ -102,11 +102,11 @@ describe('TelegramTypeDetector', () => {
     const request: PostRequestDto = {
       ...baseRequest,
       type: PostType.AUTO,
-      media: ['https://example.com/1.jpg'],
-      document: 'https://example.com/file.pdf',
-      audio: 'https://example.com/audio.mp3',
-      video: 'https://example.com/video.mp4',
-      cover: 'https://example.com/cover.jpg',
+      media: [{ src: 'https://example.com/1.jpg' }],
+      document: { src: 'https://example.com/file.pdf' },
+      audio: { src: 'https://example.com/audio.mp3' },
+      video: { src: 'https://example.com/video.mp4' },
+      cover: { src: 'https://example.com/cover.jpg' },
     };
 
     const result = detector.detectType(request);
@@ -118,10 +118,10 @@ describe('TelegramTypeDetector', () => {
     const request: PostRequestDto = {
       ...baseRequest,
       type: PostType.AUTO,
-      document: 'https://example.com/file.pdf',
-      audio: 'https://example.com/audio.mp3',
-      video: 'https://example.com/video.mp4',
-      cover: 'https://example.com/cover.jpg',
+      document: { src: 'https://example.com/file.pdf' },
+      audio: { src: 'https://example.com/audio.mp3' },
+      video: { src: 'https://example.com/video.mp4' },
+      cover: { src: 'https://example.com/cover.jpg' },
     };
 
     const result = detector.detectType(request);
@@ -133,9 +133,9 @@ describe('TelegramTypeDetector', () => {
     const request: PostRequestDto = {
       ...baseRequest,
       type: PostType.AUTO,
-      audio: 'https://example.com/audio.mp3',
-      video: 'https://example.com/video.mp4',
-      cover: 'https://example.com/cover.jpg',
+      audio: { src: 'https://example.com/audio.mp3' },
+      video: { src: 'https://example.com/video.mp4' },
+      cover: { src: 'https://example.com/cover.jpg' },
     };
 
     const result = detector.detectType(request);
@@ -147,8 +147,8 @@ describe('TelegramTypeDetector', () => {
     const request: PostRequestDto = {
       ...baseRequest,
       type: PostType.AUTO,
-      video: 'https://example.com/video.mp4',
-      cover: 'https://example.com/cover.jpg',
+      video: { src: 'https://example.com/video.mp4' },
+      cover: { src: 'https://example.com/cover.jpg' },
     };
 
     const result = detector.detectType(request);
@@ -196,7 +196,7 @@ describe('TelegramTypeDetector', () => {
       ...baseRequest,
       type: PostType.AUTO,
       media: [],
-      cover: 'https://example.com/image.jpg',
+      cover: { src: 'https://example.com/image.jpg' },
     };
 
     const result = detector.detectType(request);

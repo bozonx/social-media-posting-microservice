@@ -12,11 +12,11 @@ describe('MediaPriorityValidator', () => {
     it('should detect ALBUM (Priority 1) when media[] is present', () => {
         const request: PostRequestDto = {
             ...baseRequest,
-            media: ['https://example.com/1.jpg'],
+            media: [{ src: 'https://example.com/1.jpg' }],
             // Lower priority fields also present
-            document: 'https://example.com/file.pdf',
-            audio: 'https://example.com/audio.mp3',
-            video: 'https://example.com/video.mp4',
+            document: { src: 'https://example.com/file.pdf' },
+            audio: { src: 'https://example.com/audio.mp3' },
+            video: { src: 'https://example.com/video.mp4' },
         };
 
         expect(MediaPriorityValidator.detectPrimaryMediaField(request)).toBe(PostType.ALBUM);
@@ -25,10 +25,10 @@ describe('MediaPriorityValidator', () => {
     it('should detect DOCUMENT (Priority 2) when document is present and no media[]', () => {
         const request: PostRequestDto = {
             ...baseRequest,
-            document: 'https://example.com/file.pdf',
+            document: { src: 'https://example.com/file.pdf' },
             // Lower priority fields also present
-            audio: 'https://example.com/audio.mp3',
-            video: 'https://example.com/video.mp4',
+            audio: { src: 'https://example.com/audio.mp3' },
+            video: { src: 'https://example.com/video.mp4' },
         };
 
         expect(MediaPriorityValidator.detectPrimaryMediaField(request)).toBe(PostType.DOCUMENT);
@@ -37,9 +37,9 @@ describe('MediaPriorityValidator', () => {
     it('should detect AUDIO (Priority 3) when audio is present and no higher priority fields', () => {
         const request: PostRequestDto = {
             ...baseRequest,
-            audio: 'https://example.com/audio.mp3',
+            audio: { src: 'https://example.com/audio.mp3' },
             // Lower priority fields also present
-            video: 'https://example.com/video.mp4',
+            video: { src: 'https://example.com/video.mp4' },
         };
 
         expect(MediaPriorityValidator.detectPrimaryMediaField(request)).toBe(PostType.AUDIO);
@@ -48,7 +48,7 @@ describe('MediaPriorityValidator', () => {
     it('should detect VIDEO (Priority 4) when video is present and no higher priority fields', () => {
         const request: PostRequestDto = {
             ...baseRequest,
-            video: 'https://example.com/video.mp4',
+            video: { src: 'https://example.com/video.mp4' },
         };
 
         expect(MediaPriorityValidator.detectPrimaryMediaField(request)).toBe(PostType.VIDEO);
@@ -57,7 +57,7 @@ describe('MediaPriorityValidator', () => {
     it('should return null when no priority fields are present (only cover)', () => {
         const request: PostRequestDto = {
             ...baseRequest,
-            cover: 'https://example.com/image.jpg',
+            cover: { src: 'https://example.com/image.jpg' },
         };
 
         expect(MediaPriorityValidator.detectPrimaryMediaField(request)).toBeNull();

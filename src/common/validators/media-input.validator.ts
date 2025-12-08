@@ -12,15 +12,13 @@ const MAX_MEDIA_STRING_LENGTH = 500;
 
 /**
  * Validator constraint for MediaInput type
- * Validates that a value is either a valid URL string or an object with url/fileId
+ * Validates that a value is an object with src property
  */
 @ValidatorConstraint({ name: 'isMediaInput', async: false })
 export class IsMediaInputConstraint implements ValidatorConstraintInterface {
   /**
    * Validates MediaInput value
-   * Accepts:
-   * - A string (URL or Telegram file_id, max 500 characters)
-   * - An object with url/fileId properties (max 500 characters each)
+   * Accepts only an object with src property (max 500 characters)
    * @param value - Value to validate
    * @param args - Validation arguments
    * @returns True if valid, false otherwise
@@ -31,32 +29,26 @@ export class IsMediaInputConstraint implements ValidatorConstraintInterface {
       return true;
     }
 
-    // If it's a string, accept both URLs and file_id
-    // file_id is a non-empty string (e.g., "AgACAgIAAxkBAAIC...")
-    if (typeof value === 'string') {
-      const trimmed = value.trim();
-      return trimmed.length > 0 && trimmed.length <= MAX_MEDIA_STRING_LENGTH;
-    }
-
-    // If it's an object, it should have src property
+    // Must be an object with src property
     if (typeof value === 'object' && value !== null) {
       const hasSrc = typeof value.src === 'string';
       const hasSpoiler = value.hasSpoiler === undefined || typeof value.hasSpoiler === 'boolean';
+      const hasType = value.type === undefined || typeof value.type === 'string';
 
       // Validate string length
       if (hasSrc && value.src.length > MAX_MEDIA_STRING_LENGTH) {
         return false;
       }
 
-      // Must have src, and hasSpoiler must be boolean if present
-      return hasSrc && value.src.length > 0 && hasSpoiler;
+      // Must have src, and hasSpoiler/type must be correct types if present
+      return hasSrc && value.src.length > 0 && hasSpoiler && hasType;
     }
 
     return false;
   }
 
   defaultMessage(args: ValidationArguments) {
-    return `MediaInput must be a string (URL or file_id, max ${MAX_MEDIA_STRING_LENGTH} characters) or an object with src (max ${MAX_MEDIA_STRING_LENGTH} characters) and optional hasSpoiler boolean`;
+    return `MediaInput must be an object with src (max ${MAX_MEDIA_STRING_LENGTH} characters), optional hasSpoiler boolean, and optional type string`;
   }
 }
 
@@ -104,7 +96,7 @@ export class IsMediaInputArrayConstraint implements ValidatorConstraintInterface
   }
 
   defaultMessage(args: ValidationArguments) {
-    return `Each item in media array must be a string (URL or file_id, max ${MAX_MEDIA_STRING_LENGTH} characters) or an object with src (max ${MAX_MEDIA_STRING_LENGTH} characters) and optional hasSpoiler boolean`;
+    return `Each item in media array must be an object with src (max ${MAX_MEDIA_STRING_LENGTH} characters), optional hasSpoiler boolean, and optional type string`;
   }
 }
 

@@ -9,15 +9,15 @@ importers:
   .:
     dependencies:
       js-yaml:
-        specifier: ^4.1.0
+        specifier: ^4.1.1
         version: 4.1.1
       n8n-workflow:
         specifier: '*'
         version: 1.120.0
     devDependencies:
       '@n8n/node-cli':
-        specifier: ^0.16.0
-        version: 0.16.0(@typescript-eslint/utils@8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
+        specifier: ^0.17.0
+        version: 0.17.0(@typescript-eslint/utils@8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
       '@types/js-yaml':
         specifier: ^4.0.9
         version: 4.0.9
@@ -25,8 +25,8 @@ importers:
         specifier: 9.39.1
         version: 9.39.1(jiti@2.6.1)
       prettier:
-        specifier: 3.6.2
-        version: 3.6.2
+        specifier: 3.7.4
+        version: 3.7.4
       release-it:
         specifier: ^19.0.6
         version: 19.0.6
@@ -254,13 +254,13 @@ packages:
   '@n8n/errors@0.5.0':
     resolution: {integrity: sha512-0Vk1Eb3Uor+zeF/WVnuhFgJc51wEBTZNBlVQy3mvyr3sGmW86bP1jA7wmRsd0DZbswPwN0vNOl/TmkDTEopOtQ==}
 
-  '@n8n/eslint-plugin-community-nodes@0.6.0':
-    resolution: {integrity: sha512-VafBm+pHvOiO/DPZfdyYBHWS6ZEeu3jMwK3E1lxE7rXUbLlRoqW3YL4jnJ5R8JIChMVcZeoybGALt1lnuixyjA==}
+  '@n8n/eslint-plugin-community-nodes@0.7.0':
+    resolution: {integrity: sha512-Mc4d1jTvvXXtddxqZwGCnG747osrFfDls9AHeDFywQJGMBAIT5D6NQP/7A5X/qWNZHAkATP6xsMWhl5o6pTX8w==}
     peerDependencies:
       eslint: '>= 9'
 
-  '@n8n/node-cli@0.16.0':
-    resolution: {integrity: sha512-GLQanc6QxIGDQtLXJfQojDqg/GgPrk59ov+eF6fuQTSPsgC17DU/wC7UvUoby2oBcS2vNHrMY3G0KMiGWha4cw==}
+  '@n8n/node-cli@0.17.0':
+    resolution: {integrity: sha512-/bcw5zfP4rVYnWR38X6D7juUHMmjT3MCGgGoVv/O+JAkJX7vz7CxEtw7knKJ/0msMU3UYOzy+9os2WkCennQtA==}
     hasBin: true
     peerDependencies:
       eslint: '>= 9'
@@ -1652,6 +1652,11 @@ packages:
     engines: {node: '>=14'}
     hasBin: true
 
+  prettier@3.7.4:
+    resolution: {integrity: sha512-v6UNi1+3hSlVvv8fSaoUbggEM5VErKmmpGA7Pl3HF8V6uKY7rvClBOJlH6yNwQtfTueNkGVpOv/mtWL9L4bgRA==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   prompts@2.4.2:
     resolution: {integrity: sha512-NxNv/kLguCA7p3jE8oL2aEBsrJWgAakBpgmgK6lpPWV+WuOmY6r2/zbAVnP+T8bQlA0nzHXSJSJW0Hq7ylaD2Q==}
     engines: {node: '>= 6'}
@@ -2207,7 +2212,7 @@ snapshots:
     dependencies:
       callsites: 3.1.0
 
-  '@n8n/eslint-plugin-community-nodes@0.6.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)':
+  '@n8n/eslint-plugin-community-nodes@0.7.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)':
     dependencies:
       '@typescript-eslint/utils': 8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
       eslint: 9.39.1(jiti@2.6.1)
@@ -2216,10 +2221,10 @@ snapshots:
       - supports-color
       - typescript
 
-  '@n8n/node-cli@0.16.0(@typescript-eslint/utils@8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)':
+  '@n8n/node-cli@0.17.0(@typescript-eslint/utils@8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)':
     dependencies:
       '@clack/prompts': 0.11.0
-      '@n8n/eslint-plugin-community-nodes': 0.6.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
+      '@n8n/eslint-plugin-community-nodes': 0.7.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
       '@oclif/core': 4.8.0
       change-case: 5.4.4
       eslint: 9.39.1(jiti@2.6.1)
@@ -3672,6 +3677,8 @@ snapshots:
   prelude-ls@1.2.1: {}
 
   prettier@3.6.2: {}
+
+  prettier@3.7.4: {}
 
   prompts@2.4.2:
     dependencies:

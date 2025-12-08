@@ -12,49 +12,68 @@ import {
 } from 'n8n-workflow';
 import * as yaml from 'js-yaml';
 
-function parsePlatformOptions(value: string): Record<string, unknown> {
+/**
+ * Universal YAML/JSON parser for options and media fields
+ * - If value is a string: try YAML first, then JSON validation
+ * - If any other type: convert to JSON using JSON.stringify
+ */
+function parseUniversalField(value: unknown, fieldName: string): Record<string, unknown> | unknown[] {
 	if (!value) return {};
-	let result: unknown;
-	try {
-		result = JSON.parse(value);
-	} catch {
+
+	// If value is a string, try YAML first, then JSON
+	if (typeof value === 'string') {
+		// First, try to parse as YAML
 		try {
-			result = yaml.load(value);
+			const yamlResult = yaml.load(value);
+			// Validate that result is object or array
+			if (typeof yamlResult === 'object' && yamlResult !== null) {
+				return yamlResult as Record<string, unknown> | unknown[];
+			}
 		} catch {
-			throw new ApplicationError('Platform Options must be valid JSON or YAML');
+			// YAML parsing failed, try JSON
 		}
+
+		// Try to parse as JSON
+		try {
+			const jsonResult = JSON.parse(value);
+			// Validate that result is object or array
+			if (typeof jsonResult === 'object' && jsonResult !== null) {
+				return jsonResult as Record<string, unknown> | unknown[];
+			}
+		} catch {
+			throw new ApplicationError(`${fieldName} must be valid JSON or YAML`);
+		}
+
+		throw new ApplicationError(`${fieldName} must be an object or array`);
 	}
 
-	if (typeof result === 'object' && result !== null && !Array.isArray(result)) {
-		return result as Record<string, unknown>;
+	// If value is any other type (passed via expression), convert to JSON
+	try {
+		const stringified = JSON.stringify(value);
+		const parsed = JSON.parse(stringified);
+		if (typeof parsed === 'object' && parsed !== null) {
+			return parsed as Record<string, unknown> | unknown[];
+		}
+		throw new ApplicationError(`${fieldName} must be an object or array`);
+	} catch {
+		throw new ApplicationError(`${fieldName} could not be converted to JSON`);
 	}
-	throw new ApplicationError('Platform Options must be an object');
 }
 
-function parseMediaField(value: string): Record<string, unknown> | unknown[] | undefined {
+/**
+ * Parse media field using universal parser
+ * Wraps the result in {src: value} if it's a plain string
+ */
+function parseMediaField(value: unknown): Record<string, unknown> | unknown[] | undefined {
 	if (!value) return undefined;
-	try {
-		// Try to parse as JSON
-		if (
-			typeof value === 'string' &&
-			(value.trim().startsWith('{') || value.trim().startsWith('['))
-		) {
-			const parsed = JSON.parse(value);
-			// If it's an array, return as is (for media field)
-			if (Array.isArray(parsed)) {
-				return parsed;
-			}
-			// If it's an object, return as is
-			if (typeof parsed === 'object' && parsed !== null) {
-				return parsed;
-			}
-		}
-		// If it's a plain string (URL or file_id), wrap it in an object with src
-		return { src: value };
-	} catch {
-		// If parsing fails, treat as URL or file_id and wrap in object
+
+	// If it's a string that doesn't look like JSON/YAML, wrap it
+	if (typeof value === 'string' && !value.trim().startsWith('{') && !value.trim().startsWith('[')) {
 		return { src: value };
 	}
+
+	// Otherwise use universal parser
+	return parseUniversalField(value, 'Media');
 }
 
 export class BozonxPost implements INodeType {
@@ -455,10 +474,10 @@ export class BozonxPost implements INodeType {
 					if (value === '' || value === undefined || value === null) {
 						continue;
 					}
-					// Parse JSON fields
+					// Parse JSON/YAML fields
 					if (key === 'options') {
 						try {
-							requestBody[key] = parsePlatformOptions(value as string);
+							requestBody[key] = parseUniversalField(value, 'Platform Options');
 						} catch (error) {
 							if (this.continueOnFail()) {
 								throw error; // Let the outer try/catch handle it or return error item

@@ -44,7 +44,7 @@ export class YamlConfigDto {
   @IsInt()
   @Min(1)
   @Max(600)
-  requestTimeoutSecs!: number;
+  requestTimeoutSecs: number = 60;
 
   /**
    * Number of retry attempts on error
@@ -53,7 +53,7 @@ export class YamlConfigDto {
   @IsInt()
   @Min(0)
   @Max(10)
-  retryAttempts!: number;
+  retryAttempts: number = 3;
 
   /**
    * Delay between retry attempts in milliseconds
@@ -62,7 +62,7 @@ export class YamlConfigDto {
   @IsInt()
   @Min(0)
   @Max(60000)
-  retryDelayMs!: number;
+  retryDelayMs: number = 1000;
 
   /**
    * Time-to-live for idempotency records in cache (minutes)
@@ -71,14 +71,14 @@ export class YamlConfigDto {
   @IsInt()
   @Min(1)
   @Max(1440)
-  idempotencyTtlMinutes!: number;
+  idempotencyTtlMinutes: number = 10;
 
   /**
    * Named account configurations
    */
   @IsOptional()
   @IsObject()
-  accounts?: Record<string, any>;
+  accounts: Record<string, any> = {};
 }
 
 /**

@@ -131,13 +131,19 @@ describe('YamlConfigDto', () => {
       expect(() => validateYamlConfig(config)).toThrow(/idempotencyTtlMinutes/);
     });
 
-    it('should reject missing required fields', () => {
+    it('should apply default values for missing fields', () => {
       const config = {
-        requestTimeoutSecs: 60,
-        // Missing other required fields
+        // Empty config or partial config
       };
 
-      expect(() => validateYamlConfig(config)).toThrow(/validation error/);
+      const result = validateYamlConfig(config);
+
+      expect(result).toBeInstanceOf(YamlConfigDto);
+      expect(result.requestTimeoutSecs).toBe(60);
+      expect(result.retryAttempts).toBe(3);
+      expect(result.retryDelayMs).toBe(1000);
+      expect(result.idempotencyTtlMinutes).toBe(10);
+      expect(result.accounts).toEqual({});
     });
 
     it('should accept edge case values', () => {

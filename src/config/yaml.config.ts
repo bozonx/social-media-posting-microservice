@@ -55,11 +55,22 @@ export default registerAs(YAML_CONFIG_NAMESPACE, () => {
     const configPath = process.env.CONFIG_PATH || join(process.cwd(), 'config.yaml');
 
     try {
-        const fileContent = readFileSync(configPath, 'utf8');
-        const rawConfig = yaml.load(fileContent);
+        let rawConfig: any = {};
+        try {
+            const fileContent = readFileSync(configPath, 'utf8');
+            rawConfig = yaml.load(fileContent) || {};
+        } catch (error: any) {
+            if (error.code !== 'ENOENT') {
+                throw error;
+            }
+            // If file doesn't exist, we use empty config to rely on defaults
+            rawConfig = {};
+        }
+
         const configWithEnv = substituteEnvVariables(rawConfig);
 
         // Validate configuration structure and values
+        // plainToClass will apply default values from YamlConfigDto instance
         const validatedConfig = validateYamlConfig(configWithEnv);
 
         return validatedConfig;

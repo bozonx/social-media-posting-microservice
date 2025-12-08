@@ -9,7 +9,7 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyDefault: 500000,
+        maxBodyLimit: 500000,
 
         accounts: {
           test_channel: {
@@ -34,7 +34,7 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyDefault: 500000,
+        maxBodyLimit: 500000,
         platforms: {},
         accounts: {},
       };
@@ -48,7 +48,7 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyDefault: 500000,
+        maxBodyLimit: 500000,
 
         accounts: {},
       };
@@ -62,7 +62,7 @@ describe('YamlConfigDto', () => {
         retryAttempts: -1,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyDefault: 500000,
+        maxBodyLimit: 500000,
 
         accounts: {},
       };
@@ -76,7 +76,7 @@ describe('YamlConfigDto', () => {
         retryAttempts: 11,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyDefault: 500000,
+        maxBodyLimit: 500000,
 
         accounts: {},
       };
@@ -90,7 +90,7 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: -1,
         idempotencyTtlMinutes: 10,
-        maxBodyDefault: 500000,
+        maxBodyLimit: 500000,
 
         accounts: {},
       };
@@ -104,7 +104,7 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 60001,
         idempotencyTtlMinutes: 10,
-        maxBodyDefault: 500000,
+        maxBodyLimit: 500000,
 
         accounts: {},
       };
@@ -118,7 +118,7 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 0,
-        maxBodyDefault: 500000,
+        maxBodyLimit: 500000,
 
         accounts: {},
       };
@@ -132,7 +132,7 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 1441,
-        maxBodyDefault: 500000,
+        maxBodyLimit: 500000,
 
         accounts: {},
       };
@@ -140,32 +140,32 @@ describe('YamlConfigDto', () => {
       expect(() => validateYamlConfig(config)).toThrow(/idempotencyTtlMinutes/);
     });
 
-    it('should reject maxBodyDefault below minimum', () => {
+    it('should reject maxBodyLimit below minimum', () => {
       const config = {
         requestTimeoutSecs: 60,
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyDefault: 0,
+        maxBodyLimit: 0,
 
         accounts: {},
       };
 
-      expect(() => validateYamlConfig(config)).toThrow(/maxBodyDefault/);
+      expect(() => validateYamlConfig(config)).toThrow(/maxBodyLimit/);
     });
 
-    it('should reject maxBodyDefault above maximum', () => {
+    it('should reject maxBodyLimit above maximum', () => {
       const config = {
         requestTimeoutSecs: 60,
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyDefault: 500001,
+        maxBodyLimit: 500001,
 
         accounts: {},
       };
 
-      expect(() => validateYamlConfig(config)).toThrow(/maxBodyDefault/);
+      expect(() => validateYamlConfig(config)).toThrow(/maxBodyLimit/);
     });
 
     it('should reject missing required fields', () => {
@@ -183,7 +183,7 @@ describe('YamlConfigDto', () => {
         retryAttempts: 0, // Min
         retryDelayMs: 0, // Min
         idempotencyTtlMinutes: 1, // Min
-        maxBodyDefault: 1, // Min
+        maxBodyLimit: 1, // Min
 
         accounts: {},
       };
@@ -199,7 +199,7 @@ describe('YamlConfigDto', () => {
         retryAttempts: 10, // Max
         retryDelayMs: 60000, // Max
         idempotencyTtlMinutes: 1440, // Max
-        maxBodyDefault: 500000, // Max
+        maxBodyLimit: 500000, // Max
 
         accounts: {},
       };
@@ -215,7 +215,7 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyDefault: 500000,
+        maxBodyLimit: 500000,
         accounts: {
           broken_channel: {
             // Missing platform
@@ -237,7 +237,7 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyDefault: 500000,
+        maxBodyLimit: 500000,
         accounts: {
           broken_channel: {
             platform: 123,
@@ -251,6 +251,64 @@ describe('YamlConfigDto', () => {
       expect(() => validateYamlConfig(config)).toThrow(
         /YAML config validation error: .*broken_channel/i,
       );
+    });
+
+    it('should validate account with maxBody', () => {
+      const config = {
+        requestTimeoutSecs: 60,
+        retryAttempts: 3,
+        retryDelayMs: 1000,
+        idempotencyTtlMinutes: 10,
+        maxBodyLimit: 500000,
+        accounts: {
+          test_channel: {
+            platform: 'telegram',
+            auth: { apiKey: 'test' },
+            maxBody: 100000,
+          },
+        },
+      };
+
+      const result = validateYamlConfig(config);
+      expect(result.accounts.test_channel.maxBody).toBe(100000);
+    });
+
+    it('should reject account with maxBody below minimum', () => {
+      const config = {
+        requestTimeoutSecs: 60,
+        retryAttempts: 3,
+        retryDelayMs: 1000,
+        idempotencyTtlMinutes: 10,
+        maxBodyLimit: 500000,
+        accounts: {
+          test_channel: {
+            platform: 'telegram',
+            auth: { apiKey: 'test' },
+            maxBody: 0,
+          },
+        },
+      };
+
+      expect(() => validateYamlConfig(config)).toThrow(/test_channel/);
+    });
+
+    it('should reject account with maxBody above maximum', () => {
+      const config = {
+        requestTimeoutSecs: 60,
+        retryAttempts: 3,
+        retryDelayMs: 1000,
+        idempotencyTtlMinutes: 10,
+        maxBodyLimit: 500000,
+        accounts: {
+          test_channel: {
+            platform: 'telegram',
+            auth: { apiKey: 'test' },
+            maxBody: 500001,
+          },
+        },
+      };
+
+      expect(() => validateYamlConfig(config)).toThrow(/test_channel/);
     });
   });
 });

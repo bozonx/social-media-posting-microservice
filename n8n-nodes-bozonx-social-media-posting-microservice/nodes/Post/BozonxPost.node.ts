@@ -353,7 +353,8 @@ export class BozonxPost implements INodeType {
 						name: 'maxBody',
 						type: 'number',
 						default: 500000,
-						description: 'Maximum body length in characters (max 500,000)',
+						description:
+							'Maximum body length in characters (max 500,000). Overrides the maxBody value from account configuration in config.yaml.',
 					},
 					{
 						displayName: 'Title',

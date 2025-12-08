@@ -45,7 +45,7 @@ Publish content to a social media platform.
 | `postLanguage` | string | No | Content language code. Passed as-is to supported platforms (max 50 characters) |
 | `mode` | string | No | Mode: `publish`, `draft`. Only for supported platforms |
 | `idempotencyKey` | string | No | Key to prevent duplicates (max 1000 characters) |
-| `maxBody` | number | No | Override default max body length (max 500,000 characters) |
+| `maxBody` | number | No | Override max body length from account config (max 500,000 characters). Takes priority over account's `maxBody` setting |
 
 **Note:** Either `account` or `auth` must be provided.
 
@@ -456,7 +456,7 @@ Telegram API enforces the following limits:
 | Album items | Telegram limit: 2-10 files |
 | File size (URL) | 50 MB |
 
-**Note:** The microservice validates body length based on `maxBody` parameter (or `maxBodyDefault` from config, default 500,000 characters). Telegram's specific limits (4096 for text, 1024 for captions) are enforced by Telegram API itself.
+**Note:** The microservice validates body length based on `maxBody` parameter. Priority order: request `maxBody` > account `maxBody` > `maxBodyLimit` (absolute limit, default 500,000 characters). Telegram's specific limits (4096 for text, 1024 for captions) are enforced by Telegram API itself.
 
 ### Ignored Fields
 

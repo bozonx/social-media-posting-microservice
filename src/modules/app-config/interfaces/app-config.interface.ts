@@ -12,8 +12,8 @@ export interface AppConfig {
   retryDelayMs: number;
   /** Time-to-live for idempotency records in cache (minutes) */
   idempotencyTtlMinutes: number;
-  /** Default maximum body length (characters) */
-  maxBodyDefault: number;
+  /** Absolute maximum body length limit (characters) */
+  maxBodyLimit: number;
 
   /** Named account configurations */
   accounts: Record<string, AccountConfig>;
@@ -32,6 +32,9 @@ export interface AccountConfig {
 
   /** Platform-specific channel/chat identifier (e.g., Telegram channel username or chat ID) */
   channelId?: string | number;
+  /** Maximum body length for this account (characters) */
+  maxBody?: number;
+
   /** Additional provider-specific settings */
   [key: string]: any;
 }

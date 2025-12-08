@@ -139,15 +139,15 @@ requestTimeoutSecs: 60
 retryAttempts: 3
 retryDelayMs: 1000
 idempotencyTtlMinutes: 10
-maxBodyDefault: 500000
+maxBodyLimit: 500000
 
 accounts:
   my_account:
     platform: telegram
-
     auth:
       apiKey: ${MY_TELEGRAM_TOKEN}
     channelId: "@my_channel"
+    maxBody: 100000  # Optional: account-specific limit (can be overridden in request)
 ```
 
 ## Docker

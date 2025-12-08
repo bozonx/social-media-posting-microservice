@@ -65,8 +65,6 @@ export class AppConfigService {
     return this.config.accounts || {};
   }
 
-
-
   /**
    * Get incoming request timeout
    */
@@ -77,7 +75,6 @@ export class AppConfigService {
   /**
    * Get default body conversion setting
    */
-
 
   /**
    * Get retry attempts
@@ -101,10 +98,9 @@ export class AppConfigService {
   }
 
   /**
-   * Get default maximum body length
+   * Get absolute maximum body length limit
    */
-  get maxBodyDefault(): number {
-    return this.config.maxBodyDefault;
+  get maxBodyLimit(): number {
+    return this.config.maxBodyLimit;
   }
-
 }

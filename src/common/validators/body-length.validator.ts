@@ -1,42 +1,43 @@
 import {
-    registerDecorator,
-    ValidationOptions,
-    ValidationArguments,
-    ValidatorConstraint,
-    ValidatorConstraintInterface,
+  registerDecorator,
+  ValidationOptions,
+  ValidationArguments,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
 } from 'class-validator';
 
-/** Default maximum body length in characters */
-export const DEFAULT_MAX_BODY_LENGTH = 500_000;
+/** Absolute maximum body length limit in characters (cannot be exceeded) */
+export const MAX_BODY_LIMIT = 500_000;
 
 /**
  * Validator constraint for body field with dynamic max length
- * Uses maxBody from request or falls back to default
+ * Uses maxBody from request (capped at MAX_BODY_LIMIT)
  */
 @ValidatorConstraint({ name: 'isValidBodyLength', async: false })
 export class IsValidBodyLengthConstraint implements ValidatorConstraintInterface {
-    /**
-     * Validates body length against maxBody or default
-     * @param value - Body string to validate
-     * @param args - Validation arguments containing the object
-     * @returns True if valid, false otherwise
-     */
-    validate(value: any, args: ValidationArguments) {
-        if (typeof value !== 'string') {
-            return false;
-        }
-
-        const obj = args.object as any;
-        const maxLength = obj.maxBody || DEFAULT_MAX_BODY_LENGTH;
-
-        return value.length <= maxLength;
+  /**
+   * Validates body length against maxBody or MAX_BODY_LIMIT
+   * @param value - Body string to validate
+   * @param args - Validation arguments containing the object
+   * @returns True if valid, false otherwise
+   */
+  validate(value: any, args: ValidationArguments) {
+    if (typeof value !== 'string') {
+      return false;
     }
 
-    defaultMessage(args: ValidationArguments) {
-        const obj = args.object as any;
-        const maxLength = obj.maxBody || DEFAULT_MAX_BODY_LENGTH;
-        return `Body length must not exceed ${maxLength} characters`;
-    }
+    const obj = args.object as any;
+    // Use maxBody from request if provided, otherwise use absolute limit
+    const maxLength = Math.min(obj.maxBody || MAX_BODY_LIMIT, MAX_BODY_LIMIT);
+
+    return value.length <= maxLength;
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    const obj = args.object as any;
+    const maxLength = Math.min(obj.maxBody || MAX_BODY_LIMIT, MAX_BODY_LIMIT);
+    return `Body length must not exceed ${maxLength} characters`;
+  }
 }
 
 /**
@@ -46,13 +47,13 @@ export class IsValidBodyLengthConstraint implements ValidatorConstraintInterface
  * @returns Property decorator
  */
 export function IsValidBodyLength(validationOptions?: ValidationOptions) {
-    return function (object: Object, propertyName: string) {
-        registerDecorator({
-            target: object.constructor,
-            propertyName: propertyName,
-            options: validationOptions,
-            constraints: [],
-            validator: IsValidBodyLengthConstraint,
-        });
-    };
+  return function (object: Object, propertyName: string) {
+    registerDecorator({
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      constraints: [],
+      validator: IsValidBodyLengthConstraint,
+    });
+  };
 }

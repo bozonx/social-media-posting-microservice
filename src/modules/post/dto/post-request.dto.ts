@@ -19,7 +19,7 @@ import {
 } from '../../../common/validators/media-input.validator.js';
 import {
   IsValidBodyLength,
-  DEFAULT_MAX_BODY_LENGTH,
+  MAX_BODY_LIMIT,
 } from '../../../common/validators/body-length.validator.js';
 
 /**
@@ -148,6 +148,6 @@ export class PostRequestDto {
   @IsOptional()
   @IsNumber()
   @Min(1)
-  @Max(DEFAULT_MAX_BODY_LENGTH)
+  @Max(MAX_BODY_LIMIT)
   maxBody?: number;
 }

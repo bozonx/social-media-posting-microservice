@@ -51,6 +51,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`maxBody` Configuration Refactoring**:
+  - Renamed global `maxBodyDefault` to `maxBodyLimit` (absolute maximum, cannot be exceeded)
+  - Added `maxBody` parameter to account configuration (optional, per-account limit)
+  - Request `maxBody` now overrides account's `maxBody` (up to `maxBodyLimit`)
+  - Priority order: request `maxBody` > account `maxBody` > `maxBodyLimit`
+
 - **Media Validation Refactoring**:
   - Replaced strict validation errors for multiple media fields with soft priority-based logic
   - Priority order: `media[]` (1) → `document` (2) → `audio` (3) → `video` (4)

@@ -224,7 +224,10 @@ accounts:
     auth:
       apiKey: ${TELEGRAM_BOT_TOKEN}
     channelId: "@my_channel"
+    maxBody: 100000  # Optional: account-specific limit (can be overridden in request)
 ```
+
+**Note:** The `maxBody` parameter in the node's Additional Options overrides the `maxBody` value from the account configuration in `config.yaml`.
 
 Environment variables are substituted via `${VAR_NAME}`.
 

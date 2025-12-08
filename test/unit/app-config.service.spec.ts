@@ -13,6 +13,7 @@ describe('AppConfigService', () => {
     retryAttempts: 3,
     retryDelayMs: 1000,
     idempotencyTtlMinutes: 10,
+    maxBodyLimit: 500000,
 
     accounts: {
       'test-account': {
@@ -116,6 +117,7 @@ describe('AppConfigService', () => {
       expect(service.retryDelayMs).toBe(1000);
       expect(service.requestTimeoutSecs).toBe(60);
       expect(service.idempotencyTtlMinutes).toBe(10);
+      expect(service.maxBodyLimit).toBe(500000);
     });
   });
 });

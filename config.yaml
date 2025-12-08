@@ -22,9 +22,9 @@ retryDelayMs: 1000
 # How long to keep idempotency keys in cache to prevent duplicate posts
 idempotencyTtlMinutes: 10
 
-# Maximum body length (characters)
-# Default maximum length for post body text across all post types
-maxBodyDefault: 500000
+# Maximum body length limit (characters)
+# Absolute maximum for body text validation (cannot be exceeded by account or request settings)
+maxBodyLimit: 500000
 
 
 # ============================================
@@ -52,6 +52,11 @@ accounts:
     # For Telegram: channel username (with @ prefix) or numeric chat ID
     # Examples: '@your_channel_username' or '-100123456789'
     channelId: '@your_channel_username'
+
+    # Maximum body length for this account (characters)
+    # Can be overridden by maxBody in request (up to maxBodyLimit)
+    # If not set, uses maxBodyLimit as default
+    maxBody: 100000
 
     # Disable notifications by default
     # If true, posts will be sent silently without notifying subscribers

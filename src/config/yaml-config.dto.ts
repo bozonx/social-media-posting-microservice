@@ -20,6 +20,16 @@ class AccountConfigValidationDto {
   @IsOptional()
   @IsObject()
   auth?: Record<string, any>;
+
+  /**
+   * Maximum body length for this account (characters)
+   * Optional, must be between 1 and 500000
+   */
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(500000)
+  maxBody?: number;
 }
 
 /**
@@ -64,13 +74,14 @@ export class YamlConfigDto {
   idempotencyTtlMinutes!: number;
 
   /**
-   * Default maximum body length in characters
+   * Absolute maximum body length limit in characters
+   * Cannot be exceeded by account or request settings
    * Must be between 1 and 500000
    */
   @IsInt()
   @Min(1)
   @Max(500000)
-  maxBodyDefault!: number;
+  maxBodyLimit!: number;
 
   /**
    * Named account configurations

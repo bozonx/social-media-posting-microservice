@@ -61,13 +61,20 @@ function parseUniversalField(
 
 /**
  * Parse media field using universal parser
- * Wraps the result in {src: value} if it's a plain string
+ * Wraps the result in {src: value} if it's a plain string (URL or file_id)
  */
 function parseMediaField(value: unknown): Record<string, unknown> | unknown[] | undefined {
 	if (!value) return undefined;
 
 	// If it's a string that doesn't look like JSON/YAML, wrap it
-	if (typeof value === 'string' && !value.trim().startsWith('{') && !value.trim().startsWith('[')) {
+	// Check for JSON array/object or YAML array (starts with -)
+	if (typeof value === 'string') {
+		const trimmed = value.trim();
+		// If it looks like JSON or YAML structure, parse it
+		if (trimmed.startsWith('{') || trimmed.startsWith('[') || trimmed.startsWith('-')) {
+			return parseUniversalField(value, 'Media');
+		}
+		// Otherwise it's a plain URL or file_id, wrap it
 		return { src: value };
 	}
 
@@ -630,9 +637,36 @@ export class BozonxPost implements INodeType {
 					);
 				} catch (error: unknown) {
 					// Handle HTTP errors
-					const err = error as { response?: { body?: Record<string, unknown> }; message?: string };
+					const err = error as {
+						response?: {
+							body?: Record<string, unknown>;
+							statusCode?: number;
+						};
+						message?: string;
+						cause?: any;
+					};
+
 					if (err.response?.body) {
 						response = err.response.body as typeof response;
+
+						// If response has error details, throw a more informative error
+						if (response.success === false && response.error) {
+							const errorMsg = response.error.message as string || 'Request failed';
+							const errorCode = response.error.code as string || 'ERROR';
+							const errorDetails = response.error.details as Record<string, unknown> | undefined;
+
+							let detailsStr = '';
+							if (errorDetails) {
+								// Format validation errors nicely
+								detailsStr = '\nDetails: ' + JSON.stringify(errorDetails, null, 2);
+							}
+
+							throw new NodeOperationError(
+								this.getNode(),
+								`[${errorCode}] ${errorMsg}${detailsStr}`,
+								{ itemIndex: i },
+							);
+						}
 					} else {
 						throw new NodeOperationError(
 							this.getNode(),

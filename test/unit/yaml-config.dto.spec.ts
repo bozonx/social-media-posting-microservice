@@ -9,7 +9,6 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyLimit: 500000,
 
         accounts: {
           test_channel: {
@@ -34,7 +33,6 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyLimit: 500000,
         platforms: {},
         accounts: {},
       };
@@ -44,11 +42,10 @@ describe('YamlConfigDto', () => {
 
     it('should reject requestTimeoutSecs above maximum', () => {
       const config = {
-        requestTimeoutSecs: 301,
+        requestTimeoutSecs: 601,
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyLimit: 500000,
 
         accounts: {},
       };
@@ -62,7 +59,6 @@ describe('YamlConfigDto', () => {
         retryAttempts: -1,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyLimit: 500000,
 
         accounts: {},
       };
@@ -76,7 +72,6 @@ describe('YamlConfigDto', () => {
         retryAttempts: 11,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyLimit: 500000,
 
         accounts: {},
       };
@@ -90,7 +85,6 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: -1,
         idempotencyTtlMinutes: 10,
-        maxBodyLimit: 500000,
 
         accounts: {},
       };
@@ -104,7 +98,6 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 60001,
         idempotencyTtlMinutes: 10,
-        maxBodyLimit: 500000,
 
         accounts: {},
       };
@@ -118,7 +111,6 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 0,
-        maxBodyLimit: 500000,
 
         accounts: {},
       };
@@ -132,7 +124,6 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 1441,
-        maxBodyLimit: 500000,
 
         accounts: {},
       };
@@ -155,7 +146,6 @@ describe('YamlConfigDto', () => {
         retryAttempts: 0, // Min
         retryDelayMs: 0, // Min
         idempotencyTtlMinutes: 1, // Min
-        maxBodyLimit: 1, // Min
 
         accounts: {},
       };
@@ -167,17 +157,16 @@ describe('YamlConfigDto', () => {
 
     it('should accept maximum edge case values', () => {
       const config = {
-        requestTimeoutSecs: 300, // Max
+        requestTimeoutSecs: 600, // Max
         retryAttempts: 10, // Max
         retryDelayMs: 60000, // Max
         idempotencyTtlMinutes: 1440, // Max
-        maxBodyLimit: 500000, // Max
 
         accounts: {},
       };
 
       const result = validateYamlConfig(config);
-      expect(result.requestTimeoutSecs).toBe(300);
+      expect(result.requestTimeoutSecs).toBe(600);
       expect(result.retryAttempts).toBe(10);
     });
 
@@ -187,7 +176,6 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyLimit: 500000,
         accounts: {
           broken_channel: {
             // Missing platform
@@ -209,7 +197,6 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyLimit: 500000,
         accounts: {
           broken_channel: {
             platform: 123,
@@ -231,7 +218,6 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyLimit: 500000,
         accounts: {
           test_channel: {
             platform: 'telegram',

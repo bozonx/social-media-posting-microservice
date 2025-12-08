@@ -39,11 +39,11 @@ class AccountConfigValidationDto {
 export class YamlConfigDto {
   /**
    * Request timeout in seconds
-   * Must be between 1 and 300 (5 minutes)
+   * Must be between 1 and 600 (10 minutes)
    */
   @IsInt()
   @Min(1)
-  @Max(300)
+  @Max(600)
   requestTimeoutSecs!: number;
 
   /**

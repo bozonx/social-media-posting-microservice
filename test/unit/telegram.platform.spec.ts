@@ -38,7 +38,6 @@ describe('TelegramPlatform', () => {
 
   const mockAccountConfig: TelegramAccountConfig = {
     platform: 'telegram',
-    enabled: true,
     auth: {
       apiKey: 'test-token',
       chatId: 'test-chat-id',
@@ -283,7 +282,6 @@ describe('TelegramPlatform', () => {
     it('should build URL for public channels', async () => {
       const publicAccountConfig: TelegramAccountConfig = {
         platform: 'telegram',
-        enabled: true,
         auth: {
           apiKey: 'test-token',
           chatId: '@publicchannel',

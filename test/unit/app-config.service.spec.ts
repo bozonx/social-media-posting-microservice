@@ -85,7 +85,7 @@ describe('AppConfigService', () => {
   });
 
   describe('getAccount', () => {
-    it('should return enabled account config', () => {
+    it('should return account config', () => {
       const account = service.getAccount('test-account');
       expect(account).toEqual({
         platform: 'telegram',

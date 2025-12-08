@@ -19,15 +19,7 @@ export class MediaInputHelper {
     }
   }
 
-  /**
-   * Type guard to check if MediaInput is a string URL or file_id
-   * @deprecated MediaInput is now always an object, this method is kept for backward compatibility
-   * @param input - MediaInput to check
-   * @returns Always false as MediaInput is now always an object
-   */
-  static isString(input: MediaInput): input is never {
-    return false;
-  }
+
 
   /**
    * Type guard to check if MediaInput is an object with src property
@@ -121,33 +113,6 @@ export class MediaInputHelper {
       return typeof input.src === 'string' && input.src.length > 0;
     }
     return false;
-  }
-
-  /**
-   * Sanitize media input
-   * @deprecated No longer needed as MediaInput is always an object
-   * @param input - Input to sanitize
-   * @returns MediaInput if valid, undefined otherwise
-   */
-  static sanitize(input: any): MediaInput | undefined {
-    if (this.isValidShape(input)) {
-      return input;
-    }
-    return undefined;
-  }
-
-  /**
-   * Sanitize media input array
-   * @deprecated No longer needed as MediaInput is always an object
-   * @param input - Input array to sanitize
-   * @returns Array of valid MediaInput items or undefined if empty/invalid
-   */
-  static sanitizeArray(input: any): MediaInput[] | undefined {
-    if (!Array.isArray(input)) {
-      return undefined;
-    }
-    const validItems = input.filter(item => this.isValidShape(item));
-    return validItems.length > 0 ? validItems : undefined;
   }
 
   /**

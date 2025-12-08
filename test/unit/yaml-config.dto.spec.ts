@@ -237,7 +237,6 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyLimit: 500000,
         accounts: {
           test_channel: {
             platform: 'telegram',
@@ -256,7 +255,6 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        maxBodyLimit: 500000,
         accounts: {
           test_channel: {
             platform: 'telegram',

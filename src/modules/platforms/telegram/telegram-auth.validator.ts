@@ -31,11 +31,7 @@ export class TelegramAuthValidator implements IAuthValidator {
       errors.push("Field 'apiKey' has invalid format (expected: 123456789:ABC-DEF...)");
     }
 
-    // Validate channelId
-    const channelId = auth.channelId;
-    if (channelId !== undefined && typeof channelId !== 'string' && typeof channelId !== 'number') {
-      errors.push("Field 'channelId' must be a string or number");
-    }
+
 
     return errors;
   }

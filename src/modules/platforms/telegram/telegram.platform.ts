@@ -34,14 +34,13 @@ export class TelegramPlatform implements IPlatform {
   readonly supportsCoverWithMedia = false;
 
   private readonly logger = new Logger(TelegramPlatform.name);
-  private readonly MAX_CAPTION_LENGTH = 1024;
-  private readonly MAX_TEXT_LENGTH = 4096;
+
   private readonly MAX_MEDIA_GROUP_SIZE = 10;
 
   constructor(
     private readonly mediaService: MediaService,
     private readonly typeDetector: TelegramTypeDetector,
-  ) {}
+  ) { }
 
   async publish(
     request: PostRequestDto,

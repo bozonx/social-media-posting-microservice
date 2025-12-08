@@ -2,15 +2,6 @@ import { describe, it, expect } from '@jest/globals';
 import { MediaInputHelper } from '@/common/helpers/media-input.helper.js';
 
 describe('MediaInputHelper', () => {
-  describe('isString', () => {
-    it('should return false for object (deprecated method)', () => {
-      expect(MediaInputHelper.isString({ src: 'https://example.com/image.jpg' })).toBe(false);
-    });
-
-    it('should return false for null', () => {
-      expect(MediaInputHelper.isString(null as any)).toBe(false);
-    });
-  });
 
   describe('isObject', () => {
     it('should return true for object with src (URL)', () => {

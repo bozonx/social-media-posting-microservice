@@ -98,7 +98,7 @@ export class PostRequestDto {
   @IsString()
   channelId?: string;
 
-  /** Inline authentication credentials (alternative to channel) */
+  /** Inline authentication credentials (alternative to account) */
   @IsOptional()
   @IsObject()
   auth?: Record<string, any>;

@@ -137,10 +137,10 @@ interface PostRequest {
   // ============================================
   
   /**
-   * Имя канала из конфига, содержащего параметры авторизации
+   * Имя аккаунта из конфига, содержащего параметры авторизации
    * @example "my_telegram_channel", "company_twitter"
    */
-  channel?: string;
+  account?: string;
   
   /**
    * Данные авторизации, переданные напрямую в запросе
@@ -159,6 +159,12 @@ interface PostRequest {
    * - Telegram: inline_keyboard, parse_mode, disable_notification
    * - Twitter/X: reply_to_tweet_id, poll options
    * - Instagram: location, tagged_users
+   * - Платформо-независимый channelId (для Telegram и других)
+   */
+  channelId?: string;
+
+  /**
+   * Специфичные для платформы параметры (deprecated legacy wrapper)
    */
   options?: Record<string, any>;
   
@@ -200,6 +206,7 @@ interface PostRequest {
 }
 
 enum PostType {
+  AUTO = 'auto',        // Авто-определение типа
   POST = 'post',        // Обычный пост
   ARTICLE = 'article',  // Статья (Telegraph, Medium)
   IMAGE = 'image',      // Пост с изображением
@@ -526,15 +533,15 @@ accounts:
   # Telegram канал компании
   company_telegram:
     platform: telegram
+    
+    # Канал/чат ID 
+    channelId: "@your_channel_username"
 
     auth:
       apiKey: your_bot_token_here
-      chatId: @your_channel_username
+      
     options:
       disableNotification: false
-    limits:
-      maxTextLength: 4096
-      maxCaptionLength: 1024
   
   # остальные соц сети в следующих версиях
 

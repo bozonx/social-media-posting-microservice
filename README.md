@@ -63,7 +63,7 @@ curl -X POST http://localhost:8080/api/v1/post \
 ```
 
 ### Image Post
-
+    
 ```bash
 curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
@@ -71,7 +71,9 @@ curl -X POST http://localhost:8080/api/v1/post \
     "platform": "telegram",
     "account": "my_channel",
     "body": "Check out this image!",
-    "cover": "https://example.com/image.jpg"
+    "cover": {
+      "src": "https://example.com/image.jpg"
+    }
   }'
 ```
 
@@ -85,8 +87,8 @@ curl -X POST http://localhost:8080/api/v1/post \
     "account": "my_channel",
     "body": "Photo gallery",
     "media": [
-      "https://example.com/photo1.jpg",
-      "https://example.com/photo2.jpg"
+      { "src": "https://example.com/photo1.jpg" },
+      { "src": "https://example.com/photo2.jpg" }
     ]
   }'
 ```

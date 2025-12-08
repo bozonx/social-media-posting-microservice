@@ -163,7 +163,7 @@ describe('IsMediaInputArrayConstraint', () => {
   describe('defaultMessage', () => {
     it('should return correct error message', () => {
       expect(validator.defaultMessage(mockArgs)).toBe(
-        'Each item in media array must be an object with src (max 500 characters), optional hasSpoiler boolean, and optional type string',
+        'Property "media" must be an array of objects. Example: [{"src": "https://example.com/image.jpg", "type": "image"}]. Each item must have src (max 500 characters), optional hasSpoiler boolean, and optional type string',
       );
     });
   });

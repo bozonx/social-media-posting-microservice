@@ -21,6 +21,7 @@ import {
   IsValidBodyLength,
   MAX_BODY_LIMIT,
 } from '../../../common/validators/body-length.validator.js';
+import { IsChannelId } from '../../../common/validators/channel-id.validator.js';
 
 /**
  * Post request DTO
@@ -93,10 +94,11 @@ export class PostRequestDto {
   @IsString()
   account?: string;
 
-  /** Platform-agnostic channel/chat identifier (e.g., @mychannel or -100123456789) */
+  /** Platform-agnostic channel/chat identifier (e.g., @mychannel, -100123456789, or 123456789) */
   @IsOptional()
-  @IsString()
-  channelId?: string;
+  @IsChannelId()
+  channelId?: string | number;
+
 
   /** Inline authentication credentials (alternative to account) */
   @IsOptional()

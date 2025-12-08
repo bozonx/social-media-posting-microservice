@@ -27,7 +27,7 @@ Publish content to a social media platform.
 | `platform` | string | Yes | Platform name (`telegram`) |
 | `body` | string | Yes | Post content (max length determined by `maxBody` or config default) |
 | `account` | string | No* | Channel name from `config.yaml` |
-| `channelId` | string | No | Channel/chat ID (e.g., @mychannel or -100123456789 for Telegram). Can override channel config |
+| `channelId` | string \| number | No | Channel/chat ID (e.g., @mychannel, -100123456789, or 123456789 for Telegram). Accepts both string and number formats |
 | `auth` | object | No* | Inline authentication credentials. See [Auth Field](#auth-field) below |
 | `type` | string | No | Post type (default: `auto`). See below |
 | `bodyFormat` | string | No | Body format: `text`, `html`, `md`, or platform-specific (e.g., `MarkdownV2`) (default: `text`, max 50 characters) |
@@ -101,11 +101,19 @@ In addition to the fields listed in the table, the `auth` object may contain **a
   "body": "Hello"
 }
 
-// Override only channelId
+// Override only channelId (string format)
 {
   "platform": "telegram",
   "account": "my_channel",
   "channelId": "@different_channel",
+  "body": "Hello"
+}
+
+// Override only channelId (numeric format)
+{
+  "platform": "telegram",
+  "account": "my_channel",
+  "channelId": -100123456789,
   "body": "Hello"
 }
 

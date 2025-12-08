@@ -12,7 +12,7 @@ export interface AppConfig {
   idempotencyTtlMinutes: number;
 
   /** Named account configurations */
-  accounts: Record<string, AccountConfig>;
+  accounts?: Record<string, AccountConfig>;
 }
 
 /**

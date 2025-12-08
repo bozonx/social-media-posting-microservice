@@ -61,7 +61,7 @@ export class AppConfigService {
    * Get all configured accounts
    * @returns Record of all accounts indexed by name
    */
-  getAllAccounts(): AppConfig['accounts'] {
+  getAllAccounts(): Record<string, AccountConfig> {
     return this.config.accounts || {};
   }
 

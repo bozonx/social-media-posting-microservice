@@ -76,8 +76,9 @@ export class YamlConfigDto {
   /**
    * Named account configurations
    */
+  @IsOptional()
   @IsObject()
-  accounts!: Record<string, any>;
+  accounts?: Record<string, any>;
 }
 
 /**

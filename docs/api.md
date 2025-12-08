@@ -276,7 +276,6 @@ Same as `/post`. The `idempotencyKey` field is ignored.
   "success": true,
   "data": {
     "valid": true,
-    "valid": true,
     "detectedType": "post",
     "convertedBody": "# Hello\n\nThis is **bold**",
     "targetFormat": "md",

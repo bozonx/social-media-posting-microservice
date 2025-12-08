@@ -98,6 +98,41 @@ export class BozonxPost implements INodeType {
 		],
 		usableAsTool: true,
 		properties: [
+			// Mode
+			{
+				displayName: 'Mode',
+				name: 'mode',
+				type: 'options',
+				options: [
+					{ name: 'UI', value: 'ui' },
+					{ name: 'JSON', value: 'json' },
+				],
+				default: 'ui',
+				description:
+					'Configuration mode: UI (user-friendly forms) or JSON (raw JSON/YAML config)',
+			},
+
+			// JSON Configuration
+			{
+				displayName: 'JSON Configuration',
+				name: 'jsonConfig',
+				type: 'string',
+				typeOptions: {
+					rows: 10,
+				},
+				displayOptions: {
+					show: {
+						mode: ['json'],
+					},
+				},
+				required: true,
+				default: '',
+				placeholder:
+					'{\n  "body": "Post content",\n  "type": "post",\n  "channelId": "@mychannel"\n}',
+				description:
+					'Full request configuration in JSON or YAML format. The platform and auth fields will be automatically added (can be overridden).',
+			},
+
 			// Account
 			{
 				displayName: 'Account',
@@ -108,6 +143,11 @@ export class BozonxPost implements INodeType {
 				hint: 'Leave empty to configure platform and auth manually',
 				description:
 					'Account name from microservice config.yaml. If specified, platform and auth are taken from server config.',
+				displayOptions: {
+					show: {
+						mode: ['ui'],
+					},
+				},
 			},
 
 			// Platform
@@ -137,6 +177,7 @@ export class BozonxPost implements INodeType {
 					'Channel/chat ID (e.g., @mychannel or -100123456789 for Telegram). Can override channel config.',
 				displayOptions: {
 					show: {
+						mode: ['ui'],
 						platform: ['telegram'],
 					},
 				},
@@ -153,6 +194,11 @@ export class BozonxPost implements INodeType {
 				default: '',
 				required: true,
 				description: 'Main content of the post',
+				displayOptions: {
+					show: {
+						mode: ['ui'],
+					},
+				},
 			},
 
 			// Post Type
@@ -175,6 +221,11 @@ export class BozonxPost implements INodeType {
 				],
 				default: 'auto',
 				description: 'Type of post to create',
+				displayOptions: {
+					show: {
+						mode: ['ui'],
+					},
+				},
 			},
 
 			// Cover Image
@@ -187,6 +238,7 @@ export class BozonxPost implements INodeType {
 					'Cover image URL or Telegram file_id. Use "Cover has Spoiler" option to add spoiler effect.',
 				displayOptions: {
 					show: {
+						mode: ['ui'],
 						type: ['auto', 'post', 'image', 'article', 'story'],
 					},
 				},
@@ -202,6 +254,7 @@ export class BozonxPost implements INodeType {
 					'Video URL or Telegram file_id. Use "Video has Spoiler" option to add spoiler effect.',
 				displayOptions: {
 					show: {
+						mode: ['ui'],
 						type: ['auto', 'video', 'short', 'story'],
 					},
 				},
@@ -216,6 +269,7 @@ export class BozonxPost implements INodeType {
 				description: 'Audio URL or Telegram file_id.',
 				displayOptions: {
 					show: {
+						mode: ['ui'],
 						type: ['auto', 'audio'],
 					},
 				},
@@ -230,6 +284,7 @@ export class BozonxPost implements INodeType {
 				description: 'Document URL or Telegram file_id.',
 				displayOptions: {
 					show: {
+						mode: ['ui'],
 						type: ['auto', 'document'],
 					},
 				},
@@ -246,6 +301,7 @@ export class BozonxPost implements INodeType {
 					'Array of media objects for albums. Accepts YAML or JSON (YAML is tried first). Each item can have: "src" (URL or file_id), "type" (image/video), "hasSpoiler" (boolean). Example: [{"src": "url1", "type": "image"}, {"src": "url2"}]',
 				displayOptions: {
 					show: {
+						mode: ['ui'],
 						type: ['auto', 'album'],
 					},
 				},
@@ -258,6 +314,11 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				default: '',
 				description: 'Key to prevent duplicate posts',
+				displayOptions: {
+					show: {
+						mode: ['ui'],
+					},
+				},
 			},
 
 			// Additional Options
@@ -267,6 +328,11 @@ export class BozonxPost implements INodeType {
 				type: 'collection',
 				placeholder: 'Add Option',
 				default: {},
+				displayOptions: {
+					show: {
+						mode: ['ui'],
+					},
+				},
 				options: [
 					{
 						displayName: 'Body Format',
@@ -386,32 +452,32 @@ export class BozonxPost implements INodeType {
 			try {
 				const endpoint = '/post';
 
-				const account = this.getNodeParameter('account', i, '') as string;
+				const mode = this.getNodeParameter('mode', i, 'ui') as string;
 				const platform = this.getNodeParameter('platform', i, '') as string;
-				const channelId = this.getNodeParameter('channelId', i, '') as string;
-				const body = this.getNodeParameter('body', i) as string;
-				const type = this.getNodeParameter('type', i, 'auto') as string;
-				const additionalOptions = this.getNodeParameter('additionalOptions', i, {}) as Record<
-					string,
-					string | boolean | number
-				>;
 
-				// Build request body
-				const requestBody: IDataObject = {
-					body,
-				};
+				let requestBody: IDataObject;
 
-				// Add account or platform (platform is only sent when no account specified)
-				if (account) {
-					requestBody.account = account;
-				} else {
-					// Only add platform and auth when using inline mode (no account)
-					if (platform) {
+				if (mode === 'json') {
+					// JSON mode - parse jsonConfig
+					const jsonConfig = this.getNodeParameter('jsonConfig', i, '') as string;
+
+					try {
+						requestBody = parseUniversalField(jsonConfig, 'JSON Configuration') as IDataObject;
+					} catch (error) {
+						throw new NodeOperationError(
+							this.getNode(),
+							`Invalid JSON Configuration: ${(error as Error).message}`,
+							{ itemIndex: i },
+						);
+					}
+
+					// Platform always sent (priority to jsonConfig)
+					if (!requestBody.platform && platform) {
 						requestBody.platform = platform;
 					}
 
-					// Add platform auth from credentials based on platform value
-					if (platform === 'telegram') {
+					// Add auth if no account and no auth in jsonConfig
+					if (!requestBody.account && !requestBody.auth && platform === 'telegram') {
 						const telegramBotToken = credentials.telegramBotToken as string;
 						if (telegramBotToken) {
 							requestBody.auth = {
@@ -419,90 +485,125 @@ export class BozonxPost implements INodeType {
 							};
 						}
 					}
-				}
+				} else {
+					// UI mode - existing logic
+					const account = this.getNodeParameter('account', i, '') as string;
+					const channelId = this.getNodeParameter('channelId', i, '') as string;
+					const body = this.getNodeParameter('body', i) as string;
+					const type = this.getNodeParameter('type', i, 'auto') as string;
+					const additionalOptions = this.getNodeParameter('additionalOptions', i, {}) as Record<
+						string,
+						string | boolean | number
+					>;
 
-				// Add main fields
-				if (type) requestBody.type = type;
+					// Build request body
+					requestBody = {
+						body,
+					};
 
-				// Add optional top-level fields
-				const cover = this.getNodeParameter('cover', i, '') as string;
-				const video = this.getNodeParameter('video', i, '') as string;
-				const audio = this.getNodeParameter('audio', i, '') as string;
-				const document = this.getNodeParameter('document', i, '') as string;
-				const media = this.getNodeParameter('media', i, '') as string;
-				const idempotencyKey = this.getNodeParameter('idempotencyKey', i, '') as string;
+					// Add account and/or platform (platform is always sent now)
+					if (account) {
+						requestBody.account = account;
+					}
 
-				if (cover) {
-					let coverVal: any = parseMediaField(cover);
-					if (additionalOptions.coverHasSpoiler) {
-						if (typeof coverVal === 'string') {
-							coverVal = { src: coverVal, hasSpoiler: true };
-						} else if (
-							typeof coverVal === 'object' &&
-							coverVal !== null &&
-							!Array.isArray(coverVal)
-						) {
-							coverVal = { ...coverVal, hasSpoiler: true };
+					// Always add platform
+					if (platform) {
+						requestBody.platform = platform;
+					}
+
+					// Add platform auth from credentials when using inline mode (no account)
+					if (!account && platform === 'telegram') {
+						const telegramBotToken = credentials.telegramBotToken as string;
+						if (telegramBotToken) {
+							requestBody.auth = {
+								apiKey: telegramBotToken,
+							};
 						}
 					}
-					requestBody.cover = coverVal;
-				}
-				if (video) {
-					let videoVal: any = parseMediaField(video);
-					if (additionalOptions.videoHasSpoiler) {
-						if (typeof videoVal === 'string') {
-							videoVal = { src: videoVal, hasSpoiler: true };
-						} else if (
-							typeof videoVal === 'object' &&
-							videoVal !== null &&
-							!Array.isArray(videoVal)
-						) {
-							videoVal = { ...videoVal, hasSpoiler: true };
-						}
-					}
-					requestBody.video = videoVal;
-				}
-				if (audio) requestBody.audio = parseMediaField(audio);
-				if (document) requestBody.document = parseMediaField(document);
-				if (media) requestBody.media = parseMediaField(media);
-				if (idempotencyKey) requestBody.idempotencyKey = idempotencyKey;
 
-				// Add channelId if provided
-				if (channelId) {
-					requestBody.channelId = channelId;
-				}
+					// Add main fields
+					if (type) requestBody.type = type;
 
-				// Add additional options
-				for (const [key, value] of Object.entries(additionalOptions)) {
-					// Skip spoiler flags as they are handled above
-					if (['coverHasSpoiler', 'videoHasSpoiler'].includes(key)) continue;
+					// Add optional top-level fields
+					const cover = this.getNodeParameter('cover', i, '') as string;
+					const video = this.getNodeParameter('video', i, '') as string;
+					const audio = this.getNodeParameter('audio', i, '') as string;
+					const document = this.getNodeParameter('document', i, '') as string;
+					const media = this.getNodeParameter('media', i, '') as string;
+					const idempotencyKey = this.getNodeParameter('idempotencyKey', i, '') as string;
 
-					// Skip empty strings but allow false boolean values
-					if (value === '' || value === undefined || value === null) {
-						continue;
-					}
-					// Parse JSON/YAML fields
-					if (key === 'options') {
-						try {
-							requestBody[key] = parseUniversalField(value, 'Platform Options');
-						} catch (error) {
-							if (this.continueOnFail()) {
-								throw error; // Let the outer try/catch handle it or return error item
+					if (cover) {
+						let coverVal: any = parseMediaField(cover);
+						if (additionalOptions.coverHasSpoiler) {
+							if (typeof coverVal === 'string') {
+								coverVal = { src: coverVal, hasSpoiler: true };
+							} else if (
+								typeof coverVal === 'object' &&
+								coverVal !== null &&
+								!Array.isArray(coverVal)
+							) {
+								coverVal = { ...coverVal, hasSpoiler: true };
 							}
-							throw new NodeOperationError(
-								this.getNode(),
-								`Invalid Platform Options: ${(error as Error).message}`,
-								{ itemIndex: i },
-							);
 						}
-					} else if (key === 'tags' && typeof value === 'string') {
-						// Convert comma-separated string to array, trim and remove empty
-						requestBody[key] = value
-							.split(',')
-							.map((tag) => tag.trim())
-							.filter((tag) => tag.length > 0);
-					} else {
-						requestBody[key] = value;
+						requestBody.cover = coverVal;
+					}
+					if (video) {
+						let videoVal: any = parseMediaField(video);
+						if (additionalOptions.videoHasSpoiler) {
+							if (typeof videoVal === 'string') {
+								videoVal = { src: videoVal, hasSpoiler: true };
+							} else if (
+								typeof videoVal === 'object' &&
+								videoVal !== null &&
+								!Array.isArray(videoVal)
+							) {
+								videoVal = { ...videoVal, hasSpoiler: true };
+							}
+						}
+						requestBody.video = videoVal;
+					}
+					if (audio) requestBody.audio = parseMediaField(audio);
+					if (document) requestBody.document = parseMediaField(document);
+					if (media) requestBody.media = parseMediaField(media);
+					if (idempotencyKey) requestBody.idempotencyKey = idempotencyKey;
+
+					// Add channelId if provided
+					if (channelId) {
+						requestBody.channelId = channelId;
+					}
+
+					// Add additional options
+					for (const [key, value] of Object.entries(additionalOptions)) {
+						// Skip spoiler flags as they are handled above
+						if (['coverHasSpoiler', 'videoHasSpoiler'].includes(key)) continue;
+
+						// Skip empty strings but allow false boolean values
+						if (value === '' || value === undefined || value === null) {
+							continue;
+						}
+						// Parse JSON/YAML fields
+						if (key === 'options') {
+							try {
+								requestBody[key] = parseUniversalField(value, 'Platform Options');
+							} catch (error) {
+								if (this.continueOnFail()) {
+									throw error; // Let the outer try/catch handle it or return error item
+								}
+								throw new NodeOperationError(
+									this.getNode(),
+									`Invalid Platform Options: ${(error as Error).message}`,
+									{ itemIndex: i },
+								);
+							}
+						} else if (key === 'tags' && typeof value === 'string') {
+							// Convert comma-separated string to array, trim and remove empty
+							requestBody[key] = value
+								.split(',')
+								.map((tag) => tag.trim())
+								.filter((tag) => tag.length > 0);
+						} else {
+							requestBody[key] = value;
+						}
 					}
 				}
 

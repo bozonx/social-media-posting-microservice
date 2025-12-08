@@ -252,8 +252,8 @@ export class PostService extends BasePostService {
             attempt,
             maxAttempts,
             delay,
-            error: error?.stack,
           },
+          err: error,
         });
 
         await this.sleep(delay);

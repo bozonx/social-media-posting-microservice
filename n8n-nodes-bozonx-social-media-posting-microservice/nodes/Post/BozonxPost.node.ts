@@ -205,7 +205,7 @@ export class BozonxPost implements INodeType {
 				type: 'string',
 				default: '',
 				description:
-					'Channel/chat ID (e.g., @mychannel or -100123456789 for Telegram). Can override channel config.',
+					'Channel/chat ID (e.g., @mychannel, -100123456789, or 123456789 for Telegram). Accepts both string and number formats.',
 				displayOptions: {
 					show: {
 						mode: ['ui'],
@@ -519,7 +519,7 @@ export class BozonxPost implements INodeType {
 				} else {
 					// UI mode - existing logic
 					const account = this.getNodeParameter('account', i, '') as string;
-					const channelId = this.getNodeParameter('channelId', i, '') as string;
+					const channelIdRaw = this.getNodeParameter('channelId', i, '') as string | number;
 					const body = this.getNodeParameter('body', i) as string;
 					const type = this.getNodeParameter('type', i, 'auto') as string;
 					const additionalOptions = this.getNodeParameter('additionalOptions', i, {}) as Record<
@@ -598,9 +598,9 @@ export class BozonxPost implements INodeType {
 					if (media) requestBody.media = parseMediaField(media);
 					if (idempotencyKey) requestBody.idempotencyKey = idempotencyKey;
 
-					// Add channelId if provided
-					if (channelId) {
-						requestBody.channelId = channelId;
+					// Add channelId if provided (pass as-is, provider accepts both string and number)
+					if (channelIdRaw) {
+						requestBody.channelId = channelIdRaw;
 					}
 
 					// Add additional options

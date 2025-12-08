@@ -62,6 +62,7 @@ function parseUniversalField(
 /**
  * Parse media field using universal parser
  * Wraps the result in {src: value} if it's a plain string (URL or file_id)
+ * Validates that parsed objects/arrays have required 'src' property
  */
 function parseMediaField(value: unknown): Record<string, unknown> | unknown[] | undefined {
 	if (!value) return undefined;
@@ -71,9 +72,32 @@ function parseMediaField(value: unknown): Record<string, unknown> | unknown[] | 
 		try {
 			// Try to parse as structured data (YAML/JSON)
 			const parsed = parseUniversalField(value, 'Media');
-			// If parsing succeeded and result is object/array, return it
+
+			// Validate the parsed result
+			if (Array.isArray(parsed)) {
+				// Validate each item in array has 'src'
+				for (let i = 0; i < parsed.length; i++) {
+					const item = parsed[i];
+					if (typeof item !== 'object' || item === null) {
+						throw new ApplicationError(`Media array item ${i} must be an object`);
+					}
+					if (!('src' in item) || typeof item.src !== 'string' || item.src.length === 0) {
+						throw new ApplicationError(`Media array item ${i} is missing required 'src' property`);
+					}
+				}
+			} else if (typeof parsed === 'object' && parsed !== null) {
+				// Validate single object has 'src'
+				if (!('src' in parsed) || typeof parsed.src !== 'string' || parsed.src.length === 0) {
+					throw new ApplicationError(`Media object is missing required 'src' property`);
+				}
+			}
+
 			return parsed;
-		} catch {
+		} catch (error) {
+			// If it's our validation error, re-throw it
+			if (error instanceof ApplicationError) {
+				throw error;
+			}
 			// Parsing failed - it's a plain URL or file_id, wrap it
 			return { src: value };
 		}

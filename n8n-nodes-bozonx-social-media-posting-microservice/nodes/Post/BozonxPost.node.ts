@@ -69,6 +69,9 @@ function parseMediaField(value: unknown): Record<string, unknown> | unknown[] | 
 
 	// If it's a string, try to parse as YAML/JSON first
 	if (typeof value === 'string') {
+		// Trim and check if empty
+		const trimmedValue = value.trim();
+		if (trimmedValue.length === 0) return undefined;
 		try {
 			// Try to parse as structured data (YAML/JSON)
 			const parsed = parseUniversalField(value, 'Media');
@@ -563,7 +566,7 @@ export class BozonxPost implements INodeType {
 					const media = this.getNodeParameter('media', i, '') as string;
 					const idempotencyKey = this.getNodeParameter('idempotencyKey', i, '') as string;
 
-					if (cover) {
+					if (cover && cover.trim()) {
 						let coverVal: any = parseMediaField(cover);
 						if (additionalOptions.coverHasSpoiler) {
 							if (typeof coverVal === 'string') {
@@ -578,7 +581,7 @@ export class BozonxPost implements INodeType {
 						}
 						requestBody.cover = coverVal;
 					}
-					if (video) {
+					if (video && video.trim()) {
 						let videoVal: any = parseMediaField(video);
 						if (additionalOptions.videoHasSpoiler) {
 							if (typeof videoVal === 'string') {
@@ -593,9 +596,9 @@ export class BozonxPost implements INodeType {
 						}
 						requestBody.video = videoVal;
 					}
-					if (audio) requestBody.audio = parseMediaField(audio);
-					if (document) requestBody.document = parseMediaField(document);
-					if (media) requestBody.media = parseMediaField(media);
+					if (audio && audio.trim()) requestBody.audio = parseMediaField(audio);
+					if (document && document.trim()) requestBody.document = parseMediaField(document);
+					if (media && media.trim()) requestBody.media = parseMediaField(media);
 					if (idempotencyKey) requestBody.idempotencyKey = idempotencyKey;
 
 					// Add channelId if provided (pass as-is, provider accepts both string and number)

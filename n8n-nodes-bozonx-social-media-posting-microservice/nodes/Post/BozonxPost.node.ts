@@ -84,7 +84,7 @@ export class BozonxPost implements INodeType {
 		version: 1,
 		subtitle: '={{$parameter["platform"]}}',
 		description:
-			'Publish content to social media platforms (Telegram, VK, Instagram) via Social Media Posting microservice.',
+			'Publish content to social media platforms (Telegram) via Social Media Posting microservice.',
 		defaults: {
 			name: 'Social Media Post',
 		},
@@ -105,16 +105,15 @@ export class BozonxPost implements INodeType {
 				type: 'options',
 				options: [
 					{ name: 'UI', value: 'ui' },
-					{ name: 'JSON', value: 'json' },
+					{ name: 'YAML/JSON', value: 'json' },
 				],
 				default: 'ui',
-				description:
-					'Configuration mode: UI (user-friendly forms) or JSON (raw JSON/YAML config)',
+				description: 'Configuration mode: UI (user-friendly forms) or YAML/JSON config',
 			},
 
 			// JSON Configuration
 			{
-				displayName: 'JSON Configuration',
+				displayName: 'YAML/JSON Configuration',
 				name: 'jsonConfig',
 				type: 'string',
 				typeOptions: {
@@ -292,7 +291,7 @@ export class BozonxPost implements INodeType {
 
 			// Media Array
 			{
-				displayName: 'Media Array',
+				displayName: 'Media Array (YAML/JSON)',
 				name: 'media',
 				type: 'string',
 				typeOptions: { rows: 3 },
@@ -383,7 +382,7 @@ export class BozonxPost implements INodeType {
 						description: 'Publishing mode (only for supported platforms)',
 					},
 					{
-						displayName: 'Platform Options',
+						displayName: 'Platform Options  (YAML/JSON)',
 						name: 'options',
 						type: 'string',
 						typeOptions: { rows: 3 },

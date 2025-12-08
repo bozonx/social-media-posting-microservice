@@ -310,7 +310,7 @@ describe('TelegramPlatform', () => {
         platform: 'telegram',
         body: 'Image caption',
         bodyFormat: 'html',
-        cover: 'https://example.com/image.jpg',
+        cover: { src: 'https://example.com/image.jpg' },
         type: PostType.IMAGE,
       };
 
@@ -351,7 +351,7 @@ describe('TelegramPlatform', () => {
         platform: 'telegram',
         body: 'Video caption',
         bodyFormat: 'html',
-        video: 'https://example.com/video.mp4',
+        video: { src: 'https://example.com/video.mp4' },
         type: PostType.VIDEO,
       };
 
@@ -393,9 +393,9 @@ describe('TelegramPlatform', () => {
         body: 'Album caption',
         bodyFormat: 'html',
         media: [
-          'https://example.com/image1.jpg',
-          'https://example.com/image2.jpg',
-          'https://example.com/video.mp4',
+          { src: 'https://example.com/image1.jpg' },
+          { src: 'https://example.com/image2.jpg' },
+          { src: 'https://example.com/video.mp4' },
         ],
         type: PostType.ALBUM,
       };
@@ -493,7 +493,7 @@ describe('TelegramPlatform', () => {
         platform: 'telegram',
         body: 'Document caption',
         bodyFormat: 'html',
-        document: 'https://example.com/document.pdf',
+        document: { src: 'https://example.com/document.pdf' },
         type: PostType.DOCUMENT,
       };
 
@@ -535,7 +535,7 @@ describe('TelegramPlatform', () => {
         platform: 'telegram',
         body: 'Audio caption',
         bodyFormat: 'html',
-        audio: 'https://example.com/audio.mp3',
+        audio: { src: 'https://example.com/audio.mp3' },
         type: PostType.AUDIO,
       };
 
@@ -660,7 +660,7 @@ describe('TelegramPlatform', () => {
       const request: PostRequestDto = {
         platform: 'telegram',
         body: 'Test message',
-        cover: 'https://example.com/image.jpg',
+        cover: { src: 'https://example.com/image.jpg' },
         type: PostType.POST,
       };
 

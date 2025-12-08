@@ -73,10 +73,6 @@ export class AppConfigService {
   }
 
   /**
-   * Get default body conversion setting
-   */
-
-  /**
    * Get retry attempts
    */
   get retryAttempts(): number {

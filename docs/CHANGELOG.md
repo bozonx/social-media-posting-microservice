@@ -17,11 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `audio` - Audio file support (MP3, M4A, OGG) via `sendAudio`
   - `document` - Document/file support (any file type) via `sendDocument`
 
-- **MediaInput Type**: Extended media field format supporting:
-  - String URL: `"https://example.com/file.jpg"`
-  - Object with options: `{ "url": "...", "fileId": "...", "hasSpoiler": true }`
-  - `fileId` - Telegram file_id for reusing previously uploaded files
+- **MediaInput Type**: Media field format supporting:
+  - Object with options: `{ "src": "...", "hasSpoiler": true, "type": "image" }`
+  - `src` - URL or Telegram file_id for reusing previously uploaded files
   - `hasSpoiler` - Hide media under spoiler animation (for sensitive content)
+  - `type` - Explicit media type for albums (image, video, audio, document)
 
 - **New Services**:
   - `TelegramTypeDetector` - Service for automatic type detection based on media fields

@@ -33,7 +33,6 @@ describe('YamlConfigDto', () => {
         retryAttempts: 3,
         retryDelayMs: 1000,
         idempotencyTtlMinutes: 10,
-        platforms: {},
         accounts: {},
       };
 

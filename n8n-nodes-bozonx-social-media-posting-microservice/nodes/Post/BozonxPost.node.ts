@@ -148,6 +148,24 @@ export class BozonxPost implements INodeType {
 		],
 		usableAsTool: true,
 		properties: [
+
+			// Platform
+			{
+				displayName: 'Platform',
+				name: 'platform',
+				type: 'options',
+				options: [
+					{
+						name: 'Telegram',
+						value: 'telegram',
+					},
+				],
+				default: 'telegram',
+				required: true,
+				description:
+					'Social media platform to post to. Determines which API key from credentials to use.',
+			},
+
 			// Mode
 			{
 				displayName: 'Mode',
@@ -197,23 +215,6 @@ export class BozonxPost implements INodeType {
 						mode: ['ui'],
 					},
 				},
-			},
-
-			// Platform
-			{
-				displayName: 'Platform',
-				name: 'platform',
-				type: 'options',
-				options: [
-					{
-						name: 'Telegram',
-						value: 'telegram',
-					},
-				],
-				default: 'telegram',
-				required: true,
-				description:
-					'Social media platform to post to. Determines which API key from credentials to use.',
 			},
 
 			// Channel ID
@@ -383,6 +384,52 @@ export class BozonxPost implements INodeType {
 				},
 				options: [
 					{
+						displayName: 'Title',
+						name: 'title',
+						type: 'string',
+						default: '',
+						description: 'Post title (platform-specific, max 1000 characters)',
+					},
+					{
+						displayName: 'Description',
+						name: 'description',
+						type: 'string',
+						typeOptions: { rows: 2 },
+						default: '',
+						description:
+							'Post description/summary (used by platforms that support it, max 5000 characters)',
+					},
+					{
+						displayName: 'Tags',
+						name: 'tags',
+						type: 'string',
+						default: '',
+						description:
+							'Comma-separated tags/hashtags without # symbol. Passed as-is to supported platforms. Max 200 items, each max 300 characters.',
+					},
+					{
+						displayName: 'Cover has Spoiler',
+						name: 'coverHasSpoiler',
+						type: 'boolean',
+						default: false,
+						description: 'Whether to hide the cover image behind a spoiler',
+					},
+					{
+						displayName: 'Video has Spoiler',
+						name: 'videoHasSpoiler',
+						type: 'boolean',
+						default: false,
+						description: 'Whether to hide the video behind a spoiler',
+					},
+					{
+						displayName: 'Disable Notification',
+						name: 'disableNotification',
+						type: 'boolean',
+						default: false,
+						description:
+							'Whether to send the message silently (users will receive a notification with no sound)',
+					},
+					{
 						displayName: 'Body Format',
 						name: 'bodyFormat',
 						type: 'options',
@@ -396,39 +443,12 @@ export class BozonxPost implements INodeType {
 							'Format of the post content. Can also be platform-specific (e.g., "MarkdownV2" for Telegram). Max 50 characters.',
 					},
 					{
-						displayName: 'Cover has Spoiler',
-						name: 'coverHasSpoiler',
-						type: 'boolean',
-						default: false,
-						description: 'Whether to hide the cover image behind a spoiler',
-					},
-					{
-						displayName: 'Description',
-						name: 'description',
-						type: 'string',
-						typeOptions: { rows: 2 },
-						default: '',
+						displayName: 'Max Body Length',
+						name: 'maxBody',
+						type: 'number',
+						default: 500000,
 						description:
-							'Post description/summary (used by platforms that support it, max 5000 characters)',
-					},
-					{
-						displayName: 'Disable Notification',
-						name: 'disableNotification',
-						type: 'boolean',
-						default: false,
-						description:
-							'Whether to send the message silently (users will receive a notification with no sound)',
-					},
-					{
-						displayName: 'Mode',
-						name: 'mode',
-						type: 'options',
-						options: [
-							{ name: 'Publish', value: 'publish' },
-							{ name: 'Draft', value: 'draft' },
-						],
-						default: 'publish',
-						description: 'Publishing mode (only for supported platforms)',
+							'Maximum body length in characters (max 500,000). Overrides the maxBody value from account configuration in config.yaml.',
 					},
 					{
 						displayName: 'Platform Options  (YAML/JSON)',
@@ -455,34 +475,15 @@ export class BozonxPost implements INodeType {
 						description: 'Scheduled publishing time (ISO 8601 format, max 50 characters)',
 					},
 					{
-						displayName: 'Tags',
-						name: 'tags',
-						type: 'string',
-						default: '',
-						description:
-							'Comma-separated tags/hashtags without # symbol. Passed as-is to supported platforms. Max 200 items, each max 300 characters.',
-					},
-					{
-						displayName: 'Max Body Length',
-						name: 'maxBody',
-						type: 'number',
-						default: 500000,
-						description:
-							'Maximum body length in characters (max 500,000). Overrides the maxBody value from account configuration in config.yaml.',
-					},
-					{
-						displayName: 'Title',
-						name: 'title',
-						type: 'string',
-						default: '',
-						description: 'Post title (platform-specific, max 1000 characters)',
-					},
-					{
-						displayName: 'Video has Spoiler',
-						name: 'videoHasSpoiler',
-						type: 'boolean',
-						default: false,
-						description: 'Whether to hide the video behind a spoiler',
+						displayName: 'Mode',
+						name: 'mode',
+						type: 'options',
+						options: [
+							{ name: 'Publish', value: 'publish' },
+							{ name: 'Draft', value: 'draft' },
+						],
+						default: 'publish',
+						description: 'Publishing mode (only for supported platforms)',
 					},
 				],
 			},

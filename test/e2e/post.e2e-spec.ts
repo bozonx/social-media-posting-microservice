@@ -166,7 +166,7 @@ describe('PostController (e2e)', () => {
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body);
       expect(body.message).toContain('platform must be a string');
-      expect(body.message).toContain('body must be a string');
+      expect(body.message).toContain('Post must have either body text or at least one media field');
     });
 
     it('should publish post with inline auth', async () => {

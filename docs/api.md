@@ -25,7 +25,7 @@ Publish content to a social media platform.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `platform` | string | Yes | Platform name (`telegram`) |
-| `body` | string | Yes | Post content (max length determined by `maxBody` or config default) |
+| `body` | string | No* | Post content (max length determined by `maxBody` or config default) |
 | `account` | string | No* | Channel name from `config.yaml` |
 | `channelId` | string \| number | No | Channel/chat ID (e.g., @mychannel, -100123456789, or 123456789 for Telegram). Accepts both string and number formats |
 | `auth` | object | No* | Inline authentication credentials. See [Auth Field](#auth-field) below |
@@ -47,7 +47,7 @@ Publish content to a social media platform.
 | `idempotencyKey` | string | No | Key to prevent duplicates (max 1000 characters) |
 | `maxBody` | number | No | Override max body length from account config (max 500,000 characters). Takes priority over account's `maxBody` setting |
 
-**Note:** Either `account` or `auth` must be provided.
+**Note:** Either `account` or `auth` must be provided. Either `body` or at least one media field (`cover`, `video`, `audio`, `document`, `media`) must be provided.
 
 ### Auth Field
 

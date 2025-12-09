@@ -241,8 +241,7 @@ export class BozonxPost implements INodeType {
 					rows: 4,
 				},
 				default: '',
-				required: true,
-				description: 'Main content of the post',
+				description: 'Main content of the post (optional if media is provided)',
 				displayOptions: {
 					show: {
 						mode: ['ui'],

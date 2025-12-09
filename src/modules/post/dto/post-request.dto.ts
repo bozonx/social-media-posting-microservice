@@ -22,20 +22,23 @@ import {
   MAX_BODY_LIMIT,
 } from '../../../common/validators/body-length.validator.js';
 import { IsChannelId } from '../../../common/validators/channel-id.validator.js';
+import { HasContent } from '../../../common/validators/has-content.validator.js';
 
 /**
  * Post request DTO
  * Contains all data needed to publish a post to a social media platform
  */
+@HasContent()
 export class PostRequestDto {
   /** Target social media platform (e.g., 'telegram') */
   @IsString()
   platform!: string;
 
-  /** Post content/text body */
+  /** Post content/text body (optional if media is provided) */
+  @IsOptional()
   @IsString()
   @IsValidBodyLength()
-  body!: string;
+  body?: string;
 
   /** Post type (auto-detected if not specified) */
   @IsOptional()

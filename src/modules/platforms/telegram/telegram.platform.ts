@@ -79,7 +79,7 @@ export class TelegramPlatform implements IPlatform {
         result = await this.sendMessage(
           bot,
           chatId,
-          processedBody,
+          processedBody!, // Validated in validateRequest
           parseMode,
           disableNotification,
           options,
@@ -191,7 +191,7 @@ export class TelegramPlatform implements IPlatform {
         detectedType: actualType,
         convertedBody: processedBody,
         targetFormat: targetFormat as string,
-        convertedBodyLength: processedBody.length,
+        convertedBodyLength: processedBody?.length,
         warnings,
       },
     };
@@ -314,7 +314,7 @@ export class TelegramPlatform implements IPlatform {
     bot: Bot,
     chatId: string | number,
     cover: any,
-    caption: string,
+    caption: string | undefined,
     parseMode: string | undefined,
     disableNotification: boolean,
     options: any,
@@ -335,7 +335,7 @@ export class TelegramPlatform implements IPlatform {
     bot: Bot,
     chatId: string | number,
     video: any,
-    caption: string,
+    caption: string | undefined,
     parseMode: string | undefined,
     disableNotification: boolean,
     options: any,
@@ -356,7 +356,7 @@ export class TelegramPlatform implements IPlatform {
     bot: Bot,
     chatId: string | number,
     audio: any,
-    caption: string,
+    caption: string | undefined,
     parseMode: string | undefined,
     disableNotification: boolean,
     options: any,
@@ -375,7 +375,7 @@ export class TelegramPlatform implements IPlatform {
     bot: Bot,
     chatId: string | number,
     document: any,
-    caption: string,
+    caption: string | undefined,
     parseMode: string | undefined,
     disableNotification: boolean,
     options: any,
@@ -394,7 +394,7 @@ export class TelegramPlatform implements IPlatform {
     bot: Bot,
     chatId: string | number,
     media: any[],
-    caption: string,
+    caption: string | undefined,
     parseMode: string | undefined,
     disableNotification: boolean,
   ) {
@@ -455,6 +455,9 @@ export class TelegramPlatform implements IPlatform {
 
     switch (type) {
       case PostType.POST:
+        if (request.body === undefined || request.body === null || request.body.trim() === '') {
+          errors.push("Field 'body' is required for type 'post'");
+        }
         if (
           MediaInputHelper.isDefined(request.cover) ||
           MediaInputHelper.isDefined(request.video) ||

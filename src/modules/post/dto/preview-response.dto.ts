@@ -10,11 +10,11 @@ export interface PreviewResponseDto {
     /** Detected post type based on content */
     detectedType: PostType;
     /** Body content after conversion */
-    convertedBody: string;
+    convertedBody?: string;
     /** Target format after conversion */
     targetFormat: string;
     /** Length of converted body */
-    convertedBodyLength: number;
+    convertedBodyLength?: number;
     /** Validation warnings (non-blocking) */
     warnings: string[];
   };

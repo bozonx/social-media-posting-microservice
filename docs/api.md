@@ -30,7 +30,7 @@ Publish content to a social media platform.
 | `channelId` | string \| number | No | Channel/chat ID (e.g., @mychannel, -100123456789, or 123456789 for Telegram). Accepts both string and number formats |
 | `auth` | object | No* | Inline authentication credentials. See [Auth Field](#auth-field) below |
 | `type` | string | No | Post type (default: `auto`). See below |
-| `bodyFormat` | string | No | Body format: `text`, `html`, `md`, or platform-specific (e.g., `MarkdownV2`) (default: `text`, max 50 characters) |
+| `bodyFormat` | string | No | Body format: `text`, `html`, `md`, or platform-specific (e.g., `MarkdownV2`) (default: `text`) |
 | `title` | string | No | Post title (platform-specific, max 1000 characters) |
 | `description` | string | No | Post description (platform-specific, max 5000 characters) |
 | `cover` | MediaInput | No | Cover image (object with `src` and optional `hasSpoiler`, max 500 characters for src) |

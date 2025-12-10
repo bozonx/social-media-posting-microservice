@@ -24,8 +24,8 @@ export class IsMediaInputConstraint implements ValidatorConstraintInterface {
    * @returns True if valid, false otherwise
    */
   validate(value: any, args: ValidationArguments) {
-    // Optional field - allow null/undefined
-    if (value === null || value === undefined) {
+    // Optional field - allow null/undefined/false
+    if (value === null || value === undefined || value === false) {
       return true;
     }
 

@@ -14,9 +14,10 @@ describe('IsMediaInputConstraint', () => {
   });
 
   describe('validate', () => {
-    it('should return true for null/undefined (optional field)', () => {
+    it('should return true for null/undefined/false (optional field)', () => {
       expect(validator.validate(null, mockArgs)).toBe(true);
       expect(validator.validate(undefined, mockArgs)).toBe(true);
+      expect(validator.validate(false, mockArgs)).toBe(true);
     });
 
     it('should return true for object with src (url)', () => {

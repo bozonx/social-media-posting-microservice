@@ -24,12 +24,12 @@ export class HasContentConstraint implements ValidatorConstraintInterface {
         // Check if body is a non-empty string
         const hasBody = typeof obj.body === 'string' && obj.body.trim().length > 0;
 
-        // Check if at least one media field is provided
+        // Check if at least one media field is provided (ignore falsy values like false, null, undefined, '')
         const hasMedia =
-            obj.cover ||
-            obj.video ||
-            obj.audio ||
-            obj.document ||
+            (obj.cover && typeof obj.cover === 'object') ||
+            (obj.video && typeof obj.video === 'object') ||
+            (obj.audio && typeof obj.audio === 'object') ||
+            (obj.document && typeof obj.document === 'object') ||
             (Array.isArray(obj.media) && obj.media.length > 0);
 
         return hasBody || hasMedia;

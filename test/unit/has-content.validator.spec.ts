@@ -79,6 +79,36 @@ describe('HasContent Validator', () => {
             const errors = await validate(dto);
             expect(errors).toHaveLength(0);
         });
+
+        it('should pass validation with false in media fields and body present', async () => {
+            const dto = new PostRequestDto();
+            dto.platform = 'telegram';
+            dto.body = 'Test post';
+            dto.cover = false as any;
+            dto.video = false as any;
+            dto.audio = false as any;
+            dto.document = false as any;
+
+            const errors = await validate(dto);
+            expect(errors).toHaveLength(0);
+        });
+
+        it('should pass validation with false in some media fields and valid media in others', async () => {
+            const dto = new PostRequestDto();
+            dto.platform = 'telegram';
+            dto.cover = false as any;
+            dto.video = false as any;
+            dto.audio = false as any;
+            dto.document = false as any;
+            dto.media = [
+                { src: 'https://example.com/image1.jpg' },
+                { src: 'https://example.com/image2.jpg' },
+            ];
+
+            const errors = await validate(dto);
+            expect(errors).toHaveLength(0);
+        });
+
     });
 
     describe('Invalid cases', () => {

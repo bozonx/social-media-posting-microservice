@@ -45,6 +45,8 @@ export class TelegramPlatform implements IPlatform {
   async publish(
     request: PostRequestDto,
     accountConfig: TelegramAccountConfig,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    abortSignal?: AbortSignal,
   ): Promise<PlatformPublishResponse> {
     const { errors, warnings, actualType } = this.validateRequest(request);
 

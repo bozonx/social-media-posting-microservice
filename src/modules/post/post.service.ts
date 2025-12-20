@@ -90,15 +90,20 @@ export class PostService extends BasePostService {
         },
       });
 
-      const result = await this.executeWithRequestTimeout(
+      if (abortSignal?.aborted) {
+        throw new Error('Request aborted by client');
+      }
+
+      const result: any = await this.executeWithRequestTimeout(
         () =>
           this.retryWithJitter(
-            () => platform.publish(request, accountConfig),
+            () => platform.publish(request, accountConfig, abortSignal),
             this.appConfig.retryAttempts,
             this.appConfig.retryDelayMs,
             abortSignal,
           ),
         requestTimeoutMs,
+        abortSignal,
       );
 
       const response: PostResponseDto = {
@@ -159,6 +164,9 @@ export class PostService extends BasePostService {
    * @returns Error code string
    */
   private getErrorCode(error: any): string {
+    if (!error) {
+      return ErrorCode.INTERNAL_ERROR;
+    }
     if (error instanceof BadRequestException) {
       return ErrorCode.VALIDATION_ERROR;
     }
@@ -193,8 +201,26 @@ export class PostService extends BasePostService {
     return normalizedSecs * 1000;
   }
 
-  private async executeWithRequestTimeout<T>(fn: () => Promise<T>, timeoutMs: number): Promise<T> {
+  private async executeWithRequestTimeout<T>(
+    fn: () => Promise<T>,
+    timeoutMs: number,
+    signal?: AbortSignal,
+  ): Promise<T> {
     let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    const abortController = new AbortController();
+
+    if (signal?.aborted) {
+      throw new Error('Request aborted by client');
+    }
+
+    // Listener for external signal
+    const onAbort = () => {
+      abortController.abort();
+    };
+
+    if (signal) {
+      signal.addEventListener('abort', onAbort, { once: true });
+    }
 
     try {
       return await Promise.race<T>([
@@ -206,10 +232,24 @@ export class PostService extends BasePostService {
             reject(error);
           }, timeoutMs);
         }),
+        new Promise<T>((_, reject) => {
+          if (signal) {
+            signal.addEventListener('abort', () => {
+              const error: any = new Error('Request aborted by client');
+              error.code = 'ABORT_ERR';
+              reject(error);
+            }, { once: true });
+          }
+        })
       ]);
+    } catch (e) {
+      throw e;
     } finally {
       if (timeoutHandle) {
         clearTimeout(timeoutHandle);
+      }
+      if (signal) {
+        signal.removeEventListener('abort', onAbort);
       }
     }
   }
@@ -228,7 +268,7 @@ export class PostService extends BasePostService {
     fn: () => Promise<T>,
     maxAttempts: number,
     baseDelayMs: number,
-    abortSignal?: AbortSignal,
+    signal?: AbortSignal,
   ): Promise<T> {
     let lastError: any;
 
@@ -240,7 +280,7 @@ export class PostService extends BasePostService {
       }
 
       // Check if operation was aborted
-      if (abortSignal?.aborted) {
+      if (signal?.aborted) {
         this.logger.warn('Aborting retry loop: abort signal received');
         throw new Error('Operation aborted');
       }
@@ -277,7 +317,11 @@ export class PostService extends BasePostService {
           err: error,
         });
 
-        await this.sleep(delay, abortSignal);
+        if (signal?.aborted) {
+          throw new Error('Request aborted by client');
+        }
+
+        await this.sleep(delay, signal);
       }
     }
 
@@ -309,28 +353,23 @@ export class PostService extends BasePostService {
    * @param abortSignal - Optional signal to abort sleep
    * @returns Promise that resolves after delay or rejects if aborted
    */
-  private sleep(ms: number, abortSignal?: AbortSignal): Promise<void> {
+  private sleep(ms: number, signal?: AbortSignal): Promise<void> {
     return new Promise((resolve, reject) => {
-      // Check if already aborted
-      if (abortSignal?.aborted) {
-        reject(new Error('Sleep aborted'));
-        return;
+      if (signal?.aborted) {
+        return reject(new Error('Request aborted by client'));
       }
 
+      const onAbort = () => {
+        clearTimeout(timeoutId);
+        reject(new Error('Request aborted by client'));
+      };
+
       const timeoutId = setTimeout(() => {
-        if (abortListener) {
-          abortSignal?.removeEventListener('abort', abortListener);
-        }
+        signal?.removeEventListener('abort', onAbort);
         resolve();
       }, ms);
 
-      // Setup abort listener
-      const abortListener = () => {
-        clearTimeout(timeoutId);
-        reject(new Error('Sleep aborted'));
-      };
-
-      abortSignal?.addEventListener('abort', abortListener);
+      signal?.addEventListener('abort', onAbort, { once: true });
     });
   }
 }

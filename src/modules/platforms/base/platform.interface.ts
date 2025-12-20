@@ -36,7 +36,11 @@ export interface IPlatform {
    * @param accountConfig - Account configuration
    * @returns Publication result with post ID and URL
    */
-  publish(request: PostRequestDto, accountConfig: any): Promise<PlatformPublishResponse>;
+  publish(
+    request: PostRequestDto,
+    accountConfig: any,
+    abortSignal?: AbortSignal,
+  ): Promise<PlatformPublishResponse>;
 
   /**
    * Preview a post without publishing

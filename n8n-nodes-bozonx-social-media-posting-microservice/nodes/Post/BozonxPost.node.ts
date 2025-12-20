@@ -669,7 +669,7 @@ export class BozonxPost implements INodeType {
 						'bozonxSocialMediaPostingApi',
 						{
 							method: 'POST',
-							url: `${baseUrl}${endpoint}`,
+							url: `${baseUrl}/api/v1${endpoint}`,
 							headers,
 							body: requestBody,
 							json: true,

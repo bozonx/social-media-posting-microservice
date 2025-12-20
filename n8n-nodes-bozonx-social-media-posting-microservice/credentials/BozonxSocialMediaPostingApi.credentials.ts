@@ -12,11 +12,11 @@ export class BozonxSocialMediaPostingApi implements ICredentialType {
 			displayName: 'Microservice Base URL',
 			name: 'baseUrl',
 			type: 'string',
-			default: 'http://social-media-posting-microservice:8080/api/v1',
-			placeholder: 'https://social-media-posting.example.com/api/v1',
+			default: 'http://social-media-posting-microservice:8080',
+			placeholder: 'https://social-media-posting.example.com',
 			required: true,
 			description:
-				'Full base URL of the Social Media Posting microservice API (including /api/v1 or custom path)',
+				'Full base URL of the Social Media Posting microservice API (excluding /api/v1 prefix)',
 		},
 		{
 			displayName: 'Microservice Authentication',
@@ -102,7 +102,7 @@ export class BozonxSocialMediaPostingApi implements ICredentialType {
 
 	test: ICredentialType['test'] = {
 		request: {
-			baseURL: '={{$credentials.baseUrl}}',
+			baseURL: '={{$credentials.baseUrl}}/api/v1',
 			url: '/health',
 		},
 	};

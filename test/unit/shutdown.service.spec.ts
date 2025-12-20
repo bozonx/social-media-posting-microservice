@@ -48,6 +48,22 @@ describe('ShutdownService', () => {
       // No direct way to check count, but we can verify shutdown waits
       expect(service.shuttingDown).toBe(false);
     });
+
+    it('should return correct in-flight requests count', () => {
+      expect(service.getInFlightRequestsCount()).toBe(0);
+
+      service.trackRequest();
+      expect(service.getInFlightRequestsCount()).toBe(1);
+
+      service.trackRequest();
+      expect(service.getInFlightRequestsCount()).toBe(2);
+
+      service.untrackRequest();
+      expect(service.getInFlightRequestsCount()).toBe(1);
+
+      service.untrackRequest();
+      expect(service.getInFlightRequestsCount()).toBe(0);
+    });
   });
 
   describe('onApplicationShutdown', () => {

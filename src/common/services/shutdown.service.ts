@@ -41,6 +41,13 @@ export class ShutdownService implements OnApplicationShutdown {
   }
 
   /**
+   * Get the current count of in-flight requests
+   */
+  getInFlightRequestsCount(): number {
+    return this.inFlightRequests;
+  }
+
+  /**
    * Called by NestJS when shutdown signal is received
    * Waits for all in-flight requests to complete
    */

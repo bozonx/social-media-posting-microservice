@@ -165,6 +165,39 @@ accounts:
     - otherwise the hard service limit `500000`.
   - If the body is longer than the effective limit, validation fails with a `VALIDATION_ERROR`.
 
+## Graceful Shutdown
+
+The service implements graceful shutdown to ensure in-flight requests complete properly when receiving termination signals.
+
+### Behavior
+
+When the service receives `SIGTERM` or `SIGINT`:
+
+1. **New connections are rejected** — Returns `503 Service Unavailable` for new requests
+2. **In-flight requests continue** — Active requests are allowed to complete
+3. **Timeout enforcement** — Maximum wait time is **30 seconds** (hardcoded constant)
+4. **Forced termination** — After timeout, the process exits even if requests are still active
+
+### Configuration
+
+- **Shutdown timeout**: `30 seconds` (global constant in `src/app.constants.ts`)
+- **Fastify settings**:
+  - `forceCloseConnections: 'idle'` — Closes idle connections during shutdown
+  - `connectionTimeout: 60s` — Maximum time for establishing connections
+  - `requestTimeout: 10m` — Maximum time for processing requests
+
+### Docker
+
+When running in Docker, ensure `stop_grace_period` in `docker-compose.yml` is **greater than or equal to** the shutdown timeout:
+
+```yaml
+services:
+  microservice:
+    stop_grace_period: 30s  # Must be >= GRACEFUL_SHUTDOWN_TIMEOUT_MS
+```
+
+If `stop_grace_period` is less than the shutdown timeout, Docker will forcefully kill the container before graceful shutdown completes.
+
 ## Docker
 
 ```bash

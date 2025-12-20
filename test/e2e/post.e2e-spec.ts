@@ -135,8 +135,9 @@ describe('PostController (e2e)', () => {
       new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
     );
 
-    const apiBasePath = (process.env.API_BASE_PATH || 'api').replace(/^\/+|\/+$/g, '');
-    app.setGlobalPrefix(`${apiBasePath}/v1`);
+    const basePath = (process.env.BASE_PATH || '').replace(/^\/+|\/+$/g, '');
+    const globalPrefix = basePath ? `${basePath}/api/v1` : 'api/v1';
+    app.setGlobalPrefix(globalPrefix);
 
     await app.init();
     await app.getHttpAdapter().getInstance().ready();

@@ -128,7 +128,7 @@ See [API Documentation](docs/api.md) for complete reference.
 | `NODE_ENV` | `development` | Environment mode |
 | `LISTEN_HOST` | `0.0.0.0` | Server bind address |
 | `LISTEN_PORT` | `8080` | Server port |
-| `API_BASE_PATH` | `api` | API base path |
+| `BASE_PATH` | (none) | Base path for the application (API will be at `{BASE_PATH}/api/v1`) |
 | `LOG_LEVEL` | `warn` | Logging level |
 | `CONFIG_PATH` | `./config.yaml` | Path to config file |
 

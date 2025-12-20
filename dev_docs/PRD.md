@@ -46,7 +46,7 @@
 #### Эндпоинт публикации
 
 ```
-POST /{API_BASE_PATH}/v1/post
+POST /{BASE_PATH}/api/v1/post (BASE_PATH опционален, по умолчанию /api/v1/post)
 ```
 
 #### Структура запроса
@@ -354,7 +354,7 @@ interface ErrorResponse {
 #### Валидирует и возвращает предпросмотр того что будет отправлено на платформу
 
 ```
-POST /{API_BASE_PATH}/v1/preview
+POST /{BASE_PATH}/api/v1/preview
 ```
 
 ---
@@ -554,7 +554,7 @@ accounts:
 NODE_ENV=production
 LISTEN_HOST=0.0.0.0
 LISTEN_PORT=8080
-API_BASE_PATH=api
+BASE_PATH=custom-path
 LOG_LEVEL=info
 TZ=UTC
 

@@ -24,11 +24,11 @@ export class AppConfig {
   public host!: string;
 
   /**
-   * Base path for API endpoints
-   * Will be combined with version to form the global prefix
+   * Base path for the application
+   * If set, API will be available at {basePath}/api/v1
    */
   @IsString()
-  public apiBasePath!: string;
+  public basePath!: string;
 
   /**
    * Node environment mode
@@ -49,7 +49,7 @@ export default registerAs('app', (): AppConfig => {
   const config = plainToClass(AppConfig, {
     port: parseInt(process.env.LISTEN_PORT ?? '8080', 10),
     host: process.env.LISTEN_HOST ?? '0.0.0.0',
-    apiBasePath: (process.env.API_BASE_PATH ?? 'api').replace(/^\/+|\/+$/g, ''),
+    basePath: (process.env.BASE_PATH ?? '').replace(/^\/+|\/+$/g, ''),
     nodeEnv: process.env.NODE_ENV ?? 'production',
     logLevel: process.env.LOG_LEVEL ?? 'warn',
   });

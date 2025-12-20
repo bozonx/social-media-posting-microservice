@@ -37,7 +37,8 @@ async function bootstrap() {
   );
 
   // Configure global API prefix from configuration
-  const globalPrefix = `${appConfig.apiBasePath}/v1`;
+  // If BASE_PATH is set, prefix will be BASE_PATH/api/v1, otherwise just api/v1
+  const globalPrefix = appConfig.basePath ? `${appConfig.basePath}/api/v1` : 'api/v1';
   app.setGlobalPrefix(globalPrefix);
 
   // Enable graceful shutdown

@@ -22,7 +22,7 @@ pnpm install
 ### 2. Configure
 
 ```bash
-cp env.production.example .env.production
+cp .env.production.example .env.production
 ```
 
 Edit `config.yaml` with your Telegram credentials:

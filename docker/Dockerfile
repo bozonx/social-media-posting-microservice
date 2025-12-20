@@ -8,7 +8,9 @@ ENV LISTEN_HOST=0.0.0.0
 ENV LISTEN_PORT=8080
 ENV TZ=UTC
 ENV LOG_LEVEL=warn
-ENV CONFIG_PATH=/app/config.yaml
+
+# Install tini for better signal handling
+RUN apk add --no-cache tini
 
 # Install pnpm
 RUN corepack enable
@@ -22,4 +24,5 @@ COPY dist ./dist
 
 EXPOSE 8080
 
+ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["node", "dist/src/main.js"]

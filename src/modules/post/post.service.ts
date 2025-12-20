@@ -7,6 +7,7 @@ import { IdempotencyService } from './idempotency.service.js';
 import { PlatformRegistry } from '../platforms/base/platform-registry.service.js';
 import { AuthValidatorRegistry } from '../platforms/base/auth-validator-registry.service.js';
 import { BasePostService, ResolvedAccountConfig } from './base-post.service.js';
+import { ShutdownService } from '../../common/services/shutdown.service.js';
 
 @Injectable()
 export class PostService extends BasePostService {
@@ -23,6 +24,7 @@ export class PostService extends BasePostService {
     platformRegistry: PlatformRegistry,
     authValidatorRegistry: AuthValidatorRegistry,
     private readonly idempotencyService: IdempotencyService,
+    private readonly shutdownService: ShutdownService,
   ) {
     super(appConfig, platformRegistry, authValidatorRegistry);
   }
@@ -31,9 +33,13 @@ export class PostService extends BasePostService {
    * Publish a post to a social media platform
    * Handles idempotency, platform selection, retry logic, and error handling
    * @param request - Post request with platform, content, and media
+   * @param abortSignal - Optional signal to abort the operation
    * @returns Success response with post details or error response
    */
-  async publish(request: PostRequestDto): Promise<PostResponseDto | ErrorResponseDto> {
+  async publish(
+    request: PostRequestDto,
+    abortSignal?: AbortSignal,
+  ): Promise<PostResponseDto | ErrorResponseDto> {
     const requestId = randomUUID();
     const idempotencyKey = this.idempotencyService.buildKey(request);
     let idempotencyLocked = false;
@@ -90,6 +96,7 @@ export class PostService extends BasePostService {
             () => platform.publish(request, accountConfig),
             this.appConfig.retryAttempts,
             this.appConfig.retryDelayMs,
+            abortSignal,
           ),
         requestTimeoutMs,
       );
@@ -213,6 +220,7 @@ export class PostService extends BasePostService {
    * @param fn - Async function to retry
    * @param maxAttempts - Maximum number of attempts
    * @param baseDelayMs - Base delay in milliseconds
+   * @param abortSignal - Optional signal to abort retry loop
    * @returns Result of successful function execution
    * @throws Last error if all attempts fail
    */
@@ -220,10 +228,23 @@ export class PostService extends BasePostService {
     fn: () => Promise<T>,
     maxAttempts: number,
     baseDelayMs: number,
+    abortSignal?: AbortSignal,
   ): Promise<T> {
     let lastError: any;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      // Check if shutdown is in progress before attempting
+      if (this.shutdownService.shuttingDown) {
+        this.logger.warn('Aborting retry loop: shutdown in progress');
+        throw new Error('Operation aborted due to shutdown');
+      }
+
+      // Check if operation was aborted
+      if (abortSignal?.aborted) {
+        this.logger.warn('Aborting retry loop: abort signal received');
+        throw new Error('Operation aborted');
+      }
+
       try {
         return await fn();
       } catch (error: any) {
@@ -256,7 +277,7 @@ export class PostService extends BasePostService {
           err: error,
         });
 
-        await this.sleep(delay);
+        await this.sleep(delay, abortSignal);
       }
     }
 
@@ -283,11 +304,33 @@ export class PostService extends BasePostService {
   }
 
   /**
-   * Sleep for specified milliseconds
+   * Sleep for specified milliseconds with abort support
    * @param ms - Milliseconds to sleep
-   * @returns Promise that resolves after delay
+   * @param abortSignal - Optional signal to abort sleep
+   * @returns Promise that resolves after delay or rejects if aborted
    */
-  private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  private sleep(ms: number, abortSignal?: AbortSignal): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Check if already aborted
+      if (abortSignal?.aborted) {
+        reject(new Error('Sleep aborted'));
+        return;
+      }
+
+      const timeoutId = setTimeout(() => {
+        if (abortListener) {
+          abortSignal?.removeEventListener('abort', abortListener);
+        }
+        resolve();
+      }, ms);
+
+      // Setup abort listener
+      const abortListener = () => {
+        clearTimeout(timeoutId);
+        reject(new Error('Sleep aborted'));
+      };
+
+      abortSignal?.addEventListener('abort', abortListener);
+    });
   }
 }

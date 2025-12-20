@@ -41,15 +41,15 @@ import { AppConfigModule } from './modules/app-config/app-config.module.js';
             },
             transport: isDev
               ? {
-                  target: 'pino-pretty',
-                  options: {
-                    colorize: true,
-                    singleLine: false,
-                    translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
-                    ignore: 'pid,hostname',
-                    messageFormat: '[{context}] {msg}',
-                  },
-                }
+                target: 'pino-pretty',
+                options: {
+                  colorize: true,
+                  singleLine: false,
+                  translateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss.l'Z'",
+                  ignore: 'pid,hostname',
+                  messageFormat: '[{context}] {msg}',
+                },
+              }
               : undefined,
             serializers: {
               req: req => ({
@@ -113,5 +113,6 @@ import { AppConfigModule } from './modules/app-config/app-config.module.js';
       useClass: ShutdownInterceptor,
     },
   ],
+  exports: [ShutdownService],
 })
-export class AppModule {}
+export class AppModule { }

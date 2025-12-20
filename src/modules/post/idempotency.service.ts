@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, OnModuleDestroy, Logger } from '@nestjs/common';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { createHash } from 'crypto';
 import { AppConfigService } from '../app-config/app-config.service.js';
@@ -19,17 +19,27 @@ interface IdempotencyRecordInternal extends IdempotencyRecord {
 }
 
 @Injectable()
-export class IdempotencyService {
+export class IdempotencyService implements OnModuleDestroy {
   /** Default TTL for idempotency records in cache (10 minutes) */
   private static readonly DEFAULT_IDEMPOTENCY_TTL_MINUTES = 10;
+  /** Cleanup interval in milliseconds (5 minutes) */
+  private static readonly CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
+
+  private readonly logger = new Logger(IdempotencyService.name);
 
   /** In-memory map used for atomic idempotency lock management within a single process */
   private readonly records = new Map<string, IdempotencyRecordInternal>();
 
+  /** Interval handle for periodic cleanup */
+  private cleanupInterval?: ReturnType<typeof setInterval>;
+
   constructor(
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
     private readonly appConfig: AppConfigService,
-  ) { }
+  ) {
+    // Start periodic cleanup of expired records
+    this.startPeriodicCleanup();
+  }
 
   /**
    * Try to acquire processing lock for the given key or return existing record state.
@@ -193,5 +203,65 @@ export class IdempotencyService {
         ? this.appConfig.idempotencyTtlMinutes
         : IdempotencyService.DEFAULT_IDEMPOTENCY_TTL_MINUTES;
     return minutes * 60_000;
+  }
+
+  /**
+   * Start periodic cleanup of expired records
+   * Runs every 5 minutes to prevent memory leaks
+   */
+  private startPeriodicCleanup(): void {
+    this.cleanupInterval = setInterval(() => {
+      this.cleanupExpiredRecords();
+    }, IdempotencyService.CLEANUP_INTERVAL_MS);
+
+    // Don't prevent Node.js from exiting
+    this.cleanupInterval.unref();
+
+    this.logger.log(
+      `Started periodic cleanup (interval: ${IdempotencyService.CLEANUP_INTERVAL_MS}ms)`,
+      'IdempotencyService',
+    );
+  }
+
+  /**
+   * Cleanup expired records from in-memory map
+   * Called periodically to prevent memory leaks
+   */
+  private cleanupExpiredRecords(): void {
+    const now = Date.now();
+    let cleanedCount = 0;
+
+    for (const [key, record] of this.records.entries()) {
+      if (record.expiresAt <= now) {
+        this.records.delete(key);
+        cleanedCount++;
+      }
+    }
+
+    if (cleanedCount > 0) {
+      this.logger.debug(
+        `Cleaned up ${cleanedCount} expired idempotency records. Remaining: ${this.records.size}`,
+        'IdempotencyService',
+      );
+    }
+  }
+
+  /**
+   * Called by NestJS when module is being destroyed
+   * Cleanup interval and clear all records
+   */
+  onModuleDestroy(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = undefined;
+    }
+
+    const recordCount = this.records.size;
+    this.records.clear();
+
+    this.logger.log(
+      `IdempotencyService destroyed. Cleared ${recordCount} records.`,
+      'IdempotencyService',
+    );
   }
 }

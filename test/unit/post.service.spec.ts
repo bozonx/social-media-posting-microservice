@@ -6,6 +6,7 @@ import { AppConfigService } from '@/modules/app-config/app-config.service.js';
 import { IdempotencyService } from '@/modules/post/idempotency.service.js';
 import { PlatformRegistry } from '@/modules/platforms/base/platform-registry.service.js';
 import { AuthValidatorRegistry } from '@/modules/platforms/base/auth-validator-registry.service.js';
+import { ShutdownService } from '@/common/services/shutdown.service.js';
 import type { PostRequestDto, PostResponseDto } from '@/modules/post/dto/index.js';
 import { PostType } from '@/common/enums/index.js';
 
@@ -112,6 +113,13 @@ const createMockAuthValidatorRegistry = () => ({
   validate: jest.fn(),
 });
 
+const createMockShutdownService = () => ({
+  shuttingDown: false,
+  trackRequest: jest.fn(),
+  untrackRequest: jest.fn(),
+  getInFlightRequestsCount: jest.fn().mockReturnValue(0),
+});
+
 // =============================================================================
 // Test Suite
 // =============================================================================
@@ -140,6 +148,7 @@ describe('PostService', () => {
         { provide: PlatformRegistry, useValue: mockPlatformReg },
         { provide: AuthValidatorRegistry, useValue: mockAuthValidatorReg },
         { provide: IdempotencyService, useValue: mockIdempotency },
+        { provide: ShutdownService, useValue: createMockShutdownService() },
       ],
     }).compile();
 

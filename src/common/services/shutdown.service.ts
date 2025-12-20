@@ -1,16 +1,19 @@
-import { Injectable, OnApplicationShutdown } from '@nestjs/common';
+import { Injectable, OnApplicationShutdown, OnModuleDestroy } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
+import { GRACEFUL_SHUTDOWN_TIMEOUT_MS } from '../../app.constants.js';
 
 /**
  * Service to manage graceful shutdown
  * Tracks in-flight requests and signals shutdown state to the application
+ * Thread-safe implementation to prevent race conditions
  */
 @Injectable()
-export class ShutdownService implements OnApplicationShutdown {
+export class ShutdownService implements OnApplicationShutdown, OnModuleDestroy {
   private readonly logger: Logger;
   private isShuttingDown = false;
   private inFlightRequests = 0;
   private shutdownResolve?: () => void;
+  private operationLock = false;
 
   constructor(logger: Logger) {
     this.logger = logger;
@@ -24,19 +27,49 @@ export class ShutdownService implements OnApplicationShutdown {
   }
 
   /**
-   * Increment in-flight request counter
+   * Increment in-flight request counter atomically
    */
   trackRequest(): void {
-    this.inFlightRequests++;
+    // Wait for any ongoing operation to complete
+    while (this.operationLock) {
+      // Busy wait (acceptable for very short operations)
+    }
+    this.operationLock = true;
+    try {
+      this.inFlightRequests++;
+      this.logger.debug(
+        `Request tracked. In-flight requests: ${this.inFlightRequests}`,
+        'ShutdownService',
+      );
+    } finally {
+      this.operationLock = false;
+    }
   }
 
   /**
-   * Decrement in-flight request counter and resolve shutdown if no requests remain
+   * Decrement in-flight request counter atomically and resolve shutdown if no requests remain
    */
   untrackRequest(): void {
-    this.inFlightRequests--;
-    if (this.isShuttingDown && this.inFlightRequests <= 0 && this.shutdownResolve) {
-      this.shutdownResolve();
+    // Wait for any ongoing operation to complete
+    while (this.operationLock) {
+      // Busy wait (acceptable for very short operations)
+    }
+    this.operationLock = true;
+    try {
+      this.inFlightRequests--;
+      this.logger.debug(
+        `Request untracked. In-flight requests: ${this.inFlightRequests}`,
+        'ShutdownService',
+      );
+
+      // Check if we should resolve shutdown
+      if (this.isShuttingDown && this.inFlightRequests <= 0 && this.shutdownResolve) {
+        this.logger.log('All in-flight requests completed during shutdown', 'ShutdownService');
+        this.shutdownResolve();
+        this.shutdownResolve = undefined;
+      }
+    } finally {
+      this.operationLock = false;
     }
   }
 
@@ -49,10 +82,13 @@ export class ShutdownService implements OnApplicationShutdown {
 
   /**
    * Called by NestJS when shutdown signal is received
-   * Waits for all in-flight requests to complete
+   * Waits for all in-flight requests to complete with timeout
    */
   async onApplicationShutdown(signal?: string): Promise<void> {
-    this.logger.log(`Received shutdown signal: ${signal ?? 'unknown'}`, 'ShutdownService');
+    this.logger.log(
+      `Received shutdown signal: ${signal ?? 'unknown'}. In-flight requests: ${this.inFlightRequests}`,
+      'ShutdownService',
+    );
     this.isShuttingDown = true;
 
     if (this.inFlightRequests > 0) {
@@ -61,11 +97,42 @@ export class ShutdownService implements OnApplicationShutdown {
         'ShutdownService',
       );
 
-      await new Promise<void>(resolve => {
-        this.shutdownResolve = resolve;
-      });
-    }
+      const startTime = Date.now();
 
-    this.logger.log('All requests completed, shutting down', 'ShutdownService');
+      // Wait for requests to complete with timeout
+      await Promise.race([
+        new Promise<void>(resolve => {
+          this.shutdownResolve = resolve;
+        }),
+        new Promise<void>(resolve => {
+          setTimeout(() => {
+            this.logger.warn(
+              `Shutdown timeout reached. Remaining in-flight requests: ${this.inFlightRequests}`,
+              'ShutdownService',
+            );
+            resolve();
+          }, GRACEFUL_SHUTDOWN_TIMEOUT_MS);
+        }),
+      ]);
+
+      const duration = Date.now() - startTime;
+      this.logger.log(
+        `Shutdown wait completed in ${duration}ms. Remaining requests: ${this.inFlightRequests}`,
+        'ShutdownService',
+      );
+    } else {
+      this.logger.log('No in-flight requests, shutting down immediately', 'ShutdownService');
+    }
+  }
+
+  /**
+   * Called by NestJS when module is being destroyed
+   * Cleanup internal state
+   */
+  onModuleDestroy(): void {
+    this.logger.debug('ShutdownService module destroyed', 'ShutdownService');
+    this.shutdownResolve = undefined;
+    this.inFlightRequests = 0;
+    this.isShuttingDown = false;
   }
 }

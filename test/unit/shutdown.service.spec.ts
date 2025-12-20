@@ -5,11 +5,13 @@ import { ShutdownService } from '@/common/services/shutdown.service.js';
 
 describe('ShutdownService', () => {
   let service: ShutdownService;
-  let mockLogger: { log: jest.Mock };
+  let mockLogger: { log: jest.Mock; warn: jest.Mock; debug: jest.Mock };
 
   beforeEach(async () => {
     mockLogger = {
       log: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -71,11 +73,11 @@ describe('ShutdownService', () => {
       await service.onApplicationShutdown('SIGTERM');
 
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'Received shutdown signal: SIGTERM',
+        'Received shutdown signal: SIGTERM. In-flight requests: 0',
         'ShutdownService',
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'All requests completed, shutting down',
+        'No in-flight requests, shutting down immediately',
         'ShutdownService',
       );
     });
@@ -112,9 +114,43 @@ describe('ShutdownService', () => {
       await service.onApplicationShutdown();
 
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'Received shutdown signal: unknown',
+        'Received shutdown signal: unknown. In-flight requests: 0',
         'ShutdownService',
       );
+    });
+
+    it('should timeout if requests take too long', async () => {
+      jest.useFakeTimers();
+
+      service.trackRequest();
+
+      const shutdownPromise = service.onApplicationShutdown('SIGTERM');
+
+      // Fast-forward time to trigger timeout
+      jest.advanceTimersByTime(30000);
+
+      await shutdownPromise;
+
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'Shutdown timeout reached. Remaining in-flight requests: 1',
+        'ShutdownService',
+      );
+
+      jest.useRealTimers();
+    });
+  });
+
+  describe('onModuleDestroy', () => {
+    it('should cleanup state', () => {
+      service.trackRequest();
+      service.trackRequest();
+
+      expect(service.getInFlightRequestsCount()).toBe(2);
+
+      service.onModuleDestroy();
+
+      expect(service.getInFlightRequestsCount()).toBe(0);
+      expect(service.shuttingDown).toBe(false);
     });
   });
 });

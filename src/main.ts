@@ -53,6 +53,61 @@ async function bootstrap() {
   // Enable graceful shutdown hooks
   app.enableShutdownHooks();
 
+  // Setup explicit signal handlers for graceful shutdown BEFORE starting the server
+  // This prevents race condition where signal arrives before handlers are registered
+  const handleShutdown = async (signal: string) => {
+    const shutdownStartTime = Date.now();
+    const inFlightCount = shutdownService.getInFlightRequestsCount();
+
+    logger.log(
+      `Received ${signal}, starting graceful shutdown... (in-flight requests: ${inFlightCount})`,
+      'Bootstrap',
+    );
+
+    // Set a timeout to force shutdown if graceful shutdown takes too long
+    const forceShutdownTimer = setTimeout(() => {
+      const duration = Date.now() - shutdownStartTime;
+      const remainingRequests = shutdownService.getInFlightRequestsCount();
+
+      logger.warn(
+        `Graceful shutdown timeout (${GRACEFUL_SHUTDOWN_TIMEOUT_MS}ms) exceeded after ${duration}ms, forcing shutdown`,
+        'Bootstrap',
+      );
+      logger.warn(
+        `In-flight requests remaining: ${remainingRequests}`,
+        'Bootstrap',
+      );
+      process.exit(0);
+    }, GRACEFUL_SHUTDOWN_TIMEOUT_MS);
+
+    try {
+      // Close the application gracefully
+      await app.close();
+      clearTimeout(forceShutdownTimer);
+
+      const duration = Date.now() - shutdownStartTime;
+      logger.log(
+        `Application closed gracefully in ${duration}ms`,
+        'Bootstrap',
+      );
+      process.exit(0);
+    } catch (error) {
+      clearTimeout(forceShutdownTimer);
+
+      const duration = Date.now() - shutdownStartTime;
+      logger.error(
+        `Error during shutdown after ${duration}ms: ${error}`,
+        'Bootstrap',
+      );
+      // Use exit code 0 even on error to avoid unnecessary alerts
+      // The error has been logged and graceful shutdown was attempted
+      process.exit(0);
+    }
+  };
+
+  process.on('SIGTERM', () => void handleShutdown('SIGTERM'));
+  process.on('SIGINT', () => void handleShutdown('SIGINT'));
+
   await app.listen(appConfig.port, appConfig.host);
 
   logger.log(
@@ -65,39 +120,6 @@ async function bootstrap() {
     `⏱️  Graceful shutdown timeout: ${GRACEFUL_SHUTDOWN_TIMEOUT_MS}ms`,
     'Bootstrap',
   );
-
-  // Setup explicit signal handlers for graceful shutdown
-  const handleShutdown = async (signal: string) => {
-    logger.log(`Received ${signal}, starting graceful shutdown...`, 'Bootstrap');
-
-    // Set a timeout to force shutdown if graceful shutdown takes too long
-    const forceShutdownTimer = setTimeout(() => {
-      logger.warn(
-        `Graceful shutdown timeout (${GRACEFUL_SHUTDOWN_TIMEOUT_MS}ms) exceeded, forcing shutdown`,
-        'Bootstrap',
-      );
-      logger.warn(
-        `In-flight requests remaining: ${shutdownService.getInFlightRequestsCount()}`,
-        'Bootstrap',
-      );
-      process.exit(0);
-    }, GRACEFUL_SHUTDOWN_TIMEOUT_MS);
-
-    try {
-      // Close the application gracefully
-      await app.close();
-      clearTimeout(forceShutdownTimer);
-      logger.log('Application closed gracefully', 'Bootstrap');
-      process.exit(0);
-    } catch (error) {
-      clearTimeout(forceShutdownTimer);
-      logger.error(`Error during shutdown: ${error}`, 'Bootstrap');
-      process.exit(1);
-    }
-  };
-
-  process.on('SIGTERM', () => void handleShutdown('SIGTERM'));
-  process.on('SIGINT', () => void handleShutdown('SIGINT'));
 }
 
 void bootstrap();

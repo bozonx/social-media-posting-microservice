@@ -69,9 +69,17 @@ describe('PostController', () => {
 
       (postService.publish as jest.Mock).mockResolvedValue(expectedResponse);
 
-      const result = await controller.publish(request);
+      const mockRequest = {
+        raw: {
+          destroyed: false,
+          aborted: false,
+          on: jest.fn(),
+        },
+      } as any;
 
-      expect(postService.publish).toHaveBeenCalledWith(request);
+      const result = await controller.publish(request, mockRequest);
+
+      expect(postService.publish).toHaveBeenCalledWith(request, expect.any(AbortSignal));
       expect(result).toEqual(expectedResponse);
     });
 
@@ -92,9 +100,17 @@ describe('PostController', () => {
 
       (postService.publish as jest.Mock).mockResolvedValue(errorResponse);
 
-      const result = await controller.publish(request);
+      const mockRequest = {
+        raw: {
+          destroyed: false,
+          aborted: false,
+          on: jest.fn(),
+        },
+      } as any;
 
-      expect(postService.publish).toHaveBeenCalledWith(request);
+      const result = await controller.publish(request, mockRequest);
+
+      expect(postService.publish).toHaveBeenCalledWith(request, expect.any(AbortSignal));
       expect(result).toEqual(errorResponse);
     });
   });

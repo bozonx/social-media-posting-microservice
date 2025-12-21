@@ -193,10 +193,14 @@ describe('PostService', () => {
         expect((result as PostResponseDto).data?.requestId).toBeDefined();
         expect((result as PostResponseDto).data?.publishedAt).toBeDefined();
         expect(appConfigService.getAccount).toHaveBeenCalledWith('test-channel');
-        expect(mockTelegramPlatform.publish).toHaveBeenCalledWith(request, {
-          ...accountConfig,
-          source: 'account',
-        });
+        expect(mockTelegramPlatform.publish).toHaveBeenCalledWith(
+          request,
+          {
+            ...accountConfig,
+            source: 'account',
+          },
+          undefined,
+        );
       });
 
       it('should publish using inline auth', async () => {

@@ -214,6 +214,7 @@ describe('PostController (e2e)', () => {
           platform: 'telegram',
           auth: payload.auth,
         }),
+        expect.anything(),
       );
     });
 
@@ -306,6 +307,7 @@ describe('PostController (e2e)', () => {
           },
           source: 'account',
         }),
+        expect.anything(),
       );
     });
 

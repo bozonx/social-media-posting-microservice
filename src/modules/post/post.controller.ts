@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Req } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, Req, Logger } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 import { PostService } from './post.service.js';
 import { PreviewService } from './preview.service.js';
@@ -12,6 +12,8 @@ import {
 
 @Controller()
 export class PostController {
+  private readonly logger = new Logger(PostController.name);
+
   constructor(
     private readonly postService: PostService,
     private readonly previewService: PreviewService,
@@ -38,24 +40,54 @@ export class PostController {
     const controller = new AbortController();
     const raw = req.raw;
 
+    this.logger.debug({
+      message: 'Creating AbortSignal',
+      metadata: {
+        destroyed: raw.destroyed,
+        aborted: raw.aborted,
+        complete: raw.complete,
+        readableEnded: raw.readableEnded,
+      },
+    });
+
     if (raw.destroyed || raw.aborted) {
+      this.logger.warn({
+        message: 'Request already destroyed/aborted at signal creation',
+        metadata: { destroyed: raw.destroyed, aborted: raw.aborted },
+      });
       controller.abort();
       return controller.signal;
     }
 
     const onAbort = () => {
       if (!controller.signal.aborted) {
+        this.logger.warn({
+          message: 'Aborting request due to client disconnect',
+          metadata: {
+            destroyed: raw.destroyed,
+            aborted: raw.aborted,
+            complete: raw.complete,
+          },
+        });
         controller.abort();
       }
     };
 
-    raw.on('aborted', onAbort);
+    raw.on('aborted', () => {
+      this.logger.warn('raw.on(aborted) event fired');
+      onAbort();
+    });
 
     // Also handle close event - if socket closes prematurely
     raw.on('close', () => {
+      this.logger.debug({
+        message: 'raw.on(close) event fired',
+        metadata: { complete: raw.complete, aborted: raw.aborted },
+      });
       // IncomingMessage emits 'close' also on normal completion.
       // Abort only if the request did not finish receiving its payload.
       if (!raw.complete) {
+        this.logger.warn('Aborting on close: request incomplete');
         onAbort();
       }
     });

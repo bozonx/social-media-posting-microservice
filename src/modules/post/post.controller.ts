@@ -40,54 +40,28 @@ export class PostController {
     const controller = new AbortController();
     const raw = req.raw;
 
-    this.logger.debug({
-      message: 'Creating AbortSignal',
-      metadata: {
-        destroyed: raw.destroyed,
-        aborted: raw.aborted,
-        complete: raw.complete,
-        readableEnded: raw.readableEnded,
-      },
-    });
-
-    if (raw.destroyed || raw.aborted) {
-      this.logger.warn({
-        message: 'Request already destroyed/aborted at signal creation',
-        metadata: { destroyed: raw.destroyed, aborted: raw.aborted },
-      });
+    // raw.destroyed is true after body parsing - this is normal, don't abort on it
+    // Only abort if raw.aborted (client disconnected before body was fully read)
+    if (raw.aborted) {
+      this.logger.warn('Request aborted before body parsing completed');
       controller.abort();
       return controller.signal;
     }
 
     const onAbort = () => {
       if (!controller.signal.aborted) {
-        this.logger.warn({
-          message: 'Aborting request due to client disconnect',
-          metadata: {
-            destroyed: raw.destroyed,
-            aborted: raw.aborted,
-            complete: raw.complete,
-          },
-        });
+        this.logger.warn('Aborting request due to client disconnect during processing');
         controller.abort();
       }
     };
 
-    raw.on('aborted', () => {
-      this.logger.warn('raw.on(aborted) event fired');
-      onAbort();
-    });
+    raw.on('aborted', onAbort);
 
-    // Also handle close event - if socket closes prematurely
+    // Handle close event - abort only if socket closes before request completion
     raw.on('close', () => {
-      this.logger.debug({
-        message: 'raw.on(close) event fired',
-        metadata: { complete: raw.complete, aborted: raw.aborted },
-      });
       // IncomingMessage emits 'close' also on normal completion.
       // Abort only if the request did not finish receiving its payload.
       if (!raw.complete) {
-        this.logger.warn('Aborting on close: request incomplete');
         onAbort();
       }
     });

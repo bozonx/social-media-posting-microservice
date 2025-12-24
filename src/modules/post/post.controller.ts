@@ -15,7 +15,7 @@ export class PostController {
   constructor(
     private readonly postService: PostService,
     private readonly previewService: PreviewService,
-  ) { }
+  ) {}
 
   @Post('post')
   @HttpCode(HttpStatus.OK)
@@ -53,7 +53,11 @@ export class PostController {
 
     // Also handle close event - if socket closes prematurely
     raw.on('close', () => {
-      onAbort();
+      // IncomingMessage emits 'close' also on normal completion.
+      // Abort only if the request did not finish receiving its payload.
+      if (!raw.complete) {
+        onAbort();
+      }
     });
 
     return controller.signal;

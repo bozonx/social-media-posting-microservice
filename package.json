@@ -50,7 +50,8 @@
     "test:debug": "NODE_OPTIONS=--experimental-vm-modules node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand --detectOpenHandles",
     "test:unit:debug": "NODE_OPTIONS=--experimental-vm-modules node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand --selectProjects unit --detectOpenHandles",
     "test:e2e:debug": "NODE_OPTIONS=--experimental-vm-modules node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand --selectProjects e2e --detectOpenHandles",
-    "test:e2e": "NODE_OPTIONS=--experimental-vm-modules jest --selectProjects e2e"
+    "test:e2e": "NODE_OPTIONS=--experimental-vm-modules jest --selectProjects e2e",
+    "lib:publish": "pnpm build:lib && pnpm publish --access public"
   },
   "dependencies": {
     "@nestjs/cache-manager": "^3.0.1",

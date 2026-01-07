@@ -4,7 +4,18 @@ import { YAML_CONFIG_NAMESPACE } from '../../config/yaml.config.js';
 import type { AppConfig, AccountConfig } from './interfaces/app-config.interface.js';
 
 @Injectable()
-export class AppConfigService {
+export abstract class AppConfigService {
+  abstract get<T = any>(path: string): T | undefined;
+  abstract getAccount(accountName: string): AccountConfig;
+  abstract getAllAccounts(): Record<string, AccountConfig>;
+  abstract get requestTimeoutSecs(): number;
+  abstract get retryAttempts(): number;
+  abstract get retryDelayMs(): number;
+  abstract get idempotencyTtlMinutes(): number;
+}
+
+@Injectable()
+export class NestConfigService extends AppConfigService {
   private readonly config: AppConfig;
 
   /**
@@ -13,6 +24,7 @@ export class AppConfigService {
    * @throws Error if YAML configuration section is not loaded
    */
   constructor(private readonly configService: ConfigService) {
+    super();
     const loadedConfig = this.configService.get<AppConfig>(YAML_CONFIG_NAMESPACE);
 
     if (!loadedConfig) {

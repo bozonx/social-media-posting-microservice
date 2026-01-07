@@ -10,6 +10,7 @@ import { PlatformRegistry } from './modules/platforms/base/platform-registry.ser
 import { AuthValidatorRegistry } from './modules/platforms/base/auth-validator-registry.service.js';
 import { IdempotencyService } from './modules/post/idempotency.service.js';
 import { ShutdownService } from './common/services/shutdown.service.js';
+import { LibraryConfigService } from './config/library.config.js';
 import type { PostRequestDto, PostResponseDto, ErrorResponseDto } from './modules/post/dto/index.js';
 import type { PreviewResponseDto, PreviewErrorResponseDto } from './modules/post/dto/index.js';
 import type { AccountConfig } from './modules/app-config/interfaces/app-config.interface.js';
@@ -56,72 +57,6 @@ export interface PostingClient {
    * Cleanup resources and shutdown gracefully
    */
   destroy(): Promise<void>;
-}
-
-/**
- * Library-specific AppConfigService implementation
- * Uses in-memory configuration instead of NestJS ConfigService
- */
-class LibraryAppConfigService {
-  private readonly configData: {
-    requestTimeoutSecs: number;
-    retryAttempts: number;
-    retryDelayMs: number;
-    idempotencyTtlMinutes: number;
-    accounts: Record<string, AccountConfig>;
-  };
-
-  constructor(libraryConfig: LibraryConfig) {
-    this.configData = {
-      requestTimeoutSecs: libraryConfig.requestTimeoutSecs ?? 60,
-      retryAttempts: libraryConfig.retryAttempts ?? 3,
-      retryDelayMs: libraryConfig.retryDelayMs ?? 1000,
-      idempotencyTtlMinutes: libraryConfig.idempotencyTtlMinutes ?? 10,
-      accounts: libraryConfig.accounts,
-    };
-  }
-
-  get<T = any>(path: string): T | undefined {
-    const keys = path.split('.');
-    let value: any = this.configData;
-
-    for (const key of keys) {
-      if (value === undefined || value === null) {
-        return undefined;
-      }
-      value = value[key];
-    }
-
-    return value as T;
-  }
-
-  getAccount(accountName: string): AccountConfig {
-    const account = this.configData.accounts?.[accountName];
-    if (!account) {
-      throw new Error(`Account "${accountName}" not found in configuration`);
-    }
-    return account;
-  }
-
-  getAllAccounts(): Record<string, AccountConfig> {
-    return this.configData.accounts || {};
-  }
-
-  get requestTimeoutSecs(): number {
-    return this.configData.requestTimeoutSecs;
-  }
-
-  get retryAttempts(): number {
-    return this.configData.retryAttempts;
-  }
-
-  get retryDelayMs(): number {
-    return this.configData.retryDelayMs;
-  }
-
-  get idempotencyTtlMinutes(): number {
-    return this.configData.idempotencyTtlMinutes;
-  }
 }
 
 /**
@@ -177,11 +112,7 @@ class LibraryLogger {
  * @returns PostingClient instance ready to use
  */
 export function createPostingClient(config: LibraryConfig): PostingClient {
-  // Validate configuration
-  if (!config.accounts || Object.keys(config.accounts).length === 0) {
-    throw new Error('At least one account must be configured');
-  }
-
+  // Validate configuration happens in LibraryConfigService constructor
   // Set log level
   const logLevel = config.logLevel ?? 'warn';
 
@@ -189,7 +120,7 @@ export function createPostingClient(config: LibraryConfig): PostingClient {
   const logger = new LibraryLogger(logLevel) as any;
 
   // Create app config service
-  const appConfigService = new LibraryAppConfigService(config) as any;
+  const appConfigService = new LibraryConfigService(config);
 
   // Create platform registry and auth validator registry (no constructor args)
   const platformRegistry = new PlatformRegistry();

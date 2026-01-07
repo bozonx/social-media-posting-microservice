@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { AppConfigService } from '@/modules/app-config/app-config.service.js';
+import { NestConfigService } from '@/modules/app-config/nest-config.service.js';
 import { YAML_CONFIG_NAMESPACE } from '@config/yaml.config.js';
 
-describe('AppConfigService', () => {
-  let service: AppConfigService;
+describe('NestConfigService', () => {
+  let service: NestConfigService;
   let configService: ConfigService;
 
   const mockConfig = {
@@ -29,7 +29,7 @@ describe('AppConfigService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        AppConfigService,
+        NestConfigService,
         {
           provide: ConfigService,
           useValue: {
@@ -44,7 +44,7 @@ describe('AppConfigService', () => {
       ],
     }).compile();
 
-    service = module.get<AppConfigService>(AppConfigService);
+    service = module.get<NestConfigService>(NestConfigService);
     configService = module.get<ConfigService>(ConfigService);
   });
 
@@ -57,7 +57,7 @@ describe('AppConfigService', () => {
       get: jest.fn().mockReturnValue(undefined),
     } as unknown as ConfigService;
 
-    expect(() => new AppConfigService(failingConfigService)).toThrow(
+    expect(() => new NestConfigService(failingConfigService)).toThrow(
       `Configuration section "${YAML_CONFIG_NAMESPACE}" is not loaded`,
     );
   });

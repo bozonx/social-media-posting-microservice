@@ -6,6 +6,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { HealthModule } from './modules/health/health.module.js';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
 import { ShutdownService } from './common/services/shutdown.service.js';
+import { ShutdownModule } from './common/services/shutdown.module.js';
 import { ShutdownInterceptor } from './common/interceptors/shutdown.interceptor.js';
 import appConfig from './config/app.config.js';
 import type { AppConfig } from './config/app.config.js';
@@ -99,11 +100,11 @@ import { AppConfigModule } from './modules/app-config/app-config.module.js';
     }),
     HealthModule,
     AppConfigModule,
+    ShutdownModule,
     PostModule,
   ],
   controllers: [],
   providers: [
-    ShutdownService,
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
@@ -113,6 +114,6 @@ import { AppConfigModule } from './modules/app-config/app-config.module.js';
       useClass: ShutdownInterceptor,
     },
   ],
-  exports: [ShutdownService],
+  exports: [ShutdownModule],
 })
 export class AppModule { }

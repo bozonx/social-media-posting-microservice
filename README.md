@@ -206,6 +206,54 @@ docker build -t social-posting:latest -f docker/Dockerfile .
 docker compose -f docker/docker-compose.yml up -d
 ```
 
+## Library Mode
+
+The project can be used as a standalone TypeScript library in other applications.
+
+### Installation
+
+```bash
+npm install social-media-posting-microservice
+# or
+pnpm add social-media-posting-microservice
+```
+
+### Usage
+
+```typescript
+import { createPostingClient } from 'social-media-posting-microservice';
+
+// Initialize the client
+const client = createPostingClient({
+  accounts: {
+    marketing: {
+      platform: 'telegram',
+      auth: {
+        botToken: process.env.BOT_TOKEN,
+        chatId: '@my_channel'
+      }
+    }
+  },
+  logLevel: 'error' // 'debug' | 'info' | 'warn' | 'error'
+});
+
+// Post content
+try {
+  const result = await client.post({
+    account: 'marketing',
+    platform: 'telegram',
+    body: 'Hello from library mode!',
+    bodyFormat: 'text'
+  });
+  console.log('Published:', result);
+} catch (error) {
+  console.error('Failed:', error);
+} finally {
+  // Cleanup resources
+  await client.destroy();
+}
+```
+
 ## Development
 
 ```bash

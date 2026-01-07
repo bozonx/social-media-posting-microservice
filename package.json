@@ -19,6 +19,7 @@
   ],
   "scripts": {
     "build": "nest build",
+    "build:lib": "tsc -p tsconfig.lib.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "NODE_ENV=development nest start --watch",

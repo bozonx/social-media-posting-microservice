@@ -1,30 +1,29 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { Test, type TestingModule } from '@nestjs/testing';
-import { Logger } from 'nestjs-pino';
+import { Logger } from '@nestjs/common';
 import { ShutdownService } from '@/common/services/shutdown.service.js';
 
 describe('ShutdownService', () => {
   let service: ShutdownService;
-  let mockLogger: { log: jest.Mock; warn: jest.Mock; debug: jest.Mock };
+  let logSpy: ReturnType<typeof jest.spyOn>;
+  let warnSpy: ReturnType<typeof jest.spyOn>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let debugSpy: ReturnType<typeof jest.spyOn>;
 
   beforeEach(async () => {
-    mockLogger = {
-      log: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
-    };
+    logSpy = jest.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
+    warnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
+    debugSpy = jest.spyOn(Logger.prototype, 'debug').mockImplementation(() => {});
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ShutdownService,
-        {
-          provide: Logger,
-          useValue: mockLogger,
-        },
-      ],
+      providers: [ShutdownService],
     }).compile();
 
     service = module.get<ShutdownService>(ShutdownService);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('shuttingDown', () => {
@@ -72,11 +71,11 @@ describe('ShutdownService', () => {
     it('should resolve immediately when no in-flight requests', async () => {
       await service.onApplicationShutdown('SIGTERM');
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
+      expect(logSpy).toHaveBeenCalledWith(
         'Received shutdown signal: SIGTERM. In-flight requests: 0',
         'ShutdownService',
       );
-      expect(mockLogger.log).toHaveBeenCalledWith(
+      expect(logSpy).toHaveBeenCalledWith(
         'No in-flight requests, shutting down immediately',
         'ShutdownService',
       );
@@ -94,7 +93,7 @@ describe('ShutdownService', () => {
       // Should not resolve yet
       await Promise.resolve();
       expect(resolved).toBe(false);
-      expect(mockLogger.log).toHaveBeenCalledWith(
+      expect(logSpy).toHaveBeenCalledWith(
         'Waiting for 2 in-flight requests to complete...',
         'ShutdownService',
       );
@@ -113,7 +112,7 @@ describe('ShutdownService', () => {
     it('should handle unknown signal', async () => {
       await service.onApplicationShutdown();
 
-      expect(mockLogger.log).toHaveBeenCalledWith(
+      expect(logSpy).toHaveBeenCalledWith(
         'Received shutdown signal: unknown. In-flight requests: 0',
         'ShutdownService',
       );
@@ -131,7 +130,7 @@ describe('ShutdownService', () => {
 
       await shutdownPromise;
 
-      expect(mockLogger.warn).toHaveBeenCalledWith(
+      expect(warnSpy).toHaveBeenCalledWith(
         'Shutdown timeout reached. Remaining in-flight requests: 1',
         'ShutdownService',
       );

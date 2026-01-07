@@ -1,5 +1,4 @@
-import { Injectable, OnApplicationShutdown, OnModuleDestroy } from '@nestjs/common';
-import { Logger } from 'nestjs-pino';
+import { Injectable, OnApplicationShutdown, OnModuleDestroy, Logger } from '@nestjs/common';
 import { GRACEFUL_SHUTDOWN_TIMEOUT_MS } from '../../app.constants.js';
 
 /**
@@ -9,15 +8,14 @@ import { GRACEFUL_SHUTDOWN_TIMEOUT_MS } from '../../app.constants.js';
  */
 @Injectable()
 export class ShutdownService implements OnApplicationShutdown, OnModuleDestroy {
-  private readonly logger: Logger;
+  private readonly logger = new Logger(ShutdownService.name);
   private isShuttingDown = false;
   private inFlightRequests = 0;
   private shutdownResolve?: () => void;
   private operationLock = false;
 
-  constructor(logger: Logger) {
-    this.logger = logger;
-  }
+  constructor() {}
+
 
   /**
    * Check if the application is shutting down

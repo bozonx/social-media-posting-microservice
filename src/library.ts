@@ -33,6 +33,23 @@ export interface LibraryConfig {
   logLevel?: 'debug' | 'info' | 'warn' | 'error';
 }
 
+// function mapLogLevel ...
+function mapLogLevel(level: string): any[] {
+  // 'debug' | 'info' | 'warn' | 'error'
+  switch (level) {
+    case 'debug':
+      return ['error', 'warn', 'log', 'debug'];
+    case 'info':
+      return ['error', 'warn', 'log'];
+    case 'warn':
+      return ['error', 'warn'];
+    case 'error':
+      return ['error'];
+    default:
+      return ['error', 'warn'];
+  }
+}
+
 /**
  * Posting client interface
  * Main API for library usage
@@ -60,52 +77,6 @@ export interface PostingClient {
 }
 
 /**
- * Simple logger implementation for library mode
- * Compatible with nestjs-pino Logger interface
- */
-class LibraryLogger {
-  private readonly logLevel: string;
-
-  constructor(logLevel: string = 'warn') {
-    this.logLevel = logLevel;
-  }
-
-  private shouldLog(level: string): boolean {
-    const levels = ['debug', 'info', 'warn', 'error'];
-    const currentLevel = levels.indexOf(this.logLevel);
-    const targetLevel = levels.indexOf(level);
-    return targetLevel >= currentLevel;
-  }
-
-  debug(message: any, context?: string): void {
-    if (this.shouldLog('debug')) {
-      console.debug(`[DEBUG]${context ? ` [${context}]` : ''}`, message);
-    }
-  }
-
-  log(message: any, context?: string): void {
-    if (this.shouldLog('info')) {
-      console.log(`[INFO]${context ? ` [${context}]` : ''}`, message);
-    }
-  }
-
-  warn(message: any, context?: string): void {
-    if (this.shouldLog('warn')) {
-      console.warn(`[WARN]${context ? ` [${context}]` : ''}`, message);
-    }
-  }
-
-  error(message: any, trace?: string, context?: string): void {
-    if (this.shouldLog('error')) {
-      console.error(`[ERROR]${context ? ` [${context}]` : ''}`, message);
-      if (trace) {
-        console.error(trace);
-      }
-    }
-  }
-}
-
-/**
  * Create a posting client for library usage
  * Initializes all necessary services without NestJS HTTP server
  * @param config - Library configuration
@@ -115,9 +86,7 @@ export function createPostingClient(config: LibraryConfig): PostingClient {
   // Validate configuration happens in LibraryConfigService constructor
   // Set log level
   const logLevel = config.logLevel ?? 'warn';
-
-  // Create logger
-  const logger = new LibraryLogger(logLevel) as any;
+  NestLogger.overrideLogger(mapLogLevel(logLevel));
 
   // Create app config service
   const appConfigService = new LibraryConfigService(config);
@@ -127,7 +96,7 @@ export function createPostingClient(config: LibraryConfig): PostingClient {
   const authValidatorRegistry = new AuthValidatorRegistry();
 
   // Create shutdown service
-  const shutdownService = new ShutdownService(logger);
+  const shutdownService = new ShutdownService();
 
   // Create in-memory cache manager for idempotency
   const cacheManager = {

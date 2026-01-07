@@ -74,6 +74,11 @@ describe('PostController', () => {
           destroyed: false,
           aborted: false,
           on: jest.fn(),
+          removeListener: jest.fn(),
+          socket: {
+            on: jest.fn(),
+            removeListener: jest.fn(),
+          },
         },
       } as any;
 
@@ -105,6 +110,11 @@ describe('PostController', () => {
           destroyed: false,
           aborted: false,
           on: jest.fn(),
+          removeListener: jest.fn(),
+          socket: {
+            on: jest.fn(),
+            removeListener: jest.fn(),
+          },
         },
       } as any;
 

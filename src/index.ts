@@ -27,3 +27,7 @@ export type { AccountConfig } from './modules/app-config/interfaces/app-config.i
 // Library mode factory
 export { createPostingClient } from './library.js';
 export type { LibraryConfig, PostingClient } from './library.js';
+
+// Logger interfaces
+export type { ILogger } from './common/interfaces/logger.interface.js';
+export { ConsoleLogger } from './common/interfaces/logger.interface.js';

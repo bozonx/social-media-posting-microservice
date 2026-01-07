@@ -11,25 +11,36 @@
 - Предпросмотр постов (preview)
 - Публикация постов
 - Корректное завершение работы (cleanup)
+# Examples
 
-### Запуск примера
+This directory contains usage examples for the social-media-posting-microservice.
 
-```bash
-# Из корневой директории проекта
-pnpm run build
-node --loader ts-node/esm examples/library-basic-usage.ts
-```
+## Library Mode Usage
 
-Или с использованием tsx:
+The `library-basic-usage.ts` file demonstrates various ways to use this package as a library in your TypeScript projects.
 
-```bash
-pnpm add -D tsx
-pnpm exec tsx examples/library-basic-usage.ts
-```
+### Running the Example
 
-## Конфигурация
+1. Build the library:
+   ```bash
+   pnpm build:lib
+   ```
 
-Пример минимальной конфигурации:
+2. Run the example (requires Node.js with ESM support):
+   ```bash
+   node examples/library-basic-usage.ts
+   ```
+
+### What's Included
+
+The example demonstrates:
+
+1. **Basic Usage** - Creating a client with default console logger
+2. **Custom Logger** - Implementing and using a custom logger
+3. **Multiple Accounts** - Managing multiple social media accounts
+4. **Error Handling** - Proper error handling patterns
+
+### Quick Start
 
 ```typescript
 import { createPostingClient } from 'social-media-posting-microservice';
@@ -39,77 +50,99 @@ const client = createPostingClient({
     myBot: {
       platform: 'telegram',
       auth: {
-        botToken: 'YOUR_BOT_TOKEN',
+        botToken: 'YOUR_BOT_TOKEN'
       },
-    },
-  },
+      channelId: '@your_channel'
+    }
+  }
 });
-```
 
-Пример полной конфигурации:
-
-```typescript
-const client = createPostingClient({
-  // Обязательно: настройка аккаунтов
-  accounts: {
-    telegramChannel: {
-      platform: 'telegram',
-      auth: {
-        botToken: 'YOUR_BOT_TOKEN',
-      },
-      channelId: '@yourchannel',
-      maxBody: 4000,
-    },
-  },
-  
-  // Опционально: таймауты и повторы
-  requestTimeoutSecs: 60,      // Таймаут запроса (по умолчанию: 60)
-  retryAttempts: 3,             // Количество повторов (по умолчанию: 3)
-  retryDelayMs: 1000,           // Задержка между повторами (по умолчанию: 1000)
-  
-  // Опционально: идемпотентность
-  idempotencyTtlMinutes: 10,    // TTL для кэша идемпотентности (по умолчанию: 10)
-  
-  // Опционально: уровень логирования
-  logLevel: 'info',             // 'debug' | 'info' | 'warn' | 'error' (по умолчанию: 'warn')
-});
-```
-
-## API клиента
-
-### `client.post(request)`
-
-Публикация поста на платформу.
-
-```typescript
-const result = await client.post({
-  platform: 'telegram',
+// Preview a post
+const result = await client.preview({
   account: 'myBot',
-  body: 'Hello, World!',
-  type: PostType.POST,
-  bodyFormat: BodyFormat.TEXT,
-  
-  // Опционально: идемпотентность
-  idempotencyKey: 'unique-key-001',
-  
-  // Опционально: медиа
-  cover: {
-    src: 'https://example.com/image.jpg',
-  },
-  
-  // Опционально: параметры платформы
-  options: {
-    // telegram-специфичные опции
-  },
+  platform: 'telegram',
+  body: 'Hello, world!'
 });
 
-if (result.success) {
-  console.log('Post published:', result.data.postId);
-  console.log('URL:', result.data.url);
+console.log(result);
+
+// Cleanup
+await client.destroy();
+```
+
+## Configuration
+
+All configuration is passed programmatically when creating the client. The library does **not** use environment variables or external configuration files - providing complete isolation.
+
+### Available Options
+
+- `accounts` - Account configurations (required)
+- `requestTimeoutSecs` - Request timeout in seconds (default: 60)
+- `retryAttempts` - Number of retry attempts (default: 3)
+- `retryDelayMs` - Delay between retries in ms (default: 1000)
+- `idempotencyTtlMinutes` - TTL for idempotency cache (default: 10)
+- `logLevel` - Logging level: 'debug' | 'info' | 'warn' | 'error' (default: 'warn')
+- `logger` - Custom logger implementation (optional)
+
+### Custom Logger Example
+
+```typescript
+import { createPostingClient, ILogger } from 'social-media-posting-microservice';
+
+const myLogger: ILogger = {
+  debug: (msg, ctx) => console.log(`[DEBUG] ${msg}`),
+  log: (msg, ctx) => console.log(`[INFO] ${msg}`),
+  warn: (msg, ctx) => console.warn(`[WARN] ${msg}`),
+  error: (msg, trace, ctx) => console.error(`[ERROR] ${msg}`, trace)
+};
+
+const client = createPostingClient({
+  accounts: { /* ... */ },
+  logger: myLogger
+});
+```
+
+## Features
+
+### Isolation
+
+The library is completely isolated:
+- ✅ Uses only the configuration you provide
+- ✅ No environment variables are read
+- ✅ No external configuration files
+- ✅ Multiple instances can coexist independently
+
+### Type Safety
+
+Full TypeScript support with exported types:
+- `LibraryConfig` - Configuration interface
+- `PostingClient` - Client interface
+- `ILogger` - Logger interface
+- `PostRequestDto`, `PostResponseDto`, etc.
+
+### Error Handling
+
+The library returns structured error responses instead of throwing exceptions:
+
+```typescript
+const result = await client.preview({...});
+
+if ('error' in result) {
+  console.error('Error:', result.error, result.message);
 } else {
-  console.error('Error:', result.error.message);
+  console.log('Success:', result.detectedType);
 }
 ```
+
+## Additional Resources
+
+- [Main README](../README.md) - Project overview
+- [API Documentation](../docs/api.md) - Complete API reference
+- [Development Guide](../docs/dev.md) - Development information
+
+## Support
+
+For issues and questions, please open an issue on the GitHub repository.
 
 ### `client.preview(request)`
 

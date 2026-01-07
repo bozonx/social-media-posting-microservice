@@ -1,7 +1,17 @@
 {
   "name": "social-media-posting-microservice",
-  "version": "1.0.0",
-  "description": "Social media posting microservice with multi-platform support",
+  "version": "1.1.0",
+  "description": "Social media posting library and microservice with multi-platform support",
+  "keywords": [
+    "social-media",
+    "posting",
+    "telegram",
+    "library",
+    "microservice",
+    "nestjs",
+    "bot",
+    "automation"
+  ],
   "type": "module",
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
@@ -10,6 +20,13 @@
       "types": "./dist/src/index.d.ts",
       "import": "./dist/src/index.js",
       "default": "./dist/src/index.js"
+    },
+    "./library": {
+      "types": "./dist/src/library.d.ts",
+      "import": "./dist/src/library.js"
+    },
+    "./types": {
+      "types": "./dist/src/index.d.ts"
     }
   },
   "files": [

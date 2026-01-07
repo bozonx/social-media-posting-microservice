@@ -14,6 +14,7 @@ import { LibraryConfigService } from './config/library.config.js';
 import type { PostRequestDto, PostResponseDto, ErrorResponseDto } from './modules/post/dto/index.js';
 import type { PreviewResponseDto, PreviewErrorResponseDto } from './modules/post/dto/index.js';
 import type { AccountConfig } from './modules/app-config/interfaces/app-config.interface.js';
+import { ILogger, ConsoleLogger } from './common/interfaces/logger.interface.js';
 
 /**
  * Configuration for library mode
@@ -31,6 +32,8 @@ export interface LibraryConfig {
   idempotencyTtlMinutes?: number;
   /** Log level (default: 'warn') */
   logLevel?: 'debug' | 'info' | 'warn' | 'error';
+  /** Custom logger implementation (default: ConsoleLogger) */
+  logger?: ILogger;
 }
 
 // function mapLogLevel ...
@@ -84,9 +87,19 @@ export interface PostingClient {
  */
 export function createPostingClient(config: LibraryConfig): PostingClient {
   // Validate configuration happens in LibraryConfigService constructor
-  // Set log level
+  // Use custom logger if provided, otherwise create ConsoleLogger
   const logLevel = config.logLevel ?? 'warn';
-  NestLogger.overrideLogger(mapLogLevel(logLevel));
+  const logger = config.logger ?? new ConsoleLogger(logLevel);
+
+  // Override NestJS logger to use our custom logger
+  // This ensures all NestJS services use the provided logger
+  NestLogger.overrideLogger({
+    log: (message: string, context?: string) => logger.log(message, context),
+    error: (message: string, trace?: string, context?: string) => logger.error(message, trace, context),
+    warn: (message: string, context?: string) => logger.warn(message, context),
+    debug: (message: string, context?: string) => logger.debug(message, context),
+    verbose: (message: string, context?: string) => logger.log(message, context),
+  });
 
   // Create app config service
   const appConfigService = new LibraryConfigService(config);
@@ -149,3 +162,4 @@ export function createPostingClient(config: LibraryConfig): PostingClient {
     },
   };
 }
+

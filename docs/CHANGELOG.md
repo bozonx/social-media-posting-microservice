@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Library Mode**: Support for using the package as a standalone TypeScript library.
+  - `createPostingClient`: New entry point for programmatic usage without NestJS HTTP server.
+  - Full configuration isolation (no environment variables or external YAML files read).
+  - Explicit exports for services, DTOs, and types.
+- **Customizable Logging**:
+  - `ILogger` interface for injecting custom logger implementations.
+  - `ConsoleLogger` with configurable log levels.
 - **Automatic Type Detection (`type: auto`)**: New default post type that automatically determines the Telegram API method based on provided media fields
   - Priority order: `media[]` → `document` → `audio` → `video` → `cover` → text message
   - Validation for ambiguous media fields (multiple conflicting media types)

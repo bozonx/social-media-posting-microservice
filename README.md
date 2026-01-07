@@ -229,9 +229,9 @@ const client = createPostingClient({
     marketing: {
       platform: 'telegram',
       auth: {
-        botToken: process.env.BOT_TOKEN,
-        chatId: '@my_channel'
-      }
+        botToken: process.env.BOT_TOKEN
+      },
+      channelId: '@my_channel'
     }
   },
   logLevel: 'error' // 'debug' | 'info' | 'warn' | 'error'

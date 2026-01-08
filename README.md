@@ -788,15 +788,15 @@ Key features of library mode:
 ### Installation
 
 ```bash
-npm install social-media-posting-microservice
+npm install bozonx-social-media-posting
 # or
-pnpm add social-media-posting-microservice
+pnpm add bozonx-social-media-posting
 ```
 
 ### Quick Start
 
 ```typescript
-import { createPostingClient } from 'social-media-posting-microservice';
+import { createPostingClient } from 'bozonx-social-media-posting';
 
 const client = createPostingClient({
   accounts: {
@@ -877,7 +877,7 @@ Gracefully shuts down the client, cleaning up any timers or internal resources. 
 You can provide your own logger by implementing the `ILogger` interface:
 
 ```typescript
-import { ILogger, createPostingClient } from 'social-media-posting-microservice';
+import { ILogger, createPostingClient } from 'bozonx-social-media-posting';
 
 class MyLogger implements ILogger {
   debug(msg: string, ctx?: string) { /* ... */ }

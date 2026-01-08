@@ -15,6 +15,10 @@ import type { PostRequestDto, PostResponseDto, ErrorResponseDto } from './module
 import type { PreviewResponseDto, PreviewErrorResponseDto } from './modules/post/dto/index.js';
 import type { AccountConfig } from './modules/app-config/interfaces/app-config.interface.js';
 import { ILogger, ConsoleLogger } from './common/interfaces/logger.interface.js';
+import { TelegramPlatform } from './modules/platforms/telegram/telegram.platform.js';
+import { TelegramAuthValidator } from './modules/platforms/telegram/telegram-auth.validator.js';
+import { TelegramTypeDetector } from './modules/platforms/telegram/telegram-type-detector.service.js';
+import { MediaService } from './modules/media/media.service.js';
 
 /**
  * Configuration for library mode
@@ -107,6 +111,18 @@ export function createPostingClient(config: LibraryConfig): PostingClient {
   // Create platform registry and auth validator registry (no constructor args)
   const platformRegistry = new PlatformRegistry();
   const authValidatorRegistry = new AuthValidatorRegistry();
+
+  // Create platform dependencies
+  const mediaService = new MediaService();
+  const telegramTypeDetector = new TelegramTypeDetector();
+
+  // Create platform instances
+  const telegramPlatform = new TelegramPlatform(mediaService, telegramTypeDetector);
+  const telegramAuthValidator = new TelegramAuthValidator();
+
+  // Register platforms and auth validators
+  platformRegistry.register(telegramPlatform);
+  authValidatorRegistry.register(telegramAuthValidator);
 
   // Create shutdown service
   const shutdownService = new ShutdownService();

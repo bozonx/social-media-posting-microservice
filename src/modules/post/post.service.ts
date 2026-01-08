@@ -170,9 +170,20 @@ export class PostService extends BasePostService {
     if (error instanceof BadRequestException) {
       return ErrorCode.VALIDATION_ERROR;
     }
-    if (error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
+
+    const message = error.message || '';
+    const isNetworkError =
+      error.code === 'ENOTFOUND' ||
+      error.code === 'ETIMEDOUT' ||
+      error.code === 'ECONNRESET' ||
+      error.code === 'ECONNREFUSED' ||
+      message.includes('Network request') ||
+      message.includes('fetch failed');
+
+    if (isNetworkError) {
       return ErrorCode.TIMEOUT_ERROR;
     }
+
     if (error.response?.status === 429) {
       return ErrorCode.RATE_LIMIT_ERROR;
     }
@@ -335,7 +346,16 @@ export class PostService extends BasePostService {
    * @returns True if should retry, false otherwise
    */
   private shouldRetry(error: any): boolean {
-    if (error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
+    const message = error?.message || '';
+    const isNetworkError =
+      error.code === 'ENOTFOUND' ||
+      error.code === 'ETIMEDOUT' ||
+      error.code === 'ECONNRESET' ||
+      error.code === 'ECONNREFUSED' ||
+      message.includes('Network request') ||
+      message.includes('fetch failed');
+
+    if (isNetworkError) {
       return true;
     }
     if (error.response?.status >= 500) {

@@ -14,7 +14,7 @@ async function basicUsage() {
       myTelegramBot: {
         platform: 'telegram',
         auth: {
-          botToken: 'YOUR_BOT_TOKEN_HERE', // Replace with actual bot token
+          apiKey: 'YOUR_BOT_TOKEN_HERE', // Replace with actual bot token
         },
         channelId: '@yourchannelname', // Replace with your channel
       },
@@ -69,7 +69,7 @@ async function customLoggerUsage() {
       myBot: {
         platform: 'telegram',
         auth: {
-          botToken: process.env.BOT_TOKEN || 'YOUR_BOT_TOKEN_HERE',
+          apiKey: process.env.BOT_TOKEN || 'YOUR_BOT_TOKEN_HERE',
         },
         channelId: '@yourchannel',
       },
@@ -102,14 +102,14 @@ async function multipleAccountsUsage() {
       marketing: {
         platform: 'telegram',
         auth: {
-          botToken: process.env.MARKETING_BOT_TOKEN || 'TOKEN1',
+          apiKey: process.env.MARKETING_BOT_TOKEN || 'TOKEN1',
         },
         channelId: '@marketing_channel',
       },
       support: {
         platform: 'telegram',
         auth: {
-          botToken: process.env.SUPPORT_BOT_TOKEN || 'TOKEN2',
+          apiKey: process.env.SUPPORT_BOT_TOKEN || 'TOKEN2',
         },
         channelId: '@support_channel',
       },
@@ -150,7 +150,7 @@ async function errorHandlingUsage() {
       test: {
         platform: 'telegram',
         auth: {
-          botToken: 'test_token',
+          apiKey: 'test_token',
         },
         channelId: '123',
       },

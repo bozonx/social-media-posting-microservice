@@ -803,7 +803,7 @@ const client = createPostingClient({
     marketing: {
       platform: 'telegram',
       auth: {
-        botToken: 'YOUR_BOT_TOKEN'
+        apiKey: 'YOUR_BOT_TOKEN'
       },
       channelId: '@my_channel'
     }
@@ -841,7 +841,7 @@ The `createPostingClient` function accepts a `LibraryConfig` object.
 
 Each account must follow the `AccountConfig` interface:
 - `platform`: `'telegram'` (more coming soon)
-- `auth`: Platform-specific authentication (e.g., `{ botToken: string }` for Telegram)
+- `auth`: Platform-specific authentication (e.g., `{ apiKey: string }` for Telegram)
 - `channelId`: Target identifier (e.g., `@channel` or numeric ID)
 - `maxBody`: (Optional) Limit for body length.
 

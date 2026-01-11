@@ -1,46 +1,32 @@
 # Examples - Library Mode Usage
 
-Эта директория содержит примеры использования `social-media-posting-microservice` в качестве библиотеки в TypeScript/ESM проектах.
+This directory contains examples of using `social-media-posting-microservice` as a library in TypeScript projects.
 
-## Базовый пример
+## Basic Example
 
-Файл: [`library-basic-usage.ts`](./library-basic-usage.ts)
+File: [`library-basic-usage.ts`](./library-basic-usage.ts)
 
-Демонстрирует основные возможности библиотечного режима:
-- Создание клиента с программной конфигурацией
-- Предпросмотр постов (preview)
-- Публикация постов
-- Корректное завершение работы (cleanup)
-# Examples
+Demonstrates the main features of the library mode:
+- Creating a client with programmatic configuration
+- Previewing posts
+- Publishing posts
+- Graceful shutdown (cleanup)
 
-This directory contains usage examples for the social-media-posting-microservice.
+## Running the Example
 
-## Library Mode Usage
+1. **Build the library**:
 
-The `library-basic-usage.ts` file demonstrates various ways to use this package as a library in your TypeScript projects.
-
-### Running the Example
-
-1. Build the library:
    ```bash
    pnpm build:lib
    ```
 
-2. Run the example (requires Node.js with ESM support):
+2. **Run the example** (requires Node.js with ESM support):
+
    ```bash
    node examples/library-basic-usage.ts
    ```
 
-### What's Included
-
-The example demonstrates:
-
-1. **Basic Usage** - Creating a client with default console logger
-2. **Custom Logger** - Implementing and using a custom logger
-3. **Multiple Accounts** - Managing multiple social media accounts
-4. **Error Handling** - Proper error handling patterns
-
-### Quick Start
+## Quick Start
 
 ```typescript
 import { createPostingClient } from 'social-media-posting-microservice';
@@ -50,7 +36,7 @@ const client = createPostingClient({
     myBot: {
       platform: 'telegram',
       auth: {
-        botToken: 'YOUR_BOT_TOKEN'
+        apiKey: 'YOUR_BOT_TOKEN'
       },
       channelId: '@your_channel'
     }
@@ -76,13 +62,15 @@ All configuration is passed programmatically when creating the client. The libra
 
 ### Available Options
 
-- `accounts` - Account configurations (required)
-- `requestTimeoutSecs` - Request timeout in seconds (default: 60)
-- `retryAttempts` - Number of retry attempts (default: 3)
-- `retryDelayMs` - Delay between retries in ms (default: 1000)
-- `idempotencyTtlMinutes` - TTL for idempotency cache (default: 10)
-- `logLevel` - Logging level: 'debug' | 'info' | 'warn' | 'error' (default: 'warn')
-- `logger` - Custom logger implementation (optional)
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `accounts` | `Record<string, AccountConfig>` | **Required** | Account configurations |
+| `requestTimeoutSecs` | `number` | `60` | Request timeout in seconds |
+| `retryAttempts` | `number` | `3` | Number of retry attempts |
+| `retryDelayMs` | `number` | `1000` | Delay between retries in ms |
+| `idempotencyTtlMinutes` | `number` | `10` | TTL for idempotency cache |
+| `logLevel` | `'debug' \| 'info' \| 'warn' \| 'error'` | `'warn'` | Logging level |
+| `logger` | `ILogger` | `ConsoleLogger` | Custom logger implementation |
 
 ### Custom Logger Example
 
@@ -102,53 +90,15 @@ const client = createPostingClient({
 });
 ```
 
-## Features
-
-### Isolation
-
-The library is completely isolated:
-- ✅ Uses only the configuration you provide
-- ✅ No environment variables are read
-- ✅ No external configuration files
-- ✅ Multiple instances can coexist independently
-
-### Type Safety
-
-Full TypeScript support with exported types:
-- `LibraryConfig` - Configuration interface
-- `PostingClient` - Client interface
-- `ILogger` - Logger interface
-- `PostRequestDto`, `PostResponseDto`, etc.
-
-### Error Handling
-
-The library returns structured error responses instead of throwing exceptions:
-
-```typescript
-const result = await client.preview({...});
-
-if ('error' in result) {
-  console.error('Error:', result.error, result.message);
-} else {
-  console.log('Success:', result.detectedType);
-}
-```
-
-## Additional Resources
-
-- [Main README](../README.md) - Project overview
-- [API Documentation](../docs/api.md) - Complete API reference
-- [Development Guide](../docs/dev.md) - Development information
-
-## Support
-
-For issues and questions, please open an issue on the GitHub repository.
+## API Reference & Examples
 
 ### `client.preview(request)`
 
-Предпросмотр поста без публикации (валидация).
+Preview a post without publishing (validation).
 
 ```typescript
+import { PostType } from 'social-media-posting-microservice';
+
 const result = await client.preview({
   platform: 'telegram',
   account: 'myBot',
@@ -169,77 +119,78 @@ if (result.success && result.data.valid) {
 
 ### `client.destroy()`
 
-Корректное завершение работы и освобождение ресурсов.
+Gracefully shuts down and releases resources.
 
 ```typescript
 await client.destroy();
 ```
 
-## Типы постов
+### Post Types (`PostType`)
 
-Поддерживаемые типы постов (enum `PostType`):
+Supported post types:
 
-- `POST` - Текстовый пост
-- `IMAGE` - Пост с изображением
-- `VIDEO` - Пост с видео
-- `AUDIO` - Пост с аудио
-- `DOCUMENT` - Пост с документом
-- `ALBUM` - Пост с несколькими медиа
-- `ARTICLE` - Статья (для платформ, которые поддерживают)
-- `AUTO` - Автоматическое определение типа
+- `POST` - Text post
+- `IMAGE` - Post with image
+- `VIDEO` - Post with video
+- `AUDIO` - Post with audio
+- `DOCUMENT` - Post with document
+- `ALBUM` - Post with multiple media
+- `ARTICLE` - Article (for supported platforms)
+- `AUTO` - Automatic type detection
 
-## Форматы текста
+### Body Formats (`BodyFormat`)
 
-Поддерживаемые форматы (enum `BodyFormat`):
+Supported text formats:
 
-- `TEXT` - Простой текст
-- `HTML` - HTML разметка
+- `TEXT` - Plain text
+- `HTML` - HTML markup
 - `MARKDOWN` - Markdown
 
-## Error Handling
+### Error Handling
 
 ```typescript
 try {
   const result = await client.post(request);
   
   if (!result.success) {
-    // Обработка ошибок публикации
+    // Handle publication errors
     console.error('Error code:', result.error.code);
     console.error('Message:', result.error.message);
     console.error('Details:', result.error.details);
   }
 } catch (error) {
-  // Обработка системных ошибок (например, ошибка конфигурации)
+  // Handle system errors (e.g., configuration error)
   console.error('System error:', error);
 }
 ```
 
-## Идемпотентность
+### Idempotency
 
-Используйте `idempotencyKey` для предотвращения дублирования постов:
+Use `idempotencyKey` to prevent duplicate posts:
 
 ```typescript
 const result = await client.post({
   platform: 'telegram',
   account: 'myBot',
   body: 'Important announcement',
-  idempotencyKey: 'announcement-2026-01-07-v1', // Уникальный ключ
+  idempotencyKey: 'announcement-2026-01-07-v1', // Unique key
 });
 
-// При повторном вызове с тем же ключом вернется кэшированный результат
+// Repeating the call with the same key will return the cached result
 const cachedResult = await client.post({
   platform: 'telegram',
   account: 'myBot',
   body: 'Important announcement',
-  idempotencyKey: 'announcement-2026-01-07-v1', // Тот же ключ
+  idempotencyKey: 'announcement-2026-01-07-v1', // Same key
 });
 ```
 
-## Дополнительные примеры
+## Features
 
-Планируется добавить:
-- [ ] Пример с множественными аккаунтами
-- [ ] Пример с различными типами медиа
-- [ ] Пример с обработкой ошибок
-- [ ] Пример интеграции с Express/Fastify
-- [ ] Пример использования в батч-обработке
+- **Isolation**: Uses only provided configuration, no env vars or global state.
+- **Type Safety**: Full TypeScript support with exported types.
+- **Error Handling**: Structured error responses.
+
+## Additional Resources
+
+- [Main README](../README.md)

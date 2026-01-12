@@ -199,7 +199,7 @@ describe('PostService', () => {
             ...accountConfig,
             source: 'account',
           },
-          undefined,
+          expect.any(AbortSignal),
         );
       });
 

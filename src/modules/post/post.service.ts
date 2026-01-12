@@ -137,23 +137,43 @@ export class PostService extends BasePostService {
         err: error, // Full error object with stack trace
       });
 
-      const errorResponse: ErrorResponseDto = {
-        success: false,
-        error: {
-          code: this.getErrorCode(error),
-          message: error.message,
-          details: error.response?.data,
-          raw: error.response,
-          requestId,
-        },
-      };
+      try {
+        const errorResponse: ErrorResponseDto = {
+          success: false,
+          error: {
+            code: this.getErrorCode(error),
+            message: error.message,
+            details: {
+              code: error.code || error.error?.code || error.cause?.code,
+              originalMessage: error.error?.message || error.cause?.message,
+              // grammY specific info
+              ...(error.payload && { payload: error.payload }),
+              ...(error.description && { description: error.description }),
+              ...error.response?.data,
+            },
+            raw: error.response || error,
+            requestId,
+          },
+        };
 
-      // Always update idempotency record if we locked it
-      if (idempotencyKey && idempotencyLocked) {
-        await this.idempotencyService.setCompleted(idempotencyKey, errorResponse);
+        // Always update idempotency record if we locked it
+        if (idempotencyKey && idempotencyLocked) {
+          await this.idempotencyService.setCompleted(idempotencyKey, errorResponse);
+        }
+
+        return errorResponse;
+      } catch (innerError: any) {
+        // Emergency catch if something fails during error processing
+        this.logger.error('Critical failure in error handler', innerError);
+        return {
+          success: false,
+          error: {
+            code: ErrorCode.INTERNAL_ERROR,
+            message: error?.message || 'Unknown internal error',
+            requestId,
+          },
+        } as ErrorResponseDto;
       }
-
-      return errorResponse;
     }
   }
 
@@ -172,9 +192,16 @@ export class PostService extends BasePostService {
     }
 
     const message = error.message || '';
-    const code = error.code;
+    // Look for code in standard locations and grammY's HttpError (error.error) or generic cause
+    const code = error.code || error.error?.code || error.cause?.code;
 
-    if (code === 'ETIMEDOUT' || message.includes('timed out') || message.includes('TIMEOUT')) {
+    if (
+      code === 'ETIMEDOUT' ||
+      code === 'TIMEOUT' ||
+      code === 'UND_ERR_HEADERS_TIMEOUT' ||
+      message.includes('timed out') ||
+      message.includes('TIMEOUT')
+    ) {
       return ErrorCode.TIMEOUT_ERROR;
     }
 
@@ -183,22 +210,27 @@ export class PostService extends BasePostService {
       code === 'ECONNRESET' ||
       code === 'ECONNREFUSED' ||
       code === 'EAI_AGAIN' ||
+      code === 'EADDRNOTAVAIL' ||
       message.includes('Network request') ||
-      message.includes('fetch failed');
+      message.includes('fetch failed') ||
+      message.includes('undici');
 
     if (isNetworkError) {
       return ErrorCode.NETWORK_ERROR;
     }
 
-    if (error.response?.status === 429) {
+    // GrammY/Platform specific errors
+    const status = error.response?.status || error.payload?.error_code;
+    if (status === 429) {
       return ErrorCode.RATE_LIMIT_ERROR;
     }
-    if (error.response?.status >= 500) {
-      return ErrorCode.PLATFORM_ERROR;
-    }
-    if (error.response?.status === 401 || error.response?.status === 403) {
+    if (status === 401 || status === 403) {
       return ErrorCode.AUTH_ERROR;
     }
+    if (status >= 500) {
+      return ErrorCode.PLATFORM_ERROR;
+    }
+
     return ErrorCode.PLATFORM_ERROR;
   }
 

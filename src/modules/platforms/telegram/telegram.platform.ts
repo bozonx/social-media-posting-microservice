@@ -90,89 +90,107 @@ export class TelegramPlatform implements IPlatform {
       },
     });
 
+    const startTime = Date.now();
     let result: any;
 
-    switch (actualType) {
-      case PostType.POST:
-        result = await this.sendMessage(
-          bot,
-          chatId,
-          processedBody!, // Validated in validateRequest
-          parseMode,
-          disableNotification,
-          options,
-        );
-        break;
+    try {
+      switch (actualType) {
+        case PostType.POST:
+          result = await this.sendMessage(
+            bot,
+            chatId,
+            processedBody!, // Validated in validateRequest
+            parseMode,
+            disableNotification,
+            options,
+          );
+          break;
 
-      case PostType.IMAGE:
-        result = await this.sendPhoto(
-          bot,
-          chatId,
-          request.cover!,
-          processedBody,
-          parseMode,
-          disableNotification,
-          options,
-        );
-        break;
+        case PostType.IMAGE:
+          result = await this.sendPhoto(
+            bot,
+            chatId,
+            request.cover!,
+            processedBody,
+            parseMode,
+            disableNotification,
+            options,
+          );
+          break;
 
-      case PostType.VIDEO:
-        result = await this.sendVideo(
-          bot,
-          chatId,
-          request.video!,
-          processedBody,
-          parseMode,
-          disableNotification,
-          options,
-        );
-        break;
+        case PostType.VIDEO:
+          result = await this.sendVideo(
+            bot,
+            chatId,
+            request.video!,
+            processedBody,
+            parseMode,
+            disableNotification,
+            options,
+          );
+          break;
 
-      case PostType.AUDIO:
-        result = await this.sendAudio(
-          bot,
-          chatId,
-          request.audio!,
-          processedBody,
-          parseMode,
-          disableNotification,
-          options,
-        );
-        break;
+        case PostType.AUDIO:
+          result = await this.sendAudio(
+            bot,
+            chatId,
+            request.audio!,
+            processedBody,
+            parseMode,
+            disableNotification,
+            options,
+          );
+          break;
 
-      case PostType.DOCUMENT:
-        result = await this.sendDocument(
-          bot,
-          chatId,
-          request.document!,
-          processedBody,
-          parseMode,
-          disableNotification,
-          options,
-        );
-        break;
+        case PostType.DOCUMENT:
+          result = await this.sendDocument(
+            bot,
+            chatId,
+            request.document!,
+            processedBody,
+            parseMode,
+            disableNotification,
+            options,
+          );
+          break;
 
-      case PostType.ALBUM:
-        result = await this.sendMediaGroup(
-          bot,
-          chatId,
-          request.media!,
-          processedBody,
-          parseMode,
-          disableNotification,
-        );
-        break;
+        case PostType.ALBUM:
+          result = await this.sendMediaGroup(
+            bot,
+            chatId,
+            request.media!,
+            processedBody,
+            parseMode,
+            disableNotification,
+          );
+          break;
 
-      default:
-        throw new BadRequestException(`Unsupported post type: ${actualType}`);
+        default:
+          throw new BadRequestException(`Unsupported post type: ${actualType}`);
+      }
+    } catch (error: any) {
+      const duration = Date.now() - startTime;
+      this.logger.error({
+        message: `Telegram API request failed after ${duration}ms`,
+        metadata: {
+          chatId,
+          type: actualType,
+          durationMs: duration,
+          errorCode: error.code || error.error?.code,
+          errorStatus: error.response?.status || error.payload?.error_code,
+        },
+      });
+      throw error;
     }
 
+    const totalDuration = Date.now() - startTime;
     this.logger.log({
-      message: `Published to Telegram`,
+      message: `Published to Telegram (${totalDuration}ms)`,
       metadata: {
         platform: request.platform,
         channelId: chatId,
         type: actualType,
+        durationMs: totalDuration,
       },
     });
 

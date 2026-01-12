@@ -95,12 +95,12 @@ export class PostService extends BasePostService {
       }
 
       const result: any = await this.executeWithRequestTimeout(
-        () =>
+        (combinedSignal) =>
           this.retryWithJitter(
-            () => platform.publish(request, accountConfig, abortSignal),
+            () => platform.publish(request, accountConfig, combinedSignal),
             this.appConfig.retryAttempts,
             this.appConfig.retryDelayMs,
-            abortSignal,
+            combinedSignal,
           ),
         requestTimeoutMs,
         abortSignal,
@@ -251,7 +251,7 @@ export class PostService extends BasePostService {
   }
 
   private async executeWithRequestTimeout<T>(
-    fn: () => Promise<T>,
+    fn: (signal: AbortSignal) => Promise<T>,
     timeoutMs: number,
     signal?: AbortSignal,
   ): Promise<T> {
@@ -262,9 +262,9 @@ export class PostService extends BasePostService {
       throw new Error('Request aborted by client');
     }
 
-    // Listener for external signal
+    // Link external signal to our internal controller
     const onAbort = () => {
-      abortController.abort();
+      abortController.abort(signal?.reason || new Error('Request aborted by client'));
     };
 
     if (signal) {
@@ -273,26 +273,16 @@ export class PostService extends BasePostService {
 
     try {
       return await Promise.race<T>([
-        fn(),
+        fn(abortController.signal),
         new Promise<T>((_, reject) => {
           timeoutHandle = setTimeout(() => {
             const error: any = new Error(`Request timed out after ${timeoutMs}ms`);
             error.code = 'ETIMEDOUT';
+            abortController.abort(error);
             reject(error);
           }, timeoutMs);
         }),
-        new Promise<T>((_, reject) => {
-          if (signal) {
-            signal.addEventListener('abort', () => {
-              const error: any = new Error('Request aborted by client');
-              error.code = 'ABORT_ERR';
-              reject(error);
-            }, { once: true });
-          }
-        })
       ]);
-    } catch (e) {
-      throw e;
     } finally {
       if (timeoutHandle) {
         clearTimeout(timeoutHandle);

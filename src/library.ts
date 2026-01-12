@@ -98,11 +98,16 @@ export function createPostingClient(config: LibraryConfig): PostingClient {
   // Override NestJS logger to use our custom logger
   // This ensures all NestJS services use the provided logger
   NestLogger.overrideLogger({
-    log: (message: string, context?: string) => logger.log(message, context),
-    error: (message: string, trace?: string, context?: string) => logger.error(message, trace, context),
-    warn: (message: string, context?: string) => logger.warn(message, context),
-    debug: (message: string, context?: string) => logger.debug(message, context),
-    verbose: (message: string, context?: string) => logger.log(message, context),
+    log: (message: any, context?: string) =>
+      logger.log(typeof message === 'object' ? JSON.stringify(message) : message, context),
+    error: (message: any, trace?: string, context?: string) =>
+      logger.error(typeof message === 'object' ? JSON.stringify(message) : message, trace, context),
+    warn: (message: any, context?: string) =>
+      logger.warn(typeof message === 'object' ? JSON.stringify(message) : message, context),
+    debug: (message: any, context?: string) =>
+      logger.debug(typeof message === 'object' ? JSON.stringify(message) : message, context),
+    verbose: (message: any, context?: string) =>
+      logger.log(typeof message === 'object' ? JSON.stringify(message) : message, context),
   });
 
   // Create app config service

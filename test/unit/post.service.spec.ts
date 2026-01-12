@@ -448,6 +448,9 @@ describe('PostService', () => {
     it.each([
       [new BadRequestException('test'), 'VALIDATION_ERROR'],
       [{ code: 'ETIMEDOUT' }, 'TIMEOUT_ERROR'],
+      [{ code: 'ENOTFOUND' }, 'NETWORK_ERROR'],
+      [{ code: 'ECONNREFUSED' }, 'NETWORK_ERROR'],
+      [{ code: 'EAI_AGAIN' }, 'NETWORK_ERROR'],
       [{ response: { status: 429 } }, 'RATE_LIMIT_ERROR'],
       [{ response: { status: 503 } }, 'PLATFORM_ERROR'],
       [{ response: { status: 401 } }, 'AUTH_ERROR'],

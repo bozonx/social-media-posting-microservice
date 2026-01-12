@@ -172,16 +172,22 @@ export class PostService extends BasePostService {
     }
 
     const message = error.message || '';
+    const code = error.code;
+
+    if (code === 'ETIMEDOUT' || message.includes('timed out') || message.includes('TIMEOUT')) {
+      return ErrorCode.TIMEOUT_ERROR;
+    }
+
     const isNetworkError =
-      error.code === 'ENOTFOUND' ||
-      error.code === 'ETIMEDOUT' ||
-      error.code === 'ECONNRESET' ||
-      error.code === 'ECONNREFUSED' ||
+      code === 'ENOTFOUND' ||
+      code === 'ECONNRESET' ||
+      code === 'ECONNREFUSED' ||
+      code === 'EAI_AGAIN' ||
       message.includes('Network request') ||
       message.includes('fetch failed');
 
     if (isNetworkError) {
-      return ErrorCode.TIMEOUT_ERROR;
+      return ErrorCode.NETWORK_ERROR;
     }
 
     if (error.response?.status === 429) {

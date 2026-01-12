@@ -17,6 +17,8 @@ import type { AccountConfig } from '../../app-config/interfaces/app-config.inter
 export interface TelegramAccountConfig extends AccountConfig {
   /** Whether to disable notifications for this account by default */
   disableNotification?: boolean;
+  /** API request timeout in seconds (passed to grammY client as timeoutSeconds) */
+  apiTimeoutSeconds?: number;
 }
 
 @Injectable()
@@ -66,13 +68,27 @@ export class TelegramPlatform implements IPlatform {
     }
 
     const { apiKey } = accountConfig.auth;
-    const bot = new Bot(apiKey);
+    const bot = new Bot(apiKey, {
+      client: {
+        ...(accountConfig.apiTimeoutSeconds && { timeoutSeconds: accountConfig.apiTimeoutSeconds }),
+      },
+    });
     const chatId = this.resolveChatId(request, accountConfig);
 
     const { processedBody, parseMode, disableNotification, options } = this.prepareMessageData(
       request,
       accountConfig,
     );
+
+    this.logger.debug({
+      message: 'Sending to Telegram',
+      metadata: {
+        chatId,
+        type: actualType,
+        apiTimeoutSeconds: accountConfig.apiTimeoutSeconds,
+        disableNotification,
+      },
+    });
 
     let result: any;
 

@@ -356,7 +356,8 @@ Media fields accept only object format with `src` property and additional option
 | `VALIDATION_ERROR` | Invalid request parameters |
 | `AUTH_ERROR` | Authentication failed |
 | `PLATFORM_ERROR` | Platform API error |
-| `TIMEOUT_ERROR` | Request timeout |
+| `TIMEOUT_ERROR` | Request timed out (total operation limit or platform API timeout) |
+| `NETWORK_ERROR` | Network connectivity issues (DNS failure, connection refused, etc.) |
 | `RATE_LIMIT_ERROR` | Rate limit exceeded |
 | `INTERNAL_ERROR` | Internal server error |
 
@@ -510,7 +511,14 @@ Any other `bodyFormat` value is passed directly as-is to the `parse_mode` parame
 
 The `options` field accepts platform-specific parameters that are passed directly to the Telegram Bot API without transformation. Use the exact field names from the [Telegram Bot API documentation](https://core.telegram.org/bots/api).
 
-Common options:
+Common options for Telegram account in `config.yaml`:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `apiTimeoutSeconds` | number | Optional: API request timeout in seconds (passed to grammY). Default is 500. |
+| `disableNotification` | boolean | Optional: Send messages silently by default. |
+
+Common inline options in request:
 
 ```typescript
 {

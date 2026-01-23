@@ -6,6 +6,18 @@ import { InputFile } from 'grammy';
  * Helper class for working with MediaInput
  */
 export class MediaInputHelper {
+  private static normalizeSrc(src: string): string {
+    const normalized = src.trim();
+    if (normalized.length === 0) {
+      throw new BadRequestException('MediaInput.src must not be empty');
+    }
+    return normalized;
+  }
+
+  private static looksLikeHttpUrl(str: string): boolean {
+    return /^https?:\/\//i.test(str.trim());
+  }
+
   /**
    * Check if a string is a valid URL
    * @param str - String to check
@@ -13,14 +25,12 @@ export class MediaInputHelper {
    */
   private static isValidUrl(str: string): boolean {
     try {
-      new URL(str);
-      return true;
+      const url = new URL(str.trim());
+      return url.protocol === 'http:' || url.protocol === 'https:';
     } catch {
       return false;
     }
   }
-
-
 
   /**
    * Type guard to check if MediaInput is an object with src property
@@ -39,7 +49,8 @@ export class MediaInputHelper {
    */
   static getUrl(input: MediaInput): string | undefined {
     if (this.isObject(input)) {
-      return this.isValidUrl(input.src) ? input.src : undefined;
+      const src = this.normalizeSrc(input.src);
+      return this.isValidUrl(src) ? src : undefined;
     }
     return undefined;
   }
@@ -52,7 +63,11 @@ export class MediaInputHelper {
    */
   static getFileId(input: MediaInput): string | undefined {
     if (this.isObject(input)) {
-      return this.isValidUrl(input.src) ? undefined : input.src;
+      const src = this.normalizeSrc(input.src);
+      if (this.looksLikeHttpUrl(src) && !this.isValidUrl(src)) {
+        throw new BadRequestException('Invalid media URL in MediaInput.src');
+      }
+      return this.isValidUrl(src) ? undefined : src;
     }
     return undefined;
   }
@@ -101,7 +116,9 @@ export class MediaInputHelper {
       return url;
     }
 
-    throw new BadRequestException('MediaInput must be either a string or an object with src property');
+    throw new BadRequestException(
+      'MediaInput must be either a string or an object with src property',
+    );
   }
 
   /**
@@ -111,7 +128,7 @@ export class MediaInputHelper {
    */
   static isValidShape(input: any): boolean {
     if (typeof input === 'object' && input !== null) {
-      return typeof input.src === 'string' && input.src.length > 0;
+      return typeof input.src === 'string' && input.src.trim().length > 0;
     }
     return false;
   }

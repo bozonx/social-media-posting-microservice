@@ -3,7 +3,6 @@ import { MediaInputHelper } from '@/common/helpers/media-input.helper.js';
 import { BadRequestException } from '@nestjs/common';
 
 describe('MediaInputHelper', () => {
-
   describe('isObject', () => {
     it('should return true for object with src (URL)', () => {
       expect(MediaInputHelper.isObject({ src: 'https://example.com/image.jpg' })).toBe(true);
@@ -43,6 +42,12 @@ describe('MediaInputHelper', () => {
 
     it('should return undefined for object with URL src', () => {
       expect(MediaInputHelper.getFileId({ src: 'https://example.com/image.jpg' })).toBeUndefined();
+    });
+
+    it('should throw BadRequestException for invalid URL that looks like http(s) URL', () => {
+      expect(() => MediaInputHelper.getFileId({ src: 'https://example.com/\nimage.jpg' })).toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -94,6 +99,22 @@ describe('MediaInputHelper', () => {
     it('should return URL when src is URL', () => {
       const result = MediaInputHelper.toTelegramInput({ src: 'https://example.com/image.jpg' });
       expect(result).toBe('https://example.com/image.jpg');
+    });
+
+    it('should trim src for URLs', () => {
+      const result = MediaInputHelper.toTelegramInput({ src: '  https://example.com/image.jpg  ' });
+      expect(result).toBe('https://example.com/image.jpg');
+    });
+
+    it('should trim src for fileId', () => {
+      const result = MediaInputHelper.toTelegramInput({ src: '  AgACAgIAAxkBAAIC...  ' });
+      expect(result).toBe('AgACAgIAAxkBAAIC...');
+    });
+
+    it('should throw BadRequestException for invalid URL that looks like http(s) URL', () => {
+      expect(() =>
+        MediaInputHelper.toTelegramInput({ src: 'https://example.com/\nimage.jpg' }),
+      ).toThrow(BadRequestException);
     });
 
     it('should throw BadRequestException when src is missing', () => {

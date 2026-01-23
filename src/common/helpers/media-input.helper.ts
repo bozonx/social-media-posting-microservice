@@ -6,10 +6,14 @@ import { InputFile } from 'grammy';
  * Helper class for working with MediaInput
  */
 export class MediaInputHelper {
-  private static normalizeSrc(src: string): string {
+  private static normalizeSrc(src: unknown): string {
+    if (typeof src !== 'string') {
+      throw new BadRequestException('MediaInput.src must be a non-empty string');
+    }
+
     const normalized = src.trim();
     if (normalized.length === 0) {
-      throw new BadRequestException('MediaInput.src must not be empty');
+      throw new BadRequestException('MediaInput.src must be a non-empty string');
     }
     return normalized;
   }
@@ -25,7 +29,12 @@ export class MediaInputHelper {
    */
   private static isValidUrl(str: string): boolean {
     try {
-      const url = new URL(str.trim());
+      const trimmed = str.trim();
+      if (/\s/.test(trimmed)) {
+        return false;
+      }
+
+      const url = new URL(trimmed);
       return url.protocol === 'http:' || url.protocol === 'https:';
     } catch {
       return false;

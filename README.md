@@ -41,11 +41,11 @@ Edit `config.yaml` with your Telegram credentials:
 
 ```yaml
 accounts:
-  my_account:
+  company_telegram:
     platform: telegram
     auth:
       apiKey: ${MY_TELEGRAM_TOKEN}  # or direct value
-    channelId: "@my_channel"
+    channelId: "@your_channel_username"
 ```
 
 ### 3. Run
@@ -66,7 +66,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "account": "my_channel",
+    "account": "company_telegram",
     "body": "<b>Hello!</b> This is a test post",
     "bodyFormat": "html"
   }'
@@ -79,7 +79,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "account": "my_channel",
+    "account": "company_telegram",
     "body": "Check out this image!",
     "cover": {
       "src": "https://example.com/image.jpg"
@@ -94,7 +94,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "account": "my_channel",
+    "account": "company_telegram",
     "body": "Photo gallery",
     "media": [
       { "src": "https://example.com/photo1.jpg" },
@@ -110,7 +110,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "account": "my_channel",
+    "account": "company_telegram",
     "body": "Sensitive content",
     "cover": {
       "src": "https://example.com/image.jpg",
@@ -128,6 +128,12 @@ http://localhost:8080/{BASE_PATH}/api/v1
 ```
 
 *By default, `BASE_PATH` is unset, making the base URL `http://localhost:8080/api/v1`.*
+
+If you set `BASE_PATH=custom-path`, the base URL becomes:
+
+```
+http://localhost:8080/custom-path/api/v1
+```
 
 ### Endpoints
 
@@ -206,14 +212,14 @@ In addition to the fields listed in the table, the `auth` object may contain **a
 // Use channel config entirely
 {
   "platform": "telegram",
-  "account": "my_channel",
+  "account": "company_telegram",
   "body": "Hello"
 }
 
 // Override only channelId (string format)
 {
   "platform": "telegram",
-  "account": "my_channel",
+  "account": "company_telegram",
   "channelId": "@different_channel",
   "body": "Hello"
 }
@@ -224,7 +230,7 @@ In addition to the fields listed in the table, the `auth` object may contain **a
   "auth": {
     "apiKey": "123456789:ABC-DEF..."
   },
-  "channelId": "@my_channel",
+  "channelId": "@your_channel_username",
   "body": "Hello"
 }
 ```
@@ -386,6 +392,8 @@ Same as `/post`. The `idempotencyKey` field is ignored.
   }
 }
 ```
+
+Note: For Telegram, no conversion is performed. `convertedBody` is the same as the input `body` and `targetFormat` reflects the requested `bodyFormat`.
 
 #### Error Response
 
@@ -576,7 +584,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "account": "my_channel",
+    "account": "company_telegram",
     "body": "New podcast",
     "audio": {
       "src": "https://example.com/podcast.mp3"
@@ -591,7 +599,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "account": "my_channel",
+    "account": "company_telegram",
     "body": "Monthly report",
     "document": {
       "src": "https://example.com/report.pdf"
@@ -606,7 +614,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "account": "my_channel",
+    "account": "company_telegram",
     "body": "Reposting video",
     "video": {
       "src": "BAACAgIAAxkBAAIC4mF9..."
@@ -621,7 +629,7 @@ curl -X POST http://localhost:8080/api/v1/post \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "account": "my_channel",
+    "account": "company_telegram",
     "body": "Check our website!",
     "options": {
       "reply_markup": {
@@ -645,7 +653,7 @@ curl -X POST http://localhost:8080/api/v1/post \
     "auth": {
       "apiKey": "123456:ABC..."
     },
-    "channelId": "@my_channel"
+    "channelId": "@your_channel_username"
   }'
 ```
 
@@ -656,7 +664,7 @@ curl -X POST http://localhost:8080/api/v1/preview \
   -H "Content-Type: application/json" \
   -d '{
     "platform": "telegram",
-    "account": "my_channel",
+    "account": "company_telegram",
     "body": "# Hello\n\nThis is **bold**",
     "bodyFormat": "md"
   }'
@@ -669,7 +677,7 @@ When `idempotencyKey` is provided:
 1. Key is combined with payload and hashed
 2. Stored in in-memory cache with TTL (`idempotencyTtlMinutes`)
 3. Duplicate requests within TTL:
-   - If processing → `409 Conflict`
+   - If processing → returns a regular `200 OK` response with `success: false` and `error.code = VALIDATION_ERROR`
    - If completed → cached response returned
 
 **Limitations:**
@@ -723,11 +731,11 @@ retryAttempts: 3
 retryDelayMs: 1000
 idempotencyTtlMinutes: 10
 accounts:
-  my_account:
+  company_telegram:
     platform: telegram
     auth:
       apiKey: ${MY_TELEGRAM_TOKEN}
-    channelId: "@my_channel"
+    channelId: "@your_channel_username"
     maxBody: 100000  # Optional: account-specific limit; request maxBody can override it (up to hard limit 500000)
 ```
 
@@ -813,7 +821,7 @@ const client = createPostingClient({
       auth: {
         apiKey: 'YOUR_BOT_TOKEN'
       },
-      channelId: '@my_channel'
+      channelId: '@your_channel_username'
     }
   }
 });
@@ -868,13 +876,15 @@ A promise that resolves to either success data or an error object. It **does not
 
 #### `client.preview(request)`
 
-Validates the request and performs content conversion (e.g., Markdown to HTML) without publishing.
+Validates the request without publishing.
 
 **Parameters:**
 - `request`: PostRequestDto
 
 **Returns:**
 A promise resolving to a preview result including `detectedType`, `convertedBody`, and any `warnings`.
+
+Note: For Telegram, `convertedBody` is currently the same as the input `body` (no conversion). The `bodyFormat` is mapped to Telegram `parse_mode` during publishing; preview exposes this via `targetFormat`.
 
 #### `client.destroy()`
 
@@ -1001,9 +1011,11 @@ pnpm build:lib
 ## Docker
 
 ```bash
-pnpm build
-docker build -t social-posting:latest -f docker/Dockerfile .
+# Run the prebuilt image (recommended)
 docker compose -f docker/docker-compose.yml up -d
+
+# Or build a local image
+docker build -t social-posting:latest -f docker/Dockerfile .
 ```
 
 ## License

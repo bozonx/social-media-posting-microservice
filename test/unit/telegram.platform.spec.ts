@@ -438,6 +438,22 @@ describe('TelegramPlatform', () => {
       );
     });
 
+    it('should throw error when using Telegram file_id in album without explicit type', async () => {
+      const request: PostRequestDto = {
+        platform: 'telegram',
+        body: 'Album caption',
+        bodyFormat: 'html',
+        media: [{ src: 'BAACAgIAAxkBAAIC...' }],
+        type: PostType.ALBUM,
+      };
+
+      await expect(platform.publish(request, mockAccountConfig)).rejects.toThrow(
+        "Media item at index 0 must specify 'type' when using Telegram file_id in albums",
+      );
+
+      expect(mockApi.sendMediaGroup).not.toHaveBeenCalled();
+    });
+
     it('should respect explicit media type for album items', async () => {
       const request: PostRequestDto = {
         platform: 'telegram',

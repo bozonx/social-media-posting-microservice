@@ -42,7 +42,7 @@ export class TelegramPlatform implements IPlatform {
   constructor(
     private readonly mediaService: MediaService,
     private readonly typeDetector: TelegramTypeDetector,
-  ) { }
+  ) {}
 
   async publish(
     request: PostRequestDto,
@@ -444,6 +444,12 @@ export class TelegramPlatform implements IPlatform {
       if (!mediaInput) {
         throw new BadRequestException(
           `Media item at index ${index} must have either url or fileId`,
+        );
+      }
+
+      if (!url && fileId && !explicitType) {
+        throw new BadRequestException(
+          `Media item at index ${index} must specify 'type' when using Telegram file_id in albums`,
         );
       }
 

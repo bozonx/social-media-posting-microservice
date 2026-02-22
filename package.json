@@ -1,6 +1,6 @@
 {
   "name": "bozonx-social-media-posting",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Social media posting library and microservice with multi-platform support",
   "keywords": [
     "social-media",
@@ -38,8 +38,7 @@
     "build": "nest build",
     "build:lib": "tsc -p tsconfig.lib.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
-    "start:dev": "NODE_ENV=development nest start --watch",
+    "dev": "NODE_ENV=development nest start --watch",
     "start:debug": "NODE_ENV=development nest start --debug --watch",
     "start:prod": "NODE_ENV=production node dist/src/main.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
@@ -97,7 +96,7 @@
   "author": "Ivan K",
   "license": "MIT",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=24.0.0"
   },
-  "packageManager": "pnpm@10.13.1"
+  "packageManager": "pnpm@10.30.1"
 }

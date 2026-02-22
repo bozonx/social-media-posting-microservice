@@ -8,7 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-
+- **Bearer Token Authentication**:
+  - Optional API authentication using `AUTH_BEARER_TOKENS` environment variable.
+  - Supports multiple comma-separated tokens.
+  - Global `BearerAuthGuard` with `@Public()` decorator support for bypassing auth.
 - **Library Mode**: Support for using the package as a standalone TypeScript library.
   - `createPostingClient`: New entry point for programmatic usage without NestJS HTTP server.
   - Full configuration isolation (no environment variables or external YAML files read).

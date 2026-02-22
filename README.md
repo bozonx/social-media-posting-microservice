@@ -7,6 +7,7 @@ A stateless microservice for publishing content to social media platforms throug
 - **Unified API** — Single endpoint for all platforms
 - **Telegram Support** — Posts, images, videos, albums, documents, audio
 - **Auto Type Detection** — Automatically determines post type from media fields
+- **Bearer Auth** — Optional token-based authentication for API requests
 - **Idempotency** — Prevents duplicate posts with `idempotencyKey`
 - **Retry Logic** — Automatic retries with jitter for transient errors
 - **YAML Config** — Environment variable substitution support
@@ -137,11 +138,13 @@ http://localhost:8080/custom-path/api/v1
 
 ### Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/post` | Publish content to a platform |
-| POST | `/preview` | Validate and preview without publishing |
-| GET | `/health` | Health check |
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/post` | Bearer* | Publish content to a platform |
+| POST | `/preview` | Bearer* | Validate and preview without publishing |
+| GET | `/health` | Public | Health check |
+
+*\* Auth is required ONLY if `AUTH_BEARER_TOKENS` environment variable is set.*
 
 ### POST /post
 
@@ -719,6 +722,7 @@ retryDelayMs: 1000
 | `LISTEN_PORT` | `8080` | Server port |
 | `BASE_PATH` | (none) | Base path for the application (API will be at `{BASE_PATH}/api/v1`) |
 | `LOG_LEVEL` | `warn` | Logging level |
+| `AUTH_BEARER_TOKENS` | (none) | Comma-separated list of allowed Bearer tokens for API authentication. If not set, authentication is disabled. |
 | `CONFIG_PATH` | `./config.yaml` | Path to config file |
 
 ### Config File (`config.yaml`)

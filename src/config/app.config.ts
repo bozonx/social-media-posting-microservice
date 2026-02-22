@@ -1,5 +1,5 @@
 import { registerAs } from '@nestjs/config';
-import { IsInt, IsString, IsIn, Min, Max, validateSync } from 'class-validator';
+import { IsInt, IsString, IsIn, Min, Max, IsOptional, IsArray, validateSync } from 'class-validator';
 import { plainToClass } from 'class-transformer';
 
 /**
@@ -43,15 +43,28 @@ export class AppConfig {
    */
   @IsIn(['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent'])
   public logLevel!: string;
+
+  /**
+   * List of allowed Bearer tokens for API authentication
+   */
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  public authBearerTokens?: string[];
 }
 
 export default registerAs('app', (): AppConfig => {
+  const authBearerTokens = process.env.AUTH_BEARER_TOKENS
+    ? process.env.AUTH_BEARER_TOKENS.split(',').map(token => token.trim()).filter(token => token.length > 0)
+    : undefined;
+
   const config = plainToClass(AppConfig, {
     port: parseInt(process.env.LISTEN_PORT ?? '8080', 10),
     host: process.env.LISTEN_HOST ?? '0.0.0.0',
     basePath: (process.env.BASE_PATH ?? '').replace(/^\/+|\/+$/g, ''),
     nodeEnv: process.env.NODE_ENV ?? 'production',
     logLevel: process.env.LOG_LEVEL ?? 'warn',
+    authBearerTokens,
   });
 
   const errors = validateSync(config, {
